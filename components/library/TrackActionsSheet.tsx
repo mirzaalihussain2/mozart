@@ -35,10 +35,7 @@ export function TrackActionsSheet({ title, onClose, onShare, onDelete, deleting 
           <span className={`${RING} border-danger`}>
             <TrashIcon size={20} strokeWidth={1.8} />
           </span>
-          <span className="flex flex-col gap-0.5">
-            <span className="text-base font-semibold">{deleting ? "Deleting…" : "Delete"}</span>
-            <span className="text-text-secondary text-[13px]">Anyone with the link won’t be able to play it</span>
-          </span>
+          <span className="text-base font-semibold">{deleting ? "Deleting…" : "Delete"}</span>
         </button>
         {failed ? (
           <p role="alert" className="text-danger m-0 px-1 pt-1 text-[13px]">
