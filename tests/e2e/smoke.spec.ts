@@ -1,0 +1,60 @@
+import { expect, test } from "@playwright/test";
+
+// Milestone 1: landing (01-01), dummy login, Spotify fallback, logout,
+// protected /create, /api/me and returnTo validation.
+
+test("landing shows the headline and both buttons", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Make music from what you already love." })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Connect Spotify to get started" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Log in" })).toBeVisible();
+});
+
+test("Log in lands on /create as Ali, and Log out returns to /", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Log in" }).click();
+  await expect(page).toHaveURL("/create");
+  await expect(page.getByText("Signed in as Ali")).toBeVisible();
+
+  await page.getByRole("button", { name: "Log out" }).click();
+  await expect(page).toHaveURL("/");
+  await expect(page.getByRole("button", { name: "Log in" })).toBeVisible();
+});
+
+test("Connect Spotify signs in as Ali (silent fallback)", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Connect Spotify to get started" }).click();
+  await expect(page).toHaveURL("/create");
+  await expect(page.getByText("Signed in as Ali")).toBeVisible();
+});
+
+test("signed-in visitors to / are sent to /create", async ({ page }) => {
+  await page.request.post("/auth/dummy");
+  await page.goto("/");
+  await expect(page).toHaveURL("/create");
+});
+
+test("/create redirects to / when signed out", async ({ page }) => {
+  await page.goto("/create");
+  await expect(page).toHaveURL("/");
+});
+
+test("/api/me returns null signed out and Ali signed in", async ({ request }) => {
+  expect(await (await request.get("/api/me")).json()).toEqual({ user: null });
+
+  await request.post("/auth/dummy");
+  const { user } = await (await request.get("/api/me")).json();
+  expect(user).toMatchObject({ firstName: "Ali", displayName: "Ali", avatarUrl: null });
+  expect(typeof user.id).toBe("string");
+});
+
+test("returnTo is honoured for same-site paths and ignored otherwise", async ({ request }) => {
+  const location = async (url: string, method: "get" | "post") =>
+    (await request[method](url, { maxRedirects: 0 })).headers()["location"];
+
+  expect(await location("/auth/dummy?returnTo=/track/cruel-bolly", "post")).toBe("/track/cruel-bolly");
+  expect(await location("/auth/dummy?returnTo=//evil.com", "post")).toBe("/create");
+  expect(await location("/auth/spotify/login?returnTo=//evil.com", "get")).toBe("/create");
+  expect(await location("/auth/spotify/login?returnTo=https://evil.com", "get")).toBe("/create");
+  expect(await location("/auth/spotify/login?returnTo=/%5Cevil.com", "get")).toBe("/create");
+});
