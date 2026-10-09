@@ -12,7 +12,7 @@ export default async function LandingPage() {
 
   return (
     <main className="relative h-dvh min-h-[680px] overflow-hidden">
-      <div className="absolute top-[60px] left-6 text-2xl font-bold tracking-[-0.01em]">Mozart</div>
+      <div className="absolute top-[60px] left-6 text-2xl leading-[30px] font-bold tracking-[-0.01em]">Mozart</div>
 
       <StackedArtwork />
 
@@ -41,12 +41,13 @@ export default async function LandingPage() {
   );
 }
 
+// Sizes include the 1px border: the design boxes are content-box (140/170 + 2).
 function StackedArtwork() {
   return (
     <div aria-hidden="true" className="absolute top-1/2 left-1/2 h-[220px] w-[300px] -translate-1/2">
-      <div className="bg-surface border-raised rounded-art-lg absolute top-[45px] left-0 size-[140px] -rotate-8 border" />
-      <div className="bg-surface border-raised rounded-art-lg absolute top-[45px] left-[160px] size-[140px] rotate-8 border" />
-      <div className="bg-raised border-border rounded-art-lg absolute top-[25px] left-[65px] flex size-[170px] items-center justify-center border">
+      <div className="bg-surface border-raised rounded-art-lg absolute top-[45px] left-0 size-[142px] -rotate-8 border" />
+      <div className="bg-surface border-raised rounded-art-lg absolute top-[45px] left-[160px] size-[142px] rotate-8 border" />
+      <div className="bg-raised border-border rounded-art-lg absolute top-[25px] left-[65px] flex size-[172px] items-center justify-center border">
         <svg
           width="48"
           height="48"
