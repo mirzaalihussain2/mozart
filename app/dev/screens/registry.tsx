@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Player } from "@/components/audio/Player";
 import { CreateHome } from "@/components/creation/CreateHome";
 import { GeneratingScreen } from "@/components/creation/GeneratingScreen";
 import { SomethingNew } from "@/components/creation/SomethingNew";
@@ -12,6 +13,7 @@ import {
   LIBRARY_ROWS,
   NEW_TYPED,
   NOW_PLAYING,
+  PLAYERS,
   playerStepTwo,
   VIBE_TYPED,
 } from "@/lib/dev/fixtures";
@@ -38,6 +40,14 @@ export const SCREENS: Record<string, () => ReactNode> = {
   "06-02": () => <Gen mode="cover" quote="“Ali’s Cruel Summer, sung by Arijit Singh.”" />,
   "06-03": () => <Gen mode="rewrite" quote="“Ali’s Cruel Summer, but it’s about moving to London.”" />,
   "06-04": () => <Gen mode="vibe" quote="“Ali’s Cruel Summer, but a stripped-back acoustic version.”" />,
+  "03-05": () => <Player {...PLAYERS["03-05"]} />,
+  "03-06": () => <Player {...PLAYERS["03-06"]} />,
+  "05-01": () => <Player {...PLAYERS["05-01"]} />,
+  "05-07": () => <Player {...PLAYERS["05-07"]} />,
+  "06-05": () => <Player {...PLAYERS["06-05"]} />,
+  "06-06": () => <Player {...PLAYERS["06-06"]} />,
+  "06-07": () => <Player {...PLAYERS["06-07"]} />,
+  "06-08": () => <Player {...PLAYERS["06-08"]} />,
   "04-01": () => <StepTwo {...playerStepTwo("remix", false, { initialChoice: "Electronic" })} />,
   "04-02": () => <StepTwo {...playerStepTwo("cover", false, { initialChoice: "Arijit Singh" })} />,
   "04-03": () => <StepTwo {...playerStepTwo("rewrite", false, { initialChoice: "Moving to London" })} />,

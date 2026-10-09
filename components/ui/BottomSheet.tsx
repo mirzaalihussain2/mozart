@@ -27,7 +27,8 @@ export function BottomSheet({ title, onClose, backdropLabel, paddingBottom, chil
       Array.from(
         sheet.current?.querySelectorAll<HTMLElement>("a[href], button:not([disabled]), textarea, input") ?? [],
       );
-    focusables()[0]?.focus({ preventScroll: true });
+    // Focus the dialog itself (no ring on open); Tab then moves into it.
+    sheet.current?.focus({ preventScroll: true });
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -38,7 +39,10 @@ export function BottomSheet({ title, onClose, backdropLabel, paddingBottom, chil
         if (!items.length) return;
         const first = items[0];
         const last = items[items.length - 1];
-        if (e.shiftKey && document.activeElement === first) {
+        if (document.activeElement === sheet.current) {
+          e.preventDefault();
+          (e.shiftKey ? last : first).focus();
+        } else if (e.shiftKey && document.activeElement === first) {
           e.preventDefault();
           last.focus();
         } else if (!e.shiftKey && document.activeElement === last) {
@@ -68,7 +72,8 @@ export function BottomSheet({ title, onClose, backdropLabel, paddingBottom, chil
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="bg-surface rounded-t-sheet absolute inset-x-0 bottom-0 flex flex-col gap-4 px-5 pt-2.5"
+        tabIndex={-1}
+        className="bg-surface rounded-t-sheet outline-none absolute inset-x-0 bottom-0 flex flex-col gap-4 px-5 pt-2.5"
         style={{ paddingBottom }}
       >
         <div className="bg-border-strong h-[5px] w-10 self-center rounded-[3px]" />

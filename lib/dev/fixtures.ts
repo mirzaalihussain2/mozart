@@ -1,4 +1,5 @@
 import type { MiniPlayerProps } from "@/components/audio/MiniPlayer";
+import type { PlayerProps } from "@/components/audio/Player";
 import type { StepTwoMode, StepTwoProps } from "@/components/creation/StepTwo";
 import type { LibraryRow } from "@/components/library/LibraryView";
 import { getSong, SONGS } from "@/lib/config/songs";
@@ -70,3 +71,45 @@ export function playerStepTwo(mode: StepTwoMode, recipient: boolean, extra: Part
 
 export const NEW_TYPED = "A sad garage song about the night bus home";
 export const VIBE_TYPED = "Make it a stripped-back acoustic version for a rainy Sunday";
+
+// Players as designed. Ali's original, and Sam's remix of it (06-05…06-08).
+const ALI_TRACK = { slug: "cruel-bolly", title: "Cruel Summer × Bollywood", artist: "Ali", ownerName: "Ali" };
+const SAM_REMIX = { slug: "cruel-electro", title: "Cruel Summer × Electronic", ownerName: "Ali" };
+
+export const PLAYERS: Record<string, PlayerProps> = {
+  "03-05": { ...ALI_TRACK, variant: "creator", playback: { playing: true, current: 12, duration: 30 } },
+  "03-06": {
+    ...ALI_TRACK,
+    variant: "creator",
+    playback: { playing: true, current: 12, duration: 30 },
+    initialSheet: "share",
+    initialCopied: true,
+  },
+  "05-01": { ...ALI_TRACK, variant: "recipient" },
+  "05-07": { ...ALI_TRACK, variant: "recipient", initialSheet: "share", initialCopied: true },
+  "06-05": { ...SAM_REMIX, artist: "You", variant: "recipientResult", playback: { playing: true, current: 7, duration: 30 } },
+  "06-06": {
+    ...SAM_REMIX,
+    artist: "You",
+    variant: "recipientResult",
+    playback: { playing: true, current: 7, duration: 30 },
+    initialSheet: "signup",
+  },
+  "06-07": {
+    ...SAM_REMIX,
+    artist: "Sam",
+    variant: "creator",
+    closeLabel: "Close player",
+    playback: { playing: true, current: 7, duration: 30 },
+    initialSheet: "share",
+    initialCopied: true,
+    toast: "Signed in · saved to your library",
+  },
+  "06-08": {
+    ...SAM_REMIX,
+    artist: "Sam",
+    variant: "creator",
+    closeLabel: "Close player",
+    playback: { playing: true, current: 7, duration: 30 },
+  },
+};
