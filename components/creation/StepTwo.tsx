@@ -7,6 +7,7 @@ import { StepHeader } from "@/components/navigation/StepHeader";
 import { Artwork, toneAt } from "@/components/track/Artwork";
 import { ModeButton } from "@/components/ui/Buttons";
 import { Pill } from "@/components/ui/Pill";
+import { SavedToast } from "@/components/ui/Toast";
 import { GENRES } from "@/lib/config/genres";
 import { VIBE_PLACEHOLDER } from "@/lib/config/ideas";
 import { MODES, type ModeId } from "@/lib/config/modes";
@@ -17,7 +18,7 @@ import { useKeyboardViewport } from "@/lib/client/use-keyboard-viewport";
 import { gridInitials } from "@/lib/format";
 import { generationQuote } from "@/lib/generation";
 import { SignupSheet } from "@/components/sharing/SignupSheet";
-import type { SignInPrompt, SignInReason } from "@/lib/sign-in-prompt";
+import type { SignInAsk, SignInPrompt } from "@/lib/sign-in-prompt";
 import { GeneratingScreen } from "./GeneratingScreen";
 
 export type StepTwoMode = Exclude<ModeId, "new">;
@@ -51,6 +52,9 @@ export type StepTwoProps = {
   signIn?: SignInPrompt;
   /** Cover singers: the viewer's top artists (server-provided); MOCK by default. */
   singers?: Singer[];
+  /** `?saved=1`: back from "Sign in to make another …". Toast once, then `cleanHref` (this URL without it). */
+  justSaved?: boolean;
+  cleanHref?: string;
   /** Design states for the dev gallery (an option id). */
   initialChoice?: string;
   initialText?: string;
@@ -69,14 +73,19 @@ const LEAD: Record<StepTwoMode, string> = {
  * (02-02, 02-04, 02-06) and from a player (04-xx, 05-xx).
  */
 export function StepTwo(props: StepTwoProps) {
-  return props.mode === "vibe" ? <VibeStep {...props} /> : <OptionsStep {...props} />;
+  return (
+    <>
+      {props.mode === "vibe" ? <VibeStep {...props} /> : <OptionsStep {...props} />}
+      <SavedToast show={!!props.justSaved} cleanHref={props.cleanHref} />
+    </>
+  );
 }
 
 function OptionsStep(props: StepTwoProps) {
   const { mode: modeId, subject, backHref, showStep, song, owner, initialChoice, singers = SINGERS } = props;
   const mode = MODES[modeId];
   const [choice, setChoice] = useState<string | undefined>(initialChoice);
-  const blocked = useBlockedSheet(props.signIn);
+  const blocked = useBlockedSheet(props.signIn, modeId);
   const gen = useGenerate({ onBlocked: blocked.open });
   // `choice` is an option id; the heading shows its label.
   const word =
@@ -156,12 +165,12 @@ function OptionsStep(props: StepTwoProps) {
   );
 }
 
-function VibeStep({ subject, backHref, song, owner, source, signIn, initialText = "", initialFocused = false }: StepTwoProps) {
+function VibeStep({ mode: modeId, subject, backHref, song, owner, source, signIn, initialText = "", initialFocused = false }: StepTwoProps) {
   const mode = MODES.vibe;
   const [text, setText] = useState(initialText);
   const [focused, setFocused] = useState(initialFocused);
   const box = useRef<HTMLTextAreaElement>(null);
-  const blocked = useBlockedSheet(signIn);
+  const blocked = useBlockedSheet(signIn, modeId);
   const gen = useGenerate({ onBlocked: blocked.open });
   const keyboard = useKeyboardViewport(focused);
 
@@ -229,16 +238,18 @@ function VibeStep({ subject, backHref, song, owner, source, signIn, initialText 
 }
 
 /**
- * The Send-to sheet over a step screen, opened when a signed-out visitor
- * can't make (another) track. `sendTo` from a 403 overrides the page's guess.
+ * The sign-in sheet over a step screen, opened when a signed-out visitor
+ * can't make (another) track: "more" asks to make another of this `mode`.
+ * `sendTo` from a 403 overrides the page's guess.
  */
-function useBlockedSheet(prompt?: SignInPrompt) {
-  const [open, setOpen] = useState<{ reason: SignInReason; sendTo?: string } | null>(null);
+function useBlockedSheet(prompt: SignInPrompt | undefined, mode: StepTwoMode) {
+  const [open, setOpen] = useState<{ ask: SignInAsk; sendTo?: string } | null>(null);
   const sheet =
     open && prompt ? (
-      <SignupSheet prompt={{ ...prompt, sendTo: open.sendTo ?? prompt.sendTo }} reason={open.reason} onClose={() => setOpen(null)} />
+      <SignupSheet prompt={{ ...prompt, sendTo: open.sendTo ?? prompt.sendTo }} ask={open.ask} onClose={() => setOpen(null)} />
     ) : null;
-  return { open: (reason: SignInReason, sendTo?: string) => setOpen({ reason, sendTo }), sheet };
+  const ask = (reason: "more" | "save"): SignInAsk => (reason === "more" ? { reason, mode } : { reason });
+  return { open: (reason: "more" | "save", sendTo?: string) => setOpen({ ask: ask(reason), sendTo }), sheet };
 }
 
 /** The Generating screen (or its error state) while a request is running. */

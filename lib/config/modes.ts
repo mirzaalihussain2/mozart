@@ -113,5 +113,7 @@ export const MODES: Record<ModeId, Mode> = {
 
 /** Order of the cards on the Create home (01-02). */
 export const HOME_MODES: ModeId[] = ["remix", "cover", "rewrite", "new"];
+/** The modes you can make from a track (the player's tiles). */
+export type PlayerModeId = Exclude<ModeId, "new">;
 /** Order of the tiles on a player (03-05). */
-export const PLAYER_MODES: ModeId[] = ["remix", "cover", "rewrite", "vibe"];
+export const PLAYER_MODES: PlayerModeId[] = ["remix", "cover", "rewrite", "vibe"];
