@@ -43,8 +43,14 @@ export default async function ComparePage({ params }: PageProps<"/dev/compare/[i
         </figure>
         <figure className="m-0">
           <figcaption className="text-text-secondary mb-2 text-xs">Design</figcaption>
-          {/* eslint-disable-next-line @next/next/no-img-element -- dev-only, served raw from docs/ */}
-          <img src={`/dev/designs/${id}`} alt={`${id} design`} width={390} height={844} className="border-raised block border" />
+          {info.noDesign ? (
+            <div className="border-raised text-text-secondary flex h-[844px] w-[390px] items-center justify-center border text-sm">
+              No design for this state
+            </div>
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element -- dev-only, served raw from docs/
+            <img src={`/dev/designs/${id}`} alt={`${id} design`} width={390} height={844} className="border-raised block border" />
+          )}
         </figure>
       </div>
     </main>

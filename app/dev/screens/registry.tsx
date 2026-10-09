@@ -59,8 +59,9 @@ export const SCREENS: Record<string, () => ReactNode> = {
   "05-04": () => <StepTwo {...playerStepTwo("rewrite", true, { initialChoice: "moving-to-london" })} />,
   "05-05": () => <StepTwo {...playerStepTwo("vibe", true)} />,
   "05-06": () => <StepTwo {...playerStepTwo("vibe", true, { initialText: VIBE_TYPED, initialFocused: true })} />,
-  "07-01": () => <LibraryView rows={LIBRARY_ROWS} />,
-  "07-02": () => <LibraryView rows={LIBRARY_ROWS} nowPlaying={NOW_PLAYING} />,
+  "07-01": () => <LibraryView initial="A" rows={LIBRARY_ROWS} />,
+  "07-02": () => <LibraryView initial="A" rows={LIBRARY_ROWS} nowPlaying={NOW_PLAYING} />,
+  "07-01-empty": () => <LibraryView initial="A" rows={[]} />,
 };
 
 function Gen({ mode, quote }: { mode: ModeId; quote: string }) {

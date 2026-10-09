@@ -14,7 +14,7 @@ type Result = { width: number; height: number; diffRatio: number; bands: [number
 
 async function main() {
   const filter = process.argv.slice(2);
-  const ids = filter.length ? filter : SHOTS.map((s) => s.id);
+  const ids = filter.length ? filter : SHOTS.filter((s) => !s.noDesign).map((s) => s.id);
   const designs = await readdir(DESIGN_DIR);
   const browser = await chromium.launch();
   const page = await browser.newPage();

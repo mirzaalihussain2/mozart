@@ -1,7 +1,8 @@
-// All 39 main-flow screens (docs/flow-index.md), in order. Used by the dev
-// gallery (/dev/screens) and scripts/shots.config.ts.
+// All 39 main-flow screens (docs/flow-index.md), in order, plus a few states
+// with no design (`noDesign`). Used by the dev gallery (/dev/screens) and
+// scripts/shots.config.ts.
 
-export type ScreenInfo = { id: string; title: string };
+export type ScreenInfo = { id: string; title: string; noDesign?: true };
 
 export const SCREEN_LIST: ScreenInfo[] = [
   { id: "01-01", title: "Landing / Sign in" },
@@ -43,4 +44,5 @@ export const SCREEN_LIST: ScreenInfo[] = [
   { id: "06-08", title: "Signed in · their remix on the creator player" },
   { id: "07-01", title: "Library" },
   { id: "07-02", title: "Library · song playing (mini player)" },
+  { id: "07-01-empty", title: "Library · empty (no design)", noDesign: true },
 ];
