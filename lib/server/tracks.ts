@@ -10,6 +10,12 @@ export async function listLibrary(userId: string): Promise<Track[]> {
   return db.select().from(tracks).where(eq(tracks.ownerUserId, userId)).orderBy(desc(tracks.createdAt));
 }
 
+/** A track by id; null if missing. */
+export async function getTrackById(id: string): Promise<Track | null> {
+  const [row] = await db.select().from(tracks).where(eq(tracks.id, id)).limit(1);
+  return row ?? null;
+}
+
 /** A track by its public slug, with the owner's first name; null if missing. */
 export async function getTrackBySlug(slug: string): Promise<TrackWithOwner | null> {
   const [row] = await db

@@ -6,6 +6,5 @@ export const instant = false;
 
 export default async function SomethingNewPage() {
   await requireUser();
-  // TODO(M3): the Generating screen opens the newly made track instead.
-  return <SomethingNew destination="/track/cruel-bolly" />;
+  return <SomethingNew />;
 }

@@ -36,8 +36,9 @@ export default async function FromPlayerPage({ params }: PageProps<"/track/[slug
       }}
       song={rootTitle(track.title)}
       owner={isOwner ? undefined : track.owner?.firstName}
-      // TODO(M3): open the newly made track instead.
-      destination={playerHref}
+      // The real id, looked up here so the client never has to fetch it.
+      source={{ sourceTrackId: track.id }}
+      signInFallback={playerHref}
     />
   );
 }

@@ -25,13 +25,13 @@ export const SCREENS: Record<string, () => ReactNode> = {
   "01-02": () => <CreateHome initial="A" />,
   "01-03": () => <CreateHome initial="A" nowPlaying={NOW_PLAYING} />,
   "02-01": () => <StepOne mode={MODES.remix} />,
-  "02-02": () => <StepTwo {...createStepTwo("remix", "Cruel Summer", "Bollywood")} />,
+  "02-02": () => <StepTwo {...createStepTwo("remix", "Cruel Summer", "bollywood")} />,
   "02-03": () => <StepOne mode={MODES.cover} />,
-  "02-04": () => <StepTwo {...createStepTwo("cover", "In Too Deep", "Arijit Singh")} />,
+  "02-04": () => <StepTwo {...createStepTwo("cover", "In Too Deep", "arijit-singh")} />,
   "02-05": () => <StepOne mode={MODES.rewrite} />,
-  "02-06": () => <StepTwo {...createStepTwo("rewrite", "Payphone", "Moving to London")} />,
-  "02-07": () => <SomethingNew destination="/track/cruel-bolly" rotate={false} />,
-  "02-08": () => <SomethingNew destination="/track/cruel-bolly" rotate={false} initialText={NEW_TYPED} initialFocused />,
+  "02-06": () => <StepTwo {...createStepTwo("rewrite", "Payphone", "moving-to-london")} />,
+  "02-07": () => <SomethingNew rotate={false} />,
+  "02-08": () => <SomethingNew rotate={false} initialText={NEW_TYPED} initialFocused />,
   "03-01": () => <Gen mode="remix" quote="“Cruel Summer, but make it Bollywood.”" />,
   "03-02": () => <Gen mode="cover" quote="“In Too Deep, sung by Arijit Singh.”" />,
   "03-03": () => <Gen mode="rewrite" quote="“Payphone, but it’s about moving to London.”" />,
@@ -48,14 +48,14 @@ export const SCREENS: Record<string, () => ReactNode> = {
   "06-06": () => <Player {...PLAYERS["06-06"]} />,
   "06-07": () => <Player {...PLAYERS["06-07"]} />,
   "06-08": () => <Player {...PLAYERS["06-08"]} />,
-  "04-01": () => <StepTwo {...playerStepTwo("remix", false, { initialChoice: "Electronic" })} />,
-  "04-02": () => <StepTwo {...playerStepTwo("cover", false, { initialChoice: "Arijit Singh" })} />,
-  "04-03": () => <StepTwo {...playerStepTwo("rewrite", false, { initialChoice: "Moving to London" })} />,
+  "04-01": () => <StepTwo {...playerStepTwo("remix", false, { initialChoice: "electronic" })} />,
+  "04-02": () => <StepTwo {...playerStepTwo("cover", false, { initialChoice: "arijit-singh" })} />,
+  "04-03": () => <StepTwo {...playerStepTwo("rewrite", false, { initialChoice: "moving-to-london" })} />,
   "04-04": () => <StepTwo {...playerStepTwo("vibe", false)} />,
   "04-05": () => <StepTwo {...playerStepTwo("vibe", false, { initialText: VIBE_TYPED, initialFocused: true })} />,
-  "05-02": () => <StepTwo {...playerStepTwo("remix", true, { initialChoice: "Electronic" })} />,
-  "05-03": () => <StepTwo {...playerStepTwo("cover", true, { initialChoice: "Arijit Singh" })} />,
-  "05-04": () => <StepTwo {...playerStepTwo("rewrite", true, { initialChoice: "Moving to London" })} />,
+  "05-02": () => <StepTwo {...playerStepTwo("remix", true, { initialChoice: "electronic" })} />,
+  "05-03": () => <StepTwo {...playerStepTwo("cover", true, { initialChoice: "arijit-singh" })} />,
+  "05-04": () => <StepTwo {...playerStepTwo("rewrite", true, { initialChoice: "moving-to-london" })} />,
   "05-05": () => <StepTwo {...playerStepTwo("vibe", true)} />,
   "05-06": () => <StepTwo {...playerStepTwo("vibe", true, { initialText: VIBE_TYPED, initialFocused: true })} />,
   "07-01": () => <LibraryView rows={LIBRARY_ROWS} />,
@@ -63,7 +63,7 @@ export const SCREENS: Record<string, () => ReactNode> = {
 };
 
 function Gen({ mode, quote }: { mode: ModeId; quote: string }) {
-  return <GeneratingScreen mode={mode} quote={quote} destination="/track/cruel-bolly" animate={false} />;
+  return <GeneratingScreen mode={mode} quote={quote} readyHref="/track/cruel-bolly" animate={false} />;
 }
 
 export const BUILT = new Set(Object.keys(SCREENS));

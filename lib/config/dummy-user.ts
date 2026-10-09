@@ -19,6 +19,8 @@ export type SeedTrack = {
   mode: "remix" | "cover" | "rewrite" | "vibe" | "new";
   title: string;
   generationInput: Record<string, string>;
+  /** Catalogue id (lib/config/audio-catalogue.ts). */
+  audio: string;
   source?: string;
   ageMinutes: number;
 };
@@ -30,14 +32,16 @@ export const SEED_TRACKS: SeedTrack[] = [
     publicSlug: "cruel-bolly",
     mode: "remix",
     title: "Cruel Summer × Bollywood",
-    generationInput: { sourceSong: "Cruel Summer", sourceArtist: "Taylor Swift", genre: "Bollywood" },
+    generationInput: { sourceSongId: "mock-track-01", genreId: "bollywood", rootSong: "Cruel Summer", rootArtist: "Taylor Swift", label: "Bollywood" },
+    audio: "bollywood-strings",
     ageMinutes: 1,
   },
   {
     publicSlug: "cruel-electro",
     mode: "remix",
     title: "Cruel Summer × Electronic",
-    generationInput: { sourceSong: "Cruel Summer", sourceArtist: "Taylor Swift", genre: "Electronic" },
+    generationInput: { genreId: "electronic", rootSong: "Cruel Summer", rootArtist: "Taylor Swift", label: "Electronic" },
+    audio: "electronic-dance",
     source: "cruel-bolly",
     ageMinutes: 2,
   },
@@ -45,31 +49,37 @@ export const SEED_TRACKS: SeedTrack[] = [
     publicSlug: "deep-bolly",
     mode: "cover",
     title: "In Too Deep × Bollywood",
-    generationInput: { sourceSong: "In Too Deep", sourceArtist: "Sum 41", coverArtist: "Arijit Singh" },
+    generationInput: { sourceSongId: "mock-track-03", singerId: "arijit-singh", rootSong: "In Too Deep", rootArtist: "Sum 41", label: "Bollywood" },
+    audio: "bollywood-strings",
     ageMinutes: DAY,
   },
   {
     publicSlug: "euphoric-pop",
     mode: "new",
     title: "Euphoric electronic pop",
-    generationInput: { prompt: "A euphoric Fred again..-style anthem about a summer that ended too soon" },
+    generationInput: {
+      text: "A euphoric Fred again..-style anthem about a summer that ended too soon",
+      ideaId: "euphoric-anthem",
+      label: "Euphoric electronic pop",
+    },
+    audio: "electronic-dance",
     ageMinutes: 6 * DAY,
   },
   {
     publicSlug: "cinematic-pop",
     mode: "new",
     title: "Cinematic pop",
-    generationInput: { prompt: "A cinematic pop ballad with soaring strings" },
+    generationInput: { text: "A cinematic pop ballad with soaring strings", label: "Cinematic pop" },
+    audio: "cinematic-pop-ballad",
     ageMinutes: 8 * DAY,
   },
   {
     publicSlug: "deep-lofi",
     mode: "remix",
     title: "In Too Deep × Lo-fi",
-    generationInput: { sourceSong: "In Too Deep", sourceArtist: "Sum 41", genre: "Lo-fi" },
+    generationInput: { genreId: "lo-fi", rootSong: "In Too Deep", rootArtist: "Sum 41", label: "Lo-fi" },
+    audio: "acoustic-lofi",
     source: "deep-bolly",
     ageMinutes: 11 * DAY,
   },
 ];
-
-export const PLACEHOLDER_AUDIO = "/audio/placeholder.mp3";

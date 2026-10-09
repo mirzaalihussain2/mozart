@@ -38,8 +38,11 @@ export type StepTwoProps = {
   /** For the Generating quote: root song title and, from someone else's track, the owner. */
   song: string;
   owner?: string;
-  destination: string;
-  /** Design states for the dev gallery. */
+  /** What's being changed: a picked song (Create flow) or the track (from a player). */
+  source: { sourceSongId: string } | { sourceTrackId: string };
+  /** Where a 401 from the API lands until milestone 5 (the player, or this step). */
+  signInFallback: string;
+  /** Design states for the dev gallery (an option id). */
   initialChoice?: string;
   initialText?: string;
   initialFocused?: boolean;
@@ -60,13 +63,36 @@ export function StepTwo(props: StepTwoProps) {
   return props.mode === "vibe" ? <VibeStep {...props} /> : <OptionsStep {...props} />;
 }
 
-function OptionsStep({ mode: modeId, subject, backHref, showStep, song, owner, destination, initialChoice }: StepTwoProps) {
+function OptionsStep(props: StepTwoProps) {
+  const { mode: modeId, subject, backHref, showStep, song, owner, initialChoice } = props;
   const mode = MODES[modeId];
   const [choice, setChoice] = useState<string | undefined>(initialChoice);
-  const { request, start } = useGenerate();
-  const word = modeId === "rewrite" ? THEMES.find((t) => t.label === choice)?.phrase : choice;
+  const gen = useGenerate();
+  // `choice` is an option id; the heading shows its label.
+  const word =
+    modeId === "remix"
+      ? GENRES.find((g) => g.id === choice)?.name
+      : modeId === "cover"
+        ? SINGERS.find((s) => s.id === choice)?.name
+        : THEMES.find((t) => t.id === choice)?.phrase;
 
-  if (request) return <GeneratingScreen mode={request.mode} quote={request.quote} destination={request.destination} />;
+  if (gen.state.phase !== "idle") return <Generating gen={gen} />;
+
+  const generate = () => {
+    if (!word || !choice) return;
+    const input =
+      modeId === "remix"
+        ? { mode: modeId, genreId: choice, ...props.source }
+        : modeId === "cover"
+          ? { mode: modeId, singerId: choice, ...props.source }
+          : { mode: "rewrite" as const, themeId: choice, ...props.source };
+    void gen.start({
+      mode: modeId,
+      quote: generationQuote({ mode: modeId, song, owner, change: word }),
+      input,
+      signInFallback: props.signInFallback,
+    });
+  };
 
   return (
     <main className="flex min-h-dvh flex-col px-4 pt-12 pb-9">
@@ -83,15 +109,15 @@ function OptionsStep({ mode: modeId, subject, backHref, showStep, song, owner, d
       >
         {modeId === "remix"
           ? GENRES.map((g) => (
-              <Pill key={g.name} mode={mode} size="icon" selected={choice === g.name} onSelect={() => setChoice(g.name)}>
+              <Pill key={g.id} mode={mode} size="icon" selected={choice === g.id} onSelect={() => setChoice(g.id)}>
                 <ModeIcon icon={[{ d: g.icon }]} size={18} strokeWidth={1.8} />
                 {g.name}
               </Pill>
             ))
           : null}
         {modeId === "cover"
-          ? SINGERS.map((name, k) => (
-              <Pill key={name} mode={mode} size="avatar" selected={choice === name} onSelect={() => setChoice(name)}>
+          ? SINGERS.map(({ id, name }, k) => (
+              <Pill key={id} mode={mode} size="avatar" selected={choice === id} onSelect={() => setChoice(id)}>
                 <span
                   aria-hidden="true"
                   className="flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-[rgba(217,217,217,0.7)]"
@@ -105,7 +131,7 @@ function OptionsStep({ mode: modeId, subject, backHref, showStep, song, owner, d
           : null}
         {modeId === "rewrite"
           ? THEMES.map((t) => (
-              <Pill key={t.label} mode={mode} size="text" selected={choice === t.label} onSelect={() => setChoice(t.label)}>
+              <Pill key={t.id} mode={mode} size="text" selected={choice === t.id} onSelect={() => setChoice(t.id)}>
                 {t.label}
               </Pill>
             ))
@@ -115,9 +141,7 @@ function OptionsStep({ mode: modeId, subject, backHref, showStep, song, owner, d
         mode={mode}
         className="mt-auto shrink-0"
         disabled={!word}
-        onClick={() =>
-          word && start({ mode: modeId, destination, quote: generationQuote({ mode: modeId, song, owner, change: word }) })
-        }
+        onClick={generate}
       >
         Generate {modeId}
       </ModeButton>
@@ -125,19 +149,25 @@ function OptionsStep({ mode: modeId, subject, backHref, showStep, song, owner, d
   );
 }
 
-function VibeStep({ subject, backHref, song, owner, destination, initialText = "", initialFocused = false }: StepTwoProps) {
+function VibeStep({ subject, backHref, song, owner, source, signInFallback, initialText = "", initialFocused = false }: StepTwoProps) {
   const mode = MODES.vibe;
   const [text, setText] = useState(initialText);
   const [focused, setFocused] = useState(initialFocused);
   const box = useRef<HTMLTextAreaElement>(null);
-  const { request, start } = useGenerate();
+  const gen = useGenerate();
 
-  if (request) return <GeneratingScreen mode={request.mode} quote={request.quote} destination={request.destination} />;
+  if (gen.state.phase !== "idle") return <Generating gen={gen} />;
 
   // The design keeps Generate enabled; with nothing typed it focuses the box instead.
   const generate = () => {
     if (!text.trim()) return box.current?.focus();
-    start({ mode: "vibe", destination, quote: generationQuote({ mode: "vibe", song, owner, change: text }) });
+    if (!("sourceTrackId" in source)) return;
+    void gen.start({
+      mode: "vibe",
+      quote: generationQuote({ mode: "vibe", song, owner, change: text }),
+      input: { mode: "vibe", sourceTrackId: source.sourceTrackId, text },
+      signInFallback,
+    });
   };
 
   return (
@@ -185,6 +215,19 @@ function VibeStep({ subject, backHref, song, owner, destination, initialText = "
         </ModeButton>
       </div>
     </main>
+  );
+}
+
+/** The Generating screen (or its error state) while a request is running. */
+export function Generating({ gen }: { gen: ReturnType<typeof useGenerate> }) {
+  const { state } = gen;
+  if (state.phase === "idle") return null;
+  return (
+    <GeneratingScreen
+      mode={state.request.mode}
+      quote={state.request.quote}
+      error={state.phase === "error" ? { message: state.message, onRetry: gen.retry, onBack: gen.cancel } : undefined}
+    />
   );
 }
 

@@ -7,10 +7,9 @@ import { IDEA_ROTATE_MS, IDEAS } from "@/lib/config/ideas";
 import { MODES } from "@/lib/config/modes";
 import { useGenerate } from "@/lib/client/use-generate";
 import { generationQuote } from "@/lib/generation";
-import { GeneratingScreen } from "./GeneratingScreen";
+import { Generating } from "./StepTwo";
 
 type Props = {
-  destination: string;
   /** Design states for the dev gallery (02-08: typed + focused). */
   initialText?: string;
   initialFocused?: boolean;
@@ -21,12 +20,12 @@ type Props = {
  * Something new (02-07 / 02-08, CfVibe). Ideas rotate as ghost text while the
  * box is empty; Generate with an empty box uses the idea on screen.
  */
-export function SomethingNew({ destination, initialText = "", initialFocused = false, rotate = true }: Props) {
+export function SomethingNew({ initialText = "", initialFocused = false, rotate = true }: Props) {
   const mode = MODES.new;
   const [text, setText] = useState(initialText);
   const [focused, setFocused] = useState(initialFocused);
   const [idea, setIdea] = useState(0);
-  const { request, start } = useGenerate();
+  const gen = useGenerate();
 
   useEffect(() => {
     if (!rotate || focused || text) return;
@@ -34,7 +33,7 @@ export function SomethingNew({ destination, initialText = "", initialFocused = f
     return () => clearInterval(t);
   }, [rotate, focused, text]);
 
-  if (request) return <GeneratingScreen mode={request.mode} quote={request.quote} destination={request.destination} />;
+  if (gen.state.phase !== "idle") return <Generating gen={gen} />;
 
   const hint = focused ? (text ? "" : "Start typing, or tap Generate song to use the idea.") : "Tap the box to write your own.";
 
@@ -64,7 +63,7 @@ export function SomethingNew({ destination, initialText = "", initialFocused = f
               aria-hidden="true"
               className={`pointer-events-none absolute inset-5 text-[22px] leading-[1.32] font-medium ${focused ? "text-[#737373]" : "text-text-secondary"}`}
             >
-              {IDEAS[idea]}
+              {IDEAS[idea].text}
             </div>
           )}
           {!focused && !text ? (
@@ -87,8 +86,15 @@ export function SomethingNew({ destination, initialText = "", initialFocused = f
           mode={mode}
           // Keep the box focused while tapping Generate (CfVibe "keep").
           onClick={() => {
-            const prompt = text.trim() || IDEAS[idea];
-            start({ mode: "new", destination, quote: generationQuote({ mode: "new", change: prompt }) });
+            // An empty box uses the idea on screen (and names the track after it).
+            const typed = text.trim();
+            const input = typed ? { mode: "new" as const, text: typed } : { mode: "new" as const, text: IDEAS[idea].text, ideaId: IDEAS[idea].id };
+            void gen.start({
+              mode: "new",
+              quote: generationQuote({ mode: "new", change: input.text }),
+              input,
+              signInFallback: "/create/new",
+            });
           }}
         >
           Generate song

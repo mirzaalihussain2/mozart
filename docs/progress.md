@@ -1,6 +1,110 @@
 # Progress
 
-## Milestone 2 — Static UI · done (PR #2, branch `m2-static-ui`)
+## Milestone 3 — Generate · done (PR #3, branch `m3-generate`)
+
+Tapping Generate makes a real track. It's named by the naming rule, saved to the user's library, and plays catalogue audio. Playing, pausing and seeking run through one global `<audio>` element.
+
+### Built
+- **Audio:** eight files in `public/audio/` (25 MB). Your placeholder recordings were re-encoded to 128 kbps MP3 with their metadata stripped; `_incoming/` is gone.
+- **`lib/config/audio-catalogue.ts`:** tags each file so every genre, singer, theme and idea has at least one file:
+
+| File | Was | Duration | Genres | Singers | Themes | Ideas / moods |
+| --- | --- | --- | --- | --- | --- | --- |
+| `bollywood-strings.mp3` | Golden Minaret | 3:08 | bollywood, classical | arijit-singh | falling-in-love, missing-home | pop-punk-bollywood; filmi, strings, romantic |
+| `acoustic-lofi.mp3` | Prayer Rug | 3:28 | lo-fi, jazz | billie-eilish | missing-home, self-love | rainy-day-lofi; acoustic, rainy, chill, stripped |
+| `electronic-dance.mp3` | Chrome Dress | 2:28 | electronic, disco | fred-again, dua-lipa | a-night-out, payday | euphoric-anthem; euphoric, dance, club, summer |
+| `pop-punk-guitars.mp3` | Static Bloom | 2:32 | pop-punk, metal | — | heartbreak, growing-up | punk, rock, guitar, breakup |
+| `drill-afrobeats.mp3` | Coin Call | 2:27 | drill, afrobeats | kendrick-lamar | my-best-friends, payday | rap, hip hop, grime, trap |
+| `late-night-garage.mp3` | Quarter Tone | 2:43 | — | the-weeknd | a-night-out, first-dates | late-night-garage; garage, night, bus, r&b |
+| `country-roadtrip.mp3` | One Box | 3:18 | country | taylor-swift | a-summer-roadtrip, moving-to-london | country, folk, storytelling, roadtrip |
+| `cinematic-pop-ballad.mp3` | Own Key | 3:18 | k-pop | — | falling-in-love, self-love | pop, ballad, cinematic, piano |
+
+- **How audio is picked** (`lib/server/generate/pick-audio.ts`, server-only):
+  1. An exact tag match on the mode's choice: genre (Remix), singer (Cover), theme (Rewrite) or idea (Something new).
+  2. For free text (Vibe, Something new), the file sharing the most keywords with the text.
+  3. Otherwise a pick from the mode's files, then from all files, using a SHA-256 hash of the request, so the same request always gets the same file.
+
+  It never returns the source track's own file when another option exists.
+- **Naming and validation** (`lib/generation-input.ts`, shared): the per-mode `GenerateInput` union, a hand-written validator and `titleFor`.
+  - The name is `{root song} × {change}`. The root comes from the source song, or from the source track's stored `rootSong`, so a chain never gets a double ×.
+  - Vibe free text is trimmed to ~24 characters at a word boundary; Something new to ~32, or the idea's label. A trailing small word ("the", "about" …) is dropped. Sentence case capitalises the first letter only.
+  - Genres, singers, themes and ideas now have stable ids. Ideas also have short labels ("Euphoric electronic pop", "Pop-punk Bollywood breakup", "Late-night UK garage", "Rainy-day lo-fi").
+- **`POST /api/generate`:**
+  - 400 for invalid input, with a readable message;
+  - 401 `signin_required` when signed out (`TODO(M5)`);
+  - 404 for an unknown source track;
+  - 429 over 20 per user per 10 minutes, counted from `tracks`;
+  - otherwise 201 with `{ track: { id, slug, title, mode, audioUrl } }`.
+
+  It uses a 10-character slug (retried on collision) and stores `rootSong`, `rootArtist`, `audioId` and `label` in `generation_input`. Errors are JSON only; nothing internal leaks.
+- **Generate in the UI** (`lib/client/use-generate.ts`):
+  - shows the mode's Generating screen at once and calls the API in parallel;
+  - opens `/track/{slug}?autoplay=1` once the request has succeeded and 3.5 s have passed;
+  - a double tap sends one request;
+  - on any failure other than a 401: "Couldn’t make that one. Try again." with **Try again** / **Back**, keeping your choices;
+  - track routes pass the real `sourceTrackId`, looked up on the server.
+
+  Every Generate ends on its new track.
+- **Global audio** (`components/audio/AudioProvider.tsx`, in the root layout): one `<audio preload="metadata">` and `useAudio()`.
+  - Progress updates through `requestAnimationFrame`; a blocked autoplay stays paused; media errors set `error`; Media Session gets the title and artist.
+  - The `Player` binds play/pause, the bar and the times to its own track. If a different track is loaded, it shows paused at 0:00 until played.
+  - The bar is a `role="slider"`: tap or drag, arrow keys ±5 s, Home / End.
+  - The duration comes from metadata, falling back to the catalogue.
+- **Seed:** the six tracks use catalogue files and store `rootSong` / `rootArtist` / `audioId`. Re-running is still safe.
+- **The Library** is uncached (dynamic and session-scoped), so new tracks show at the top as "Today".
+
+### Verified
+- `pnpm typecheck`, `pnpm lint`, `pnpm build`: no errors. `pnpm db:seed` twice: still 1 user and 6 tracks.
+- `pnpm test:unit`: 12/12 (naming rules, validation, audio picking).
+- `pnpm test:e2e`: **39/39**, twice in a row. `generate.spec.ts` covers:
+  - all four create modes, from-player Remix (*Cruel Summer × Lo-fi*) and Vibe (*Cruel Summer × Make it a stripped-back*): each makes a new slug with the right title and a catalogue file, first in the Library;
+  - the Generating screen stays ≥ 3.5 s, and a double tap makes one track;
+  - Back from the new player returns to the step;
+  - play/pause/seek on the real element;
+  - no autoplay on a direct open;
+  - leaving the player pauses;
+  - API 400/401.
+
+  Test-created tracks are deleted after each test (`tests/e2e/helpers/db.ts`); seeded tracks are never touched. 0 leftover rows.
+- Screens after the change, no drift from M2:
+  - 03-01…03-04 Generating: 0.10–0.22%;
+  - 03-05 player: 0.17%;
+  - 04-01…04-04: 0.90–1.40%;
+  - 04-05: the keyboard, as before;
+  - 07-01: 1.29%.
+- Scripted walk-through at 390 px: Rewrite → Payphone → Heartbreak → Generating → *Payphone × Heartbreak* playing `pop-punk-guitars.mp3`; dragging the bar seeks; leaving pauses; the track tops the Library as "Today".
+
+### Decisions
+- **`?autoplay=1`** is set only by Generate. The player reads it once, plays (a blocked play stays paused) and removes it from the URL. A shared or library link never autoplays.
+- **Generate uses `router.push`, not `replace`.** The Generating screen has no URL of its own, so `replace` would drop the step screen from history, and Back would skip it. `push` gives what was asked for: Back from the new player lands on the step screen. Next 16 keeps that screen's state on Back, so the hook resets to the form, choices intact.
+- **Pause on leaving the player** until M6: `AudioProvider` pauses whenever the path isn't `/track/{slug}`. That includes step 2 from a player. It's one effect, marked `TODO(M6)`.
+- **The 401 fallback** until M5: after the Generating screen, a signed-out maker returns to the source (player or step). Signed-out users can't reach the Create flows anyway.
+- **Rate limit:** 20 generations per user per 10 minutes, counted from `tracks` (no new table).
+- **Unit tests** use Node's built-in runner (`pnpm test:unit`, `tsx --test`, with `--conditions=react-server` so `server-only` imports work). No new dependency.
+- The error state copy is "Couldn’t make that one. Try again."; there's no PNG for it. It uses the mode colour, a dark Try again button and an outlined Back.
+
+### Assumptions
+- The recordings' real styles are unknown. The roles in the table are assigned so different choices sound different. Ideas got short labels for titles (only "Euphoric electronic pop" comes from the designs).
+- Something new with an edited idea text counts as free text. Only the untouched idea uses its label.
+
+### Known gaps
+- Text renders up to 1 pt lower than the PNGs (the DM Sans build difference from M2).
+- Turbopack can serve stale CSS after editing `app/globals.css`: restart `pnpm dev`.
+
+### TODOs left for later milestones
+- **M4:** `components/sharing/ShareSheet.tsx`: Copy link (then "Copied ✓") and WhatsApp, using `shareUrl`.
+- **M5:**
+  - `app/api/generate/route.ts`: let anonymous recipients make one track (`mozart_anon`) instead of returning 401;
+  - `lib/client/use-generate.ts`: the matching client path;
+  - wire `recipientResult` and claiming.
+- **M6:**
+  - `components/audio/AudioProvider.tsx`: remove the pause-on-leave effect;
+  - `components/audio/MiniPlayer.tsx`: drive it from `useAudio()`, and decide when it appears (01-03, 07-02).
+- **M7:** `app/auth/spotify/login/route.ts`: real Spotify OAuth.
+
+## Next: Milestone 4 — Share
+
+## Milestone 2 — Static UI · done (PR #2, merged)
 
 All 39 main-flow screens exist, built from shared components, and are connected as `docs/flow-index.md` says. Data comes from the DB (users, tracks) and `lib/config/`. Generation, audio, sharing and anonymous logic are not built yet (M3–M6); their UI is built and ready to wire.
 
@@ -115,7 +219,6 @@ All 39 main-flow screens exist, built from shared components, and are connected 
 - **M6:** `components/audio/MiniPlayer.tsx`: real play/pause and when the mini player appears (01-03, 07-02). Tabs carrying the mini player.
 - **M7:** `app/auth/spotify/login/route.ts`: real Spotify OAuth; it currently signs in as Ali.
 
-## Next: Milestone 3 — Generate
 
 ## Milestone 1 — Foundations · done (PR #1, merged)
 
