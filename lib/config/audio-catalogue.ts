@@ -20,6 +20,8 @@ export type AudioEntry = {
 // Eight placeholder recordings (re-encoded to 128 kbps MP3). They aren't
 // really these styles; each is given a role so every genre, singer, theme
 // and idea has at least one file, and different choices sound different.
+// Singer tags cover the mock taste and Derek's and Candice's artists
+// (lib/config/persona-tastes.ts); anyone else's singer gets a hashed pick.
 export const AUDIO_CATALOGUE: AudioEntry[] = [
   {
     id: "bollywood-strings",
@@ -27,7 +29,7 @@ export const AUDIO_CATALOGUE: AudioEntry[] = [
     durationSec: 188,
     modes: ["remix", "cover", "rewrite", "vibe", "new"],
     genres: ["bollywood", "classical"],
-    singers: ["arijit-singh"],
+    singers: ["arijit-singh", "diljit-dosanjh"],
     themes: ["falling-in-love", "missing-home"],
     moods: ["pop-punk-bollywood", "bollywood", "filmi", "strings", "romantic", "orchestral", "indian"],
   },
@@ -37,7 +39,7 @@ export const AUDIO_CATALOGUE: AudioEntry[] = [
     durationSec: 208,
     modes: ["remix", "cover", "rewrite", "vibe", "new"],
     genres: ["lo-fi", "jazz"],
-    singers: ["billie-eilish"],
+    singers: ["billie-eilish", "bon-iver", "four-tet"],
     themes: ["missing-home", "self-love"],
     moods: ["rainy-day-lofi", "acoustic", "lofi", "rainy", "chill", "calm", "stripped", "sunday", "sad", "soft"],
   },
@@ -47,7 +49,7 @@ export const AUDIO_CATALOGUE: AudioEntry[] = [
     durationSec: 148,
     modes: ["remix", "cover", "rewrite", "vibe", "new"],
     genres: ["electronic", "disco"],
-    singers: ["fred-again", "dua-lipa"],
+    singers: ["fred-again", "dua-lipa", "disclosure", "jamie-xx"],
     themes: ["a-night-out", "payday"],
     moods: ["euphoric-anthem", "euphoric", "dance", "club", "electronic", "edm", "anthem", "summer", "house"],
   },
@@ -57,7 +59,7 @@ export const AUDIO_CATALOGUE: AudioEntry[] = [
     durationSec: 152,
     modes: ["remix", "cover", "rewrite", "vibe", "new"],
     genres: ["pop-punk", "metal"],
-    singers: [],
+    singers: ["arctic-monkeys", "fontaines-d-c", "olivia-rodrigo"],
     themes: ["heartbreak", "growing-up"],
     moods: ["punk", "rock", "guitar", "guitars", "loud", "angry", "breakup", "emo"],
   },
@@ -67,7 +69,7 @@ export const AUDIO_CATALOGUE: AudioEntry[] = [
     durationSec: 147,
     modes: ["remix", "cover", "rewrite", "vibe", "new"],
     genres: ["drill", "afrobeats"],
-    singers: ["kendrick-lamar"],
+    singers: ["kendrick-lamar", "burna-boy", "tems"],
     themes: ["my-best-friends", "payday"],
     moods: ["rap", "hip hop", "drill", "grime", "bass", "afro", "trap"],
   },
@@ -77,7 +79,7 @@ export const AUDIO_CATALOGUE: AudioEntry[] = [
     durationSec: 163,
     modes: ["remix", "cover", "rewrite", "vibe", "new"],
     genres: [],
-    singers: ["the-weeknd"],
+    singers: ["the-weeknd", "burial", "sza"],
     themes: ["a-night-out", "first-dates"],
     moods: ["late-night-garage", "garage", "uk garage", "night", "late", "bus", "r b", "rnb", "moody"],
   },
@@ -97,7 +99,7 @@ export const AUDIO_CATALOGUE: AudioEntry[] = [
     durationSec: 198,
     modes: ["remix", "cover", "rewrite", "vibe", "new"],
     genres: ["k-pop"],
-    singers: [],
+    singers: ["sabrina-carpenter"],
     themes: ["falling-in-love", "self-love"],
     moods: ["pop", "ballad", "cinematic", "piano", "soaring", "love", "strings"],
   },

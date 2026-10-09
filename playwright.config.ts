@@ -42,6 +42,8 @@ export default defineConfig({
       command: `pnpm exec next dev -H 127.0.0.1 -p ${E2E_PORT}`,
       env: {
         NEXT_DIST_DIR: ".next-e2e",
+        // Parallel tests all sign in as Derek: don't let one reset delete another's tracks.
+        E2E_KEEP_PERSONA_TRACKS: "1",
         APP_URL: BASE_URL,
         SPOTIFY_CLIENT_ID: "fake-client-id",
         SPOTIFY_CLIENT_SECRET: "fake-client-secret",

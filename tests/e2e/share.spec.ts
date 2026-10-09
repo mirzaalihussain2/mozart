@@ -5,8 +5,8 @@ import { BASE_URL } from "../../playwright.config";
 // Milestone 4: Copy link, WhatsApp, link previews and the shared-link
 // recipient view (03-06, 05-07, 06-07).
 
-const TRACK = "cruel-bolly";
-const TITLE = "Cruel Summer × Bollywood";
+const TRACK = "derek-latch-weeknd"; // Derek's newest starter (lib/config/personas.ts)
+const TITLE = "Latch × The Weeknd";
 const URL_ = `${BASE_URL}/track/${TRACK}`;
 const WHATSAPP_UA = "WhatsApp/2.23.20.0 A";
 
@@ -27,7 +27,7 @@ async function expectWhatsApp(page: Page) {
   expect(new URL(href).searchParams.get("text")).toBe(shareMessage(TITLE, URL_));
 }
 
-test.describe("signed in as Ali", () => {
+test.describe("signed in as Derek", () => {
   test.beforeEach(async ({ page }) => {
     await page.request.post("/auth/dummy");
   });
@@ -63,7 +63,7 @@ test.describe("signed in as Ali", () => {
 
   test("the recipient preview's sheet shares the same clean URL (05-07 via ?view=recipient)", async ({ page }) => {
     await page.goto(`/track/${TRACK}?view=recipient`);
-    await expect(page.getByText("Sent by Ali")).toBeVisible();
+    await expect(page.getByText("Sent by Derek")).toBeVisible();
     // The recipient player has no Share icon; ?share=1 opens the sheet.
     await page.goto(`/track/${TRACK}?view=recipient&share=1`);
     const sheet = page.getByRole("dialog", { name: "Share this track" });
@@ -78,7 +78,7 @@ test.describe("signed out", () => {
   test("a shared link opens the recipient player, no autoplay, and shares the same URL", async ({ page }) => {
     const res = await page.goto(`/track/${TRACK}`);
     expect(res?.status()).toBe(200);
-    await expect(page.getByText("Sent by Ali")).toBeVisible();
+    await expect(page.getByText("Sent by Derek")).toBeVisible();
     await page.waitForTimeout(1000);
     expect(await page.evaluate(() => document.querySelector("audio")!.paused)).toBe(true);
 
@@ -102,13 +102,13 @@ test.describe("link previews", () => {
     const res = await request.get(`/track/${TRACK}`, { headers: { "user-agent": WHATSAPP_UA } });
     expect(res.status()).toBe(200);
     const head = (await res.text()).split("</head>")[0];
-    expect(meta(head, "og:title")).toBe(`${TITLE} · Ali on Mozart`);
+    expect(meta(head, "og:title")).toBe(`${TITLE} · Derek on Mozart`);
     expect(meta(head, "og:description")).toBe("Listen, then make your own version on Mozart.");
     expect(meta(head, "og:url")).toBe(URL_);
     expect(meta(head, "og:type")).toBe("music.song");
     expect(meta(head, "twitter:card")).toBe("summary_large_image");
     expect(meta(head, "robots")).toBe("noindex, nofollow");
-    expect(meta(head, "og:image")).toMatch(/^https?:\/\/[^/]+\/track\/cruel-bolly\/opengraph-image/);
+    expect(meta(head, "og:image")).toMatch(new RegExp(`^https?://[^/]+/track/${TRACK}/opengraph-image`));
 
     // The image: absolute, public PNG, 1200 × 630, under 300 KB.
     const img = await request.get(meta(head, "og:image")!);
@@ -122,7 +122,7 @@ test.describe("link previews", () => {
 
   test("Facebook's crawler gets the same tags", async ({ request }) => {
     const head = (await (await request.get(`/track/${TRACK}`, { headers: { "user-agent": "facebookexternalhit/1.1" } })).text()).split("</head>")[0];
-    expect(meta(head, "og:title")).toBe(`${TITLE} · Ali on Mozart`);
+    expect(meta(head, "og:title")).toBe(`${TITLE} · Derek on Mozart`);
     expect(meta(head, "og:image")).toBeTruthy();
   });
 
@@ -131,7 +131,7 @@ test.describe("link previews", () => {
     expect(res.status()).toBe(404);
     const head = (await res.text()).split("</head>")[0];
     expect(meta(head, "og:title")).toBe("Mozart");
-    expect(head).not.toContain("Ali on Mozart");
+    expect(head).not.toContain("Derek on Mozart");
   });
 
   test("the home page has a default preview image", async ({ request }) => {

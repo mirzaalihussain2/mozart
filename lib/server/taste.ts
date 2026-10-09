@@ -9,12 +9,13 @@ import type { User } from "./db/schema";
 const MIN_TRACKS = 6;
 
 /**
- * Whose taste fills the pickers: a Spotify user's own (with ≥ 6 top tracks),
- * otherwise MOCK_TASTE (dummy Ali / Sam, signed-out visitors). If a Spotify
- * user has no top artists, the mock artists keep Cover usable.
+ * Whose taste fills the pickers: the user's own (a Spotify user's, or Derek's
+ * / Candice's built-in one) when it has ≥ 6 top tracks, otherwise MOCK_TASTE
+ * (signed-out visitors, thin Spotify accounts). If a user has no top artists,
+ * the mock artists keep Cover usable.
  */
 export function getTasteFor(user: Pick<User, "authProvider" | "spotifyTaste"> | null): SpotifyTaste {
-  const taste = user?.authProvider === "spotify" ? user.spotifyTaste : null;
+  const taste = user?.spotifyTaste ?? null;
   if (!taste || (taste.topTracks?.length ?? 0) < MIN_TRACKS) return MOCK_TASTE;
   return taste.topArtists?.length ? taste : { ...taste, topArtists: MOCK_TASTE.topArtists };
 }
