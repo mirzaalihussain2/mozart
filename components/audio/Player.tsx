@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckIcon, ChevronDownIcon, PauseIcon, PlayIcon, PlusIcon, SendIcon, ShareIcon } from "@/components/icons";
 import { ShareSheet } from "@/components/sharing/ShareSheet";
 import { SignupSheet } from "@/components/sharing/SignupSheet";
@@ -11,6 +11,7 @@ import { ModeTile } from "@/components/track/ModeTile";
 import { Toast } from "@/components/ui/Toast";
 import { MODES, PLAYER_MODES } from "@/lib/config/modes";
 import { formatTime } from "@/lib/format";
+import { useAudio, type AudioTrack } from "./AudioProvider";
 
 export type PlayerVariant = "creator" | "recipient" | "recipientResult";
 
@@ -24,7 +25,11 @@ export type PlayerProps = {
   ownerName: string;
   /** Absolute /track/{slug} URL for the share sheet. */
   shareUrl: string;
-  /** Static until milestone 3 wires real audio. */
+  /** The track's catalogue file (real routes). Drives the global <audio>. */
+  audio?: { src: string; durationSec?: number };
+  /** `?autoplay=1`, set only by Generate. Never for shared or library links. */
+  autoplay?: boolean;
+  /** Gallery: fixed playback state instead of the real audio element. */
   playback?: { playing: boolean; current: number; duration: number };
   /** `?share=1` opens the share sheet on load. */
   initialSheet?: "share" | "signup";
@@ -58,8 +63,41 @@ export function Player(props: PlayerProps) {
   // Captured on first render so they survive the URL clean-up below.
   const [justSaved] = useState(!!props.justSaved);
   const [toastVisible, setToastVisible] = useState(!!props.justSaved);
-  // TODO(M3): driven by the global <audio> element; for now it only toggles the icon.
-  const [playing, setPlaying] = useState(playback.playing);
+  // Live audio on real routes; fixed values in the gallery.
+  const a = useAudio();
+  const [staticPlaying, setStaticPlaying] = useState(playback.playing);
+  const src = props.playback ? undefined : props.audio?.src;
+  const durationSec = props.audio?.durationSec;
+  const audioTrack = useMemo<AudioTrack | null>(
+    () => (src ? { slug, title, artist, src, durationSec } : null),
+    [slug, title, artist, src, durationSec],
+  );
+  // The single <audio> may hold another track; then this player shows paused at 0:00.
+  const mine = !!audioTrack && a.track?.slug === slug && a.track.src === audioTrack.src;
+  const playing = audioTrack ? mine && a.playing : staticPlaying;
+  const current = audioTrack ? (mine ? a.current : 0) : playback.current;
+  const duration = audioTrack ? (mine && a.duration) || audioTrack.durationSec || 0 : playback.duration;
+
+  const toggle = () => {
+    if (!audioTrack) return setStaticPlaying((p) => !p);
+    if (mine) return a.toggle();
+    a.load(audioTrack);
+    a.play();
+  };
+  const seek = (sec: number) => {
+    if (!audioTrack) return;
+    if (!mine) a.load(audioTrack);
+    a.seek(sec);
+  };
+
+  // Autoplay straight after Generate only; a blocked play() just stays paused.
+  const autoplayed = useRef(false);
+  useEffect(() => {
+    if (!props.autoplay || !audioTrack || autoplayed.current) return;
+    autoplayed.current = true;
+    a.load(audioTrack);
+    a.play();
+  }, [props.autoplay, audioTrack, a]);
   const closeLabel = props.closeLabel ?? (justSaved ? "Close player" : "Minimise player");
 
   useEffect(() => {
@@ -71,7 +109,6 @@ export function Player(props: PlayerProps) {
     const t = setTimeout(() => setToastVisible(false), TOAST_MS);
     return () => clearTimeout(t);
   }, [toastVisible, staticToast]);
-  const progress = playback.duration ? playback.current / playback.duration : 0;
   const creator = variant === "creator";
   const openSignup = () => setSheet("signup");
 
@@ -161,25 +198,24 @@ export function Player(props: PlayerProps) {
       </div>
 
       <div className="mt-auto flex flex-col gap-2">
-        <div className="relative h-1 rounded-sm bg-[rgba(217,217,217,0.25)]">
-          <div className="bg-text h-1 rounded-sm" style={{ width: `${progress * 100}%` }} />
-          <div
-            className="absolute top-1/2 -mt-1.5 -ml-1.5 size-3 rounded-full bg-white"
-            // CfPlayerTilesR nudges the knob to 1% at 0:00 so it isn't clipped.
-            style={{ left: `${Math.max(progress * 100, 1)}%` }}
-          />
-        </div>
+        <ProgressBar current={current} duration={duration} onSeek={audioTrack ? seek : undefined} />
         <div className="text-text-secondary flex justify-between text-xs">
-          <span>{formatTime(playback.current)}</span>
-          <span>{formatTime(playback.duration)}</span>
+          <span>{formatTime(current)}</span>
+          <span>{formatTime(duration)}</span>
         </div>
+        {mine && a.error ? (
+          <p role="alert" className="text-text-secondary m-0 text-center text-xs">
+            Couldn’t play this track.
+          </p>
+        ) : null}
       </div>
 
       <div className="mt-3 flex justify-center">
         <button
           type="button"
           aria-label={playing ? "Pause" : "Play"}
-          onClick={() => setPlaying((p) => !p)}
+          aria-busy={mine && a.buffering}
+          onClick={toggle}
           className="bg-accent text-on-accent flex size-16 cursor-pointer items-center justify-center rounded-full"
         >
           {playing ? <PauseIcon size={26} /> : <PlayIcon size={28} />}
@@ -210,5 +246,60 @@ export function Player(props: PlayerProps) {
       ) : null}
       {toastVisible ? <Toast>Signed in · saved to your library</Toast> : null}
     </main>
+  );
+}
+
+/**
+ * Progress bar (CfPlayerSplit). With `onSeek` it's a slider: tap or drag to
+ * seek, arrow keys ±5 s, Home / End.
+ */
+function ProgressBar({ current, duration, onSeek }: { current: number; duration: number; onSeek?: (sec: number) => void }) {
+  const track = useRef<HTMLDivElement>(null);
+  const progress = duration ? Math.min(current / duration, 1) : 0;
+
+  const seekToPointer = (clientX: number) => {
+    const rect = track.current?.getBoundingClientRect();
+    if (!rect || !onSeek || !duration) return;
+    onSeek(Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)) * duration);
+  };
+
+  return (
+    // 20 px hit area around the 4 px bar, without changing the layout.
+    <div
+      role={onSeek ? "slider" : undefined}
+      aria-label={onSeek ? "Seek" : undefined}
+      aria-valuemin={onSeek ? 0 : undefined}
+      aria-valuemax={onSeek ? Math.round(duration) : undefined}
+      aria-valuenow={onSeek ? Math.round(current) : undefined}
+      aria-valuetext={onSeek ? `${formatTime(current)} of ${formatTime(duration)}` : undefined}
+      tabIndex={onSeek ? 0 : undefined}
+      className={`-my-2 touch-none py-2 ${onSeek ? "cursor-pointer" : ""}`}
+      onPointerDown={(e) => {
+        if (!onSeek) return;
+        e.currentTarget.setPointerCapture(e.pointerId);
+        seekToPointer(e.clientX);
+      }}
+      onPointerMove={(e) => {
+        if (e.currentTarget.hasPointerCapture(e.pointerId)) seekToPointer(e.clientX);
+      }}
+      onKeyDown={(e) => {
+        if (!onSeek) return;
+        const step = { ArrowLeft: -5, ArrowDown: -5, ArrowRight: 5, ArrowUp: 5 }[e.key];
+        if (step !== undefined) onSeek(current + step);
+        else if (e.key === "Home") onSeek(0);
+        else if (e.key === "End") onSeek(duration);
+        else return;
+        e.preventDefault();
+      }}
+    >
+      <div ref={track} className="relative h-1 rounded-sm bg-[rgba(217,217,217,0.25)]">
+        <div className="bg-text h-1 rounded-sm" style={{ width: `${progress * 100}%` }} />
+        <div
+          className="absolute top-1/2 -mt-1.5 -ml-1.5 size-3 rounded-full bg-white"
+          // CfPlayerTilesR nudges the knob to 1% at 0:00 so it isn't clipped.
+          style={{ left: `${Math.max(progress * 100, 1)}%` }}
+        />
+      </div>
+    </div>
   );
 }
