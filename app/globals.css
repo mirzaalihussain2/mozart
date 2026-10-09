@@ -1,26 +1,44 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Design tokens — AGENTS.md §4. Use these utilities (bg-surface, text-secondary,
+   bg-remix, rounded-tile …) instead of raw hex values. */
+@theme {
+  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+
+  --color-bg: #121212;
+  --color-surface: #202020;
+  --color-raised: #2e2e2e;
+  --color-border: #474747;
+  --color-border-strong: #5e5e5e;
+  --color-text: #d9d9d9;
+  --color-text-secondary: #bababa;
+  --color-accent: #f2f2f2;
+  --color-on-accent: #121212;
+
+  --color-remix: #ff754c;
+  --color-cover: #a259ff;
+  --color-rewrite: #2ec4b6;
+  --color-vibe: #ffc93c;
+  --color-new: #ffc93c;
+  --color-on-mode: #121212;
+
+  /* Pills (buttons, chips, avatars) use rounded-full. */
+  --radius-art: 10px;
+  --radius-art-lg: 14px;
+  --radius-tile: 16px;
+  --radius-card-sm: 18px;
+  --radius-card: 20px;
+  --radius-sheet: 24px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
 }
