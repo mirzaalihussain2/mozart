@@ -8,6 +8,7 @@ import { StepTwo } from "@/components/creation/StepTwo";
 import { LandingView } from "@/components/landing/LandingView";
 import { LibraryView } from "@/components/library/LibraryView";
 import { MODES, type ModeId } from "@/lib/config/modes";
+import { SONGS } from "@/lib/config/songs";
 import {
   createStepTwo,
   LIBRARY_ROWS,
@@ -24,11 +25,11 @@ export const SCREENS: Record<string, () => ReactNode> = {
   "01-01": () => <LandingView />,
   "01-02": () => <CreateHome initial="A" />,
   "01-03": () => <CreateHome initial="A" nowPlaying={NOW_PLAYING} />,
-  "02-01": () => <StepOne mode={MODES.remix} />,
+  "02-01": () => <StepOne mode={MODES.remix} songs={SONGS} />,
   "02-02": () => <StepTwo {...createStepTwo("remix", "Cruel Summer", "bollywood")} />,
-  "02-03": () => <StepOne mode={MODES.cover} />,
+  "02-03": () => <StepOne mode={MODES.cover} songs={SONGS} />,
   "02-04": () => <StepTwo {...createStepTwo("cover", "In Too Deep", "arijit-singh")} />,
-  "02-05": () => <StepOne mode={MODES.rewrite} />,
+  "02-05": () => <StepOne mode={MODES.rewrite} songs={SONGS} />,
   "02-06": () => <StepTwo {...createStepTwo("rewrite", "Payphone", "moving-to-london")} />,
   "02-07": () => <SomethingNew rotate={false} />,
   "02-08": () => <SomethingNew rotate={false} initialText={NEW_TYPED} initialFocused />,

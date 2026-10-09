@@ -1,9 +1,9 @@
 import "server-only";
 import { and, count, eq, gt, isNull } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
-import { getSong } from "@/lib/config/songs";
+import { findSong } from "@/lib/config/songs";
 import { rootTitle } from "@/lib/format";
-import { changeLabel, titleFor, type GenerateInput } from "@/lib/generation-input";
+import { changeLabel, titleFor, type Catalogue, type GenerateInput } from "@/lib/generation-input";
 import { db } from "../db";
 import { tracks, type Track } from "../db/schema";
 import { getTrackById } from "../tracks";
@@ -24,9 +24,9 @@ export type CreateResult =
   | { ok: false; status: 404 | 429; error: string };
 
 /** The root original song of what's being changed (never a "×" title). */
-async function resolveSource(input: GenerateInput) {
+async function resolveSource(input: GenerateInput, catalogue: Catalogue) {
   if ("sourceSongId" in input && input.sourceSongId) {
-    const song = getSong(input.sourceSongId)!;
+    const song = findSong(catalogue.songs, input.sourceSongId)!;
     return { found: true as const, root: { song: song.title, artist: song.artist }, track: null };
   }
   if ("sourceTrackId" in input && input.sourceTrackId) {
@@ -44,7 +44,7 @@ async function resolveSource(input: GenerateInput) {
  * Validated input → a new track (POST /api/generate): owned by the user, or
  * unowned with the browser's anonymous id until it's claimed at sign-in.
  */
-export async function createGeneratedTrack(maker: Maker, input: GenerateInput): Promise<CreateResult> {
+export async function createGeneratedTrack(maker: Maker, input: GenerateInput, catalogue: Catalogue): Promise<CreateResult> {
   const anon = "anonId" in maker;
   const limit = anon ? ANON_RATE_LIMIT : RATE_LIMIT;
   const since = new Date(Date.now() - limit.windowMinutes * 60_000);
@@ -56,11 +56,11 @@ export async function createGeneratedTrack(maker: Maker, input: GenerateInput): 
     return { ok: false, status: 429, error: "That's a lot of songs. Try again in a few minutes." };
   }
 
-  const source = await resolveSource(input);
+  const source = await resolveSource(input, catalogue);
   if (!source.found) return { ok: false, status: 404, error: "That track doesn't exist." };
 
   const audio = pickAudio(input, source.track?.audioUrl);
-  const label = changeLabel(input);
+  const label = changeLabel(input, catalogue);
   const generationInput: Record<string, string> = {
     ...Object.fromEntries(Object.entries(input).filter(([, v]) => v !== undefined)),
     ...(source.root ? { rootSong: source.root.song, rootArtist: source.root.artist } : {}),
@@ -75,7 +75,7 @@ export async function createGeneratedTrack(maker: Maker, input: GenerateInput): 
         .values({
           publicSlug: slug(),
           mode: input.mode,
-          title: titleFor(input, source.root?.song ?? null),
+          title: titleFor(input, source.root?.song ?? null, catalogue),
           audioUrl: audio.file,
           sourceTrackId: source.track?.id ?? null,
           generationInput,

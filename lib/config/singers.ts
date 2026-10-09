@@ -1,15 +1,34 @@
+import type { SpotifyTaste } from "../types/taste";
 import { MOCK_TASTE } from "./mock-taste";
 
-// Cover step 2 singers (CfCover2.dc.html), in design order. Derived from
-// MOCK_TASTE.topArtists until milestone 7 reads the user's own taste.
-// `id` (a slug of the name) is what the API and the audio catalogue use.
+// Cover step 2 singers (CfCover2): the viewer's top artists, in order.
+// `id` is a slug of the name (stable across Spotify and mock taste, and what
+// the audio catalogue tags use).
 
 export type Singer = { id: string; name: string };
 
-const slug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const slug = (name: string) =>
+  name
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 
-export const SINGERS: Singer[] = MOCK_TASTE.topArtists.map((a) => ({ id: slug(a.name), name: a.name }));
+export function singersFrom(taste: SpotifyTaste): Singer[] {
+  const seen = new Set<string>();
+  return taste.topArtists
+    .map((a) => ({ id: slug(a.name) || a.id, name: a.name }))
+    .filter((s) => !seen.has(s.id) && seen.add(s.id));
+}
+
+/** The mock list (dummy users, signed-out visitors, the gallery). */
+export const SINGERS: Singer[] = singersFrom(MOCK_TASTE);
+
+export function findSinger(singers: Singer[], id: string): Singer | undefined {
+  return singers.find((s) => s.id === id);
+}
 
 export function getSinger(id: string): Singer | undefined {
-  return SINGERS.find((s) => s.id === id);
+  return findSinger(SINGERS, id);
 }

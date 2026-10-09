@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { StepTwo, type StepTwoMode } from "@/components/creation/StepTwo";
 import { rootTitle } from "@/lib/format";
 import { getTrackBySlug } from "@/lib/server/tracks";
+import { catalogueFor } from "@/lib/server/taste";
 import { artistLabel, viewerFor } from "@/lib/server/viewer";
 
 // 04-01…04-05 (creator) / 05-02…05-06 (recipient): step 2 from a player,
@@ -38,6 +39,7 @@ export default async function FromPlayerPage({ params }: PageProps<"/track/[slug
       source={{ sourceTrackId: track.id }}
       // Signed out: Generate works once, then opens the Send-to sheet.
       signIn={viewer.signIn}
+      singers={catalogueFor(viewer.user).singers}
     />
   );
 }

@@ -2,7 +2,7 @@ import type { MiniPlayerProps } from "@/components/audio/MiniPlayer";
 import type { PlayerProps } from "@/components/audio/Player";
 import type { StepTwoMode, StepTwoProps } from "@/components/creation/StepTwo";
 import type { LibraryRow } from "@/components/library/LibraryView";
-import { getSong, SONGS } from "@/lib/config/songs";
+import { SONGS } from "@/lib/config/songs";
 import { heroInitials } from "@/lib/format";
 
 // Fixed data for the dev gallery, matching what the designs show.
@@ -25,7 +25,7 @@ export const LIBRARY_ROWS: LibraryRow[] = [
   { slug: "deep-lofi", title: "In Too Deep × Lo-fi", badge: "REMIX", dateLabel: "28 Sep" },
 ];
 
-const songByTitle = (title: string) => getSong(SONGS.find((s) => s.title === title)!.id)!;
+const songByTitle = (title: string) => SONGS.find((s) => s.title === title)!;
 
 /** Step 2 from the Create flow with a picked song (02-02 / 02-04 / 02-06). */
 export function createStepTwo(mode: StepTwoMode, title: string, choice: string): StepTwoProps {
