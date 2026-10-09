@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useAudio } from "@/components/audio/AudioProvider";
 
 /**
  * Avatar on the Create home (CfHome) — opens a small menu with Log out.
@@ -9,6 +10,7 @@ import { useEffect, useRef } from "react";
  */
 export function ProfileMenu({ initial }: { initial: string }) {
   const root = useRef<HTMLDetailsElement>(null);
+  const { stop } = useAudio();
 
   useEffect(() => {
     const close = (e: Event) => {
@@ -36,7 +38,8 @@ export function ProfileMenu({ initial }: { initial: string }) {
         {initial}
       </summary>
       <div role="menu" className="bg-surface border-raised absolute top-12 right-0 z-30 min-w-36 rounded-xl border p-1 shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
-        <form action="/auth/logout" method="post">
+        {/* Logging out stops the music (the form still posts without JS). */}
+        <form action="/auth/logout" method="post" onSubmit={() => stop()}>
           <button
             type="submit"
             role="menuitem"

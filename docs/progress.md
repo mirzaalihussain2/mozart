@@ -1,6 +1,69 @@
 # Progress
 
-## Milestone 5 — Recipient loop · done (PR #5, branch `m5-recipient-loop`)
+## Milestone 6 — Mini player · done (PR #6, branch `m6-mini-player`)
+
+Start a track on its player → **Minimise** → the music keeps playing, with a mini player above the tab bar on the Library and Create home (07-02, 01-03) and the playing row outlined. Tap the mini player to return to the player at the same point. **Close player** and **Log out** stop the music.
+
+### Built
+- **`AudioProvider`:**
+  - `shouldKeepPlaying(pathname)` (`lib/audio-routes.ts`, unit-tested) replaces the old pause-off-player effect. `/track/{slug}` (exactly), `/create` and `/library` keep playing; every other route pauses, with the track still loaded.
+  - New `stop()`: pause, remove the src, clear the track, time 0.
+  - `load()` is a no-op for the slug already loaded.
+  - Loaded tracks carry `isOwn` and `mode`.
+- **`NowPlayingSlot`:** a client component that renders the live `MiniPlayer` from `useAudio()` on `/create` and `/library` whenever a track is loaded (playing or paused).
+  - Its play/pause drives `toggle()`.
+  - The bar is "Now playing: {title} by {artist}. Open player" → `/track/{slug}`, with no autoplay.
+  - Saved ✓ shows only for the viewer's own track.
+- **Library rows:** each row is a tiny client `LibraryRowLink` that outlines the loaded slug with `aria-current="true"`. The list is still server-rendered. The list scrolls in its own region, so the mini player never covers a row.
+- **Player:** passes `isOwn` and `mode` to `load()`.
+  - **Minimise** (⌄) → `/library`, still playing.
+  - **Close player** (after `?saved=1`) → `stop()` → `/library` with no mini player (07-01).
+  - Opening the player from the mini player attaches to the playing audio, with no reload.
+- **Log out** calls `stop()` before posting.
+- The gallery's 01-03 and 07-02 keep their fixtures (`CreateHome` / `LibraryView` take `live` on real routes, `nowPlaying` in the gallery).
+
+### Verified
+- `pnpm typecheck`, `pnpm lint`, `pnpm build`: no errors.
+- `pnpm test:unit`: **35/35**. New: `shouldKeepPlaying` (`/track/abc` yes; `/track/abc/remix` no; `/create` yes; `/create/remix` no; `/library` yes; `/` no) and `showsMiniPlayer`.
+- `pnpm test:e2e`: **65/65**, three times in a row. New `mini-player.spec.ts`:
+  - Minimise → Library: mini player, outlined row, still playing;
+  - the tabs keep it;
+  - mini pause/play;
+  - reopening the player at the same point (same src, time not reset);
+  - a step screen pauses, and the mini player resumes it on Create;
+  - saved ✓ for Ali's own track but not for Sam playing Ali's;
+  - Close player and Log out stop the music;
+  - shared links still don't autoplay.
+
+  `generate.spec`'s pause test follows the new rules.
+- Real routes, signed in as Ali:
+  - 01-02 (0.82%) and 01-03 (1.00%, playing at 38%): identical to the gallery.
+  - 07-01 and 07-02 checked by eye: the mini player, saved ✓, pause, progress, and the outlined playing row. Your extra testing tracks sit above the seeded ones.
+- No drift on 03-05, 06-07 and 07-01 / 07-02 (gallery).
+
+### Decisions
+1. Audio keeps playing on `/track/{slug}` (not its sub-routes), `/create` and `/library`. Everywhere else it pauses but stays loaded, so the mini player can resume it.
+2. The mini player shows on `/create` and `/library` whenever a track is loaded, playing or paused, and nowhere else.
+3. Minimise → `/library`, playing. Close player → `stop()` → `/library`, no mini player.
+4. Returning to a player from the mini player never reloads or restarts: `load()` ignores a slug that's already loaded.
+5. Saved ✓ only when the loaded track is the viewer's own (`isOwn`, decided on the server by `viewerFor`).
+6. Log out stops the music.
+7. Playback state is in memory only; a full page reload clears it.
+
+### Known gaps
+- No persistence across reloads, no queue, no next/previous.
+- Leaving a recipient player through "Mozart" goes via `/`, which pauses. On arriving at `/create` the mini player shows the track paused, ready to resume.
+- Your testing tracks: 7 are still in the database (5 Ali, 2 Sam) from M3–M5 testing.
+
+### TODOs left
+- **M7:**
+  - `app/auth/spotify/login/route.ts`: real Spotify OAuth (Authorization Code + PKCE);
+  - the callback calls `completeSignIn`, with the dummy persona as the silent fallback;
+  - taste import into the pickers and ideas.
+
+## Next: Milestone 7 — Spotify
+
+## Milestone 5 — Recipient loop · done (PR #5, merged)
 
 The core loop works end to end:
 1. Ali shares a track.
@@ -87,7 +150,6 @@ The core loop works end to end:
   - `app/auth/spotify/login/route.ts`: real Spotify OAuth;
   - the callback calls `completeSignIn`, with the dummy persona as the silent fallback.
 
-## Next: Milestone 6 — Library + mini player
 
 ## Milestone 4 — Share · done (PR #4, merged)
 

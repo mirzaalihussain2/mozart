@@ -172,13 +172,20 @@ test.describe("signed in as Ali", () => {
     expect(a.src).toBe("");
   });
 
-  test("leaving the player pauses audio", async ({ page }) => {
+  test("audio keeps playing on the Library and Create home, and pauses on step screens", async ({ page }) => {
     await page.goto("/track/cruel-bolly");
     await page.getByRole("button", { name: "Play" }).click();
     await expect.poll(async () => (await audioState(page)).paused).toBe(false);
     await page.getByRole("link", { name: "Minimise player" }).click();
     await expect(page).toHaveURL("/library");
+    await page.waitForTimeout(300);
+    expect((await audioState(page)).paused).toBe(false);
+    // Mini player → player → a step screen: paused, still loaded.
+    await page.getByRole("link", { name: /^Now playing:/ }).click();
+    await page.getByRole("link", { name: "Remix", exact: true }).click();
+    await expect(page).toHaveURL("/track/cruel-bolly/remix");
     await expect.poll(async () => (await audioState(page)).paused).toBe(true);
+    expect((await audioState(page)).src).toBe("/audio/bollywood-strings.mp3");
   });
 });
 

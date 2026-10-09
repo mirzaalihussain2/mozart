@@ -68,6 +68,8 @@ export default async function TrackPage({ params, searchParams }: PageProps<"/tr
       initialSheet={share ? "share" : undefined}
       justSaved={saved}
       audio={{ src: track.audioUrl, durationSec: getAudioByFile(track.audioUrl)?.durationSec }}
+      isOwn={viewer.isOwner}
+      mode={track.mode}
       autoplay={autoplay}
       // Drop ?share / ?saved / ?autoplay once handled so a refresh doesn't repeat them.
       cleanHref={share || saved || autoplay ? (view ? `${path}?view=recipient` : path) : undefined}

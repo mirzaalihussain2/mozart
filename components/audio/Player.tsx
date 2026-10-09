@@ -9,7 +9,7 @@ import { SignupSheet } from "@/components/sharing/SignupSheet";
 import { Artwork } from "@/components/track/Artwork";
 import { ModeTile } from "@/components/track/ModeTile";
 import { Toast } from "@/components/ui/Toast";
-import { MODES, PLAYER_MODES } from "@/lib/config/modes";
+import { MODES, PLAYER_MODES, type ModeId } from "@/lib/config/modes";
 import { formatTime } from "@/lib/format";
 import type { SignInPrompt, SignInReason } from "@/lib/sign-in-prompt";
 import { useAudio, type AudioTrack } from "./AudioProvider";
@@ -34,6 +34,9 @@ export type PlayerProps = {
   shareUrl: string;
   /** The track's catalogue file (real routes). Drives the global <audio>. */
   audio?: { src: string; durationSec?: number };
+  /** The viewer owns this track (saved ✓ on the mini player). */
+  isOwn?: boolean;
+  mode?: ModeId;
   /** `?autoplay=1`, set only by Generate. Never for shared or library links. */
   autoplay?: boolean;
   /** Gallery: fixed playback state instead of the real audio element. */
@@ -77,9 +80,10 @@ export function Player(props: PlayerProps) {
   const [staticPlaying, setStaticPlaying] = useState(playback.playing);
   const src = props.playback ? undefined : props.audio?.src;
   const durationSec = props.audio?.durationSec;
+  const { isOwn, mode } = props;
   const audioTrack = useMemo<AudioTrack | null>(
-    () => (src ? { slug, title, artist, src, durationSec } : null),
-    [slug, title, artist, src, durationSec],
+    () => (src ? { slug, title, artist, src, durationSec, isOwn, mode } : null),
+    [slug, title, artist, src, durationSec, isOwn, mode],
   );
   // The single <audio> may hold another track; then this player shows paused at 0:00.
   const mine = !!audioTrack && a.track?.slug === slug && a.track.src === audioTrack.src;
@@ -130,6 +134,8 @@ export function Player(props: PlayerProps) {
             <Link
               href="/library"
               aria-label={closeLabel}
+              // Minimise keeps the music going under the mini player; Close stops it (07-01).
+              onClick={closeLabel === "Close player" && audioTrack ? () => a.stop() : undefined}
               className="text-text -ml-2 flex size-11 items-center justify-center rounded-full"
             >
               <ChevronDownIcon size={26} />
