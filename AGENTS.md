@@ -64,7 +64,7 @@ Rules the designs follow — keep them:
 - Mode colour appears only on creative things: mode cards, mode tiles, the tinted pill back button, selected pills, the "…but make it **X**" word, Generate buttons, Generating screens.
 - Everything else uses the off-white accent or greys.
 - Tap targets ≥ 44 px. Icons are stroke icons; copy the SVG paths from `docs/designs/html/` rather than redrawing.
-- Album art is a grey placeholder square with initials — keep it that way.
+- Album art is a grey placeholder square with initials, with one exception: in the pickers, a Spotify user's own songs and singers show their real album covers and artist photos, and the profile button shows their Spotify photo. Generated tracks (player, mini player, Library, step 2 from a player) always keep the placeholder.
 
 ## 5. How to work (every task)
 
