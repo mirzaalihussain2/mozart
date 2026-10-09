@@ -1,6 +1,95 @@
 # Progress
 
-## Milestone 4 — Share · done (PR #4, branch `m4-share`)
+## Milestone 5 — Recipient loop · done (PR #5, branch `m5-recipient-loop`)
+
+The core loop works end to end:
+1. Ali shares a track.
+2. A friend with no account listens and makes **one** version anonymously, then sees it with **"Send to Ali"**.
+3. They tap it, then "Continue with Spotify", and sign in (as Sam).
+4. They land back on **their** track, now in **their** library, with the share sheet open and "Signed in · saved to your library".
+5. Any further making while anonymous asks them to sign in.
+
+### Player variant (decided on the server, `lib/server/viewer.ts`)
+
+| Viewer | Track | Variant | Screen |
+| --- | --- | --- | --- |
+| Signed in, is owner | any | `creator` | 03-05 / 06-08 |
+| Signed in, is owner, `?view=recipient` | any | `recipient`, with a stranger's prompts (preview) | 05-01 |
+| Signed out, `mozart_anon` matches `anonymous_session_id` | anonymous | `recipientResult` | 06-05 |
+| Signed out, anyone else | any | `recipient` | 05-01 |
+| Signed in, not owner | any | `recipient`, no sign-up prompts, tiles make as themselves | 05-01 |
+
+### Built
+- **Anonymous identity** (`lib/server/anon.ts`, pure parts in `lib/anon-cookie.ts`):
+  - `mozart_anon` = `crypto.randomUUID()`: httpOnly, Secure in production, Lax, path `/`, 1 year;
+  - created **only** by `POST /api/generate` on a signed-out make;
+  - anything that isn't a UUID is ignored;
+  - helpers: `getAnonId`, `getOrCreateAnonId`, `clearAnonId`, `countAnonTracks`.
+- **`POST /api/generate` when signed out:**
+  - only from a track (otherwise 401 `signin_required`);
+  - one make per cookie (unclaimed tracks ≥ 1 → 403 `{ error: "anon_limit", sendTo }`);
+  - the track is inserted unowned with `anonymous_session_id`;
+  - app-wide cap of 30 anonymous makes per 10 minutes (429);
+  - the response adds `isAnonymous`.
+- **Personas:** Sam joins Ali (fixed ids, upserted on sign-in and by the seed). `pickDummyPersona(returnTo)` returns the first persona who isn't the owner of the track in `returnTo`; for an anonymous track, that's its source's owner. No track → Ali.
+- **`completeSignIn`** (`lib/server/auth/complete-sign-in.ts`), the one place sign-in finishes:
+  - sets the session;
+  - claims this browser's unowned tracks in one atomic UPDATE (`lib/server/auth/claim.ts`);
+  - deletes `mozart_anon`;
+  - redirects with `saved=1` **only if something was claimed**.
+
+  `/auth/dummy` and `/auth/spotify/login` go through it. The M7 Spotify callback only needs to call it.
+- **Send-to sheet** (06-06):
+  - the title is "Send to {source owner's first name}", always from data;
+  - its copy depends on the doorway: *send* (CfSignup: "save your {remix|cover|…} and send it back"), *more* (one make used), *save* (from someone else's track before making).
+- **Where "Continue with Spotify" returns:**
+  - after making → their own track `?share=1`, and the server adds `&saved=1` → 06-07;
+  - before making → the track they're on, as Sam, with no toast.
+- **Blocked makes:**
+  - once the make is used, the player tiles and step-2 Generate open the sheet, never Generating;
+  - `useGenerate` turns a stale-UI 401/403 into the same sheet.
+- **Anonymous tracks** show "You" to the maker and "A friend" to everyone else, including in the title, `og:title` and the share image ("by a friend"). The cookie never leaves the server.
+
+### Verified
+- `pnpm typecheck`, `pnpm lint`, `pnpm build`: no errors.
+- `pnpm test:unit`: **32/32**:
+  - the UUID check and cookie attributes;
+  - persona picking (Ali's track → Sam, Sam's → Ali, anonymous from Ali's → Sam, none → Ali);
+  - `saved=1` only when something was claimed;
+  - claiming only this browser's unowned tracks, once (database-backed, self-cleaning).
+- `pnpm test:e2e`: **56/56**, twice in a row. New `recipient-loop.spec.ts`:
+  - **the core loop with two browsers:** Ali makes and copies a link → the friend opens it paused → plays → remixes (the recipient Generating screen in orange for ≥ 3.5 s) → `recipientResult` with "Send to Ali", "You" and *Cruel Summer × Electronic* → httpOnly cookie, unowned database row → the second make opens the sheet (no Generating), and a forced POST gets 403 → Send to Ali → Continue → their track as `creator`, sheet + toast, `/api/me` = Sam → Library first, database row owned by Sam, cookie gone → Ali's library doesn't have it, and Ali sees "Sent by Sam" → a refresh shows no toast.
+  - **edge cases:** reopening the result; another browser ("A friend", makes its own); a signed-in viewer of an anonymous track; signing in from 05-01 without a make (as Sam, no toast, no prompts); a replayed sign-in claims once; a tampered cookie claims nothing; 401 without a source; no cookie in the HTML or metadata; `/create` and `/library` still redirect.
+- Gallery 05-01…05-07 and 06-01…06-08: the same diffs as M4. Real routes captured with cookies: 05-01 0.24%, 06-05 0.41%, 06-06 0.30%, 06-07 1.03%. Spot checks 03-05, 03-06 and 07-01: no drift.
+
+### Decisions
+- **Personas:** Ali is "Log in"; signing in from someone else's track gives Sam. The rule is "the first persona who isn't the owner of the `returnTo` track", resolved on the server, never from the client.
+- **Claiming happens only in `completeSignIn`.** It's one atomic UPDATE, safe to replay.
+- **"Saved" is decided by the server.** Sheets never put `saved=1` in `returnTo`.
+- **Return targets:** the recipient's own result → `/track/{theirSlug}?share=1`; someone else's track → `/track/{slug}`. If they've already made one, every doorway returns to their own track.
+- **Artist label:** "You" to the anonymous maker, "A friend" to everyone else. "Sent by a friend" on the recipient view of an anonymous track.
+- **`?view=recipient`** shows the owner the stranger's prompts (+ button), so the preview matches what a friend sees.
+- `completeSignIn({ userId, returnTo })` takes the validated `returnTo` rather than the request, since the cookies come from `next/headers`. `lib/server/auth.ts` became `lib/server/auth/` (index, http, personas, claim, complete-sign-in).
+
+### Accepted gaps
+- **Clearing cookies** loses access to the anonymous result, and resets the per-person one-make limit. The app-wide cap of 30 per 10 minutes is the only guard.
+- **No cross-device claim:** only the browser that made the track can claim it.
+- **No saving other people's tracks** (two tables only): signing in from 05-01 makes you Sam viewing Ali's track, not a copy in your library.
+- **A brief Generating flash** can happen only when the page's knowledge of the limit is stale (e.g. a second tab); the 403 then opens the sheet.
+- **"Continue with Spotify" is a GET that signs in and claims**, so a cross-site link could sign a visitor in as a dummy persona. That's acceptable for the dummy flow; real OAuth (M7) uses state/PKCE.
+- **Your testing tracks:** four from M3/M4 testing remain in Ali's library.
+
+### TODOs left for later milestones
+- **M6:**
+  - `components/audio/AudioProvider.tsx`: remove the pause-on-leave effect;
+  - `components/audio/MiniPlayer.tsx`: drive it from `useAudio()`, and decide when it appears (01-03, 07-02).
+- **M7:**
+  - `app/auth/spotify/login/route.ts`: real Spotify OAuth;
+  - the callback calls `completeSignIn`, with the dummy persona as the silent fallback.
+
+## Next: Milestone 6 — Library + mini player
+
+## Milestone 4 — Share · done (PR #4, merged)
 
 A creator can share a track and a friend gets something worth tapping:
 - **Copy link** copies the real URL and confirms it.
@@ -82,7 +171,6 @@ A creator can share a track and a friend gets something worth tapping:
   - `components/audio/MiniPlayer.tsx`: drive it from `useAudio()`.
 - **M7:** `app/auth/spotify/login/route.ts`: real Spotify OAuth.
 
-## Next: Milestone 5 — Recipient loop
 
 ## Milestone 3 — Generate · done (PR #3, merged)
 
