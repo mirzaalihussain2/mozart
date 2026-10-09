@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 // Landing (01-01), dummy login, Spotify fallback, logout,
-// protected /create, /api/me and returnTo validation.
+// protected /create, /api/me, returnTo validation and the 404 page.
 
 test("landing shows the headline and both buttons", async ({ page }) => {
   await page.goto("/");
@@ -62,4 +62,16 @@ test("returnTo is honoured for same-site paths and ignored otherwise", async ({ 
     const res = await request.get(`/auth/spotify/login?returnTo=${bad}`);
     expect(new URL(res.url()).pathname, bad).toBe("/create");
   }
+});
+
+test("a 404 links back to / when signed out and /create when signed in", async ({ page }) => {
+  await page.goto("/track/no-such-track");
+  await expect(page.getByRole("heading", { name: "Nothing here" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Back to Mozart" })).toHaveAttribute("href", "/");
+
+  await page.request.post("/auth/dummy");
+  await page.goto("/no-such-page");
+  await expect(page.getByRole("link", { name: "Back to Mozart" })).toHaveAttribute("href", "/create");
+  await page.getByRole("link", { name: "Back to Mozart" }).click();
+  await expect(page).toHaveURL("/create");
 });
