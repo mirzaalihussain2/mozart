@@ -7,6 +7,7 @@ import { ModeButton } from "@/components/ui/Buttons";
 import { IDEA_ROTATE_MS, IDEAS } from "@/lib/config/ideas";
 import { MODES } from "@/lib/config/modes";
 import { useGenerate } from "@/lib/client/use-generate";
+import { useKeyboardViewport } from "@/lib/client/use-keyboard-viewport";
 import { generationQuote } from "@/lib/generation";
 import { Generating } from "./StepTwo";
 
@@ -29,6 +30,7 @@ export function SomethingNew({ initialText = "", initialFocused = false, rotate 
   const router = useRouter();
   // Signed-in only; if the session has gone, start again from the landing page.
   const gen = useGenerate({ onBlocked: () => router.push("/") });
+  const keyboard = useKeyboardViewport(focused);
 
   useEffect(() => {
     if (!rotate || focused || text) return;
@@ -41,7 +43,7 @@ export function SomethingNew({ initialText = "", initialFocused = false, rotate 
   const hint = focused ? (text ? "" : "Start typing, or tap Generate song to use the idea.") : "Tap the box to write your own.";
 
   return (
-    <main className="flex h-dvh flex-col">
+    <main className="mx-auto flex h-dvh w-full max-w-[390px] flex-col" style={keyboard}>
       <div className="px-5 pt-12">
         <StepHeader mode={mode} backHref="/create" />
         <h1 className="mt-4 mb-0 text-[30px] leading-[1.12] font-bold">Describe your song</h1>

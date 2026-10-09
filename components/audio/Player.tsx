@@ -127,7 +127,7 @@ export function Player(props: PlayerProps) {
   const openSignup = () => setSheet(variant === "recipientResult" || signIn?.makeUsed ? "send" : "save");
 
   return (
-    <main className="flex h-dvh min-h-[760px] flex-col bg-[linear-gradient(180deg,#3a2a24_0%,#1c1716_48%,#121212_100%)] px-6 pt-[52px] pb-8">
+    <main className="flex h-dvh min-h-[760px] flex-col bg-[linear-gradient(180deg,#3a2a24_0%,#1c1716_48%,#121212_100%)] px-6 pt-[52px] pb-[max(32px,env(safe-area-inset-bottom))]">
       <div className="flex h-12 items-center justify-between gap-2">
         {creator ? (
           <>
