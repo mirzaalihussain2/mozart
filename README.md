@@ -47,6 +47,26 @@ In the Spotify dashboard, register `http://127.0.0.1:3000/auth/spotify/callback`
 | `pnpm test:e2e` | Playwright end-to-end tests. Runs its own app on port 3001 against a fake Spotify on 4545, so it never touches the real one. Tests delete every track they create |
 | `pnpm shots [id]` / `pnpm shots:diff [id]` | Capture screens at 390 × 844 and diff them with `docs/designs/png/` |
 
+### Ports and parallel worktrees
+
+Every port can be changed, so several worktrees can run side by side (AGENTS.md §6):
+
+| Variable | Default | Used by |
+| --- | --- | --- |
+| `PORT` | 3000 | `pnpm dev`, `pnpm start`, `pnpm shots` |
+| `E2E_PORT` | 3001 | the app `pnpm test:e2e` starts; its production-gate twin runs on `E2E_PORT + 99` |
+| `FAKE_SPOTIFY_PORT` | 4545 | the fake Spotify used by `pnpm test:e2e` |
+
+```bash
+git worktree add ../mozart-m9-foo -b m9-foo main
+cp .env.local ../mozart-m9-foo/ && cd ../mozart-m9-foo && pnpm i
+PORT=3010 APP_URL=http://127.0.0.1:3010 pnpm dev
+PORT=3010 pnpm shots 07-01 && pnpm shots:diff 07-01
+E2E_PORT=3011 FAKE_SPOTIFY_PORT=4555 pnpm test:e2e
+```
+
+Set `APP_URL` to match `PORT`, or share links will point at port 3000. Real Spotify sign-in only works on port 3000, because that's the registered redirect URI; elsewhere it falls back to a demo user.
+
 The dev gallery at `/dev/screens` shows all 39 designed screens; `/dev/compare/{id}` puts one beside its design. Neither is available in production.
 
 ## Deploy

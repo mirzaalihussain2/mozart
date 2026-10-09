@@ -23,6 +23,7 @@ pnpm test:e2e                                            # own app on :3001 (.ne
 pnpm shots [id] && pnpm shots:diff [id]                  # capture /dev/screens/{id} at 390×844@3x, diff with docs/designs/png
 ```
 
+- **Ports:** `PORT`, `E2E_PORT` (its production-gate twin is `+ 99`) and `FAKE_SPOTIFY_PORT` override 3000 / 3001 / 4545 for parallel worktrees; see the README. New worktrees need a copy of `.env.local`. With several worktrees busy at once the machine overloads: start `pnpm dev` before `pnpm shots` (its own start-up wait can time out), and run e2e with `--workers=2`. The core-loop test then needs the most headroom against its 30 s timeout.
 - **iPhone checks:** run Playwright's WebKit with `devices["iPhone 14"]` and a 390 × 844 viewport (`pnpm exec playwright install webkit` once). It has no on-screen keyboard and reports every safe-area inset as 0, so test those two on a real phone.
 - **`/dev/screens`:** every one of the 39 screens in its design state (real components and fixtures). `/dev/compare/{id}` shows a screen beside its PNG. `/dev/*` is a hard 404 in production (`proxy.ts`).
 - **Before calling a screen done:** diff it, open both images and compare. The baseline after M8 is ≤ 1.9% everywhere, except 02-08, 04-05 and 05-06 (~24%: the design draws an iOS keyboard, which the app leaves to the device).

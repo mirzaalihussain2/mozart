@@ -1,4 +1,4 @@
-// A tiny fake Spotify for e2e tests (accounts + Web API), on 127.0.0.1:4545.
+// A tiny fake Spotify for e2e tests (accounts + Web API), on 127.0.0.1:$FAKE_SPOTIFY_PORT (default 4545).
 // Run by Playwright as a web server. Scenarios are per browser: a test sets
 // the cookie `fake_spotify_scenario` (cookies ignore the port, so /authorize
 // sees it); the scenario rides along in the code and the access token, so
@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
 import { createServer } from "node:http";
 import path from "node:path";
 
-export const FAKE_SPOTIFY_PORT = 4545;
+export const FAKE_SPOTIFY_PORT = Number(process.env.FAKE_SPOTIFY_PORT ?? 4545);
 export type Scenario = "ok" | "deny" | "forbidden" | "slow" | "bad_state";
 const SCENARIOS: Scenario[] = ["ok", "deny", "forbidden", "slow", "bad_state"];
 

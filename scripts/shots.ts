@@ -1,12 +1,12 @@
 // pnpm shots [id ...] — capture screens at 390 × 844 @3× into .shots/{id}.png.
-// Reuses a dev server on 127.0.0.1:3000 or starts one for the run.
+// Reuses a dev server on 127.0.0.1:$PORT (default 3000) or starts one for the run.
 import { spawn, type ChildProcess } from "node:child_process";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { chromium } from "@playwright/test";
 import { SHOTS } from "./shots.config";
 
-const BASE_URL = "http://127.0.0.1:3000";
+const BASE_URL = `http://127.0.0.1:${process.env.PORT ?? 3000}`;
 const OUT_DIR = path.resolve(".shots");
 
 async function isUp(): Promise<boolean> {

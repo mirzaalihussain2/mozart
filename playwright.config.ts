@@ -3,9 +3,14 @@ import { defineConfig, devices } from "@playwright/test";
 // Always 127.0.0.1, never localhost (AGENTS.md §3). The e2e app runs on its
 // own port and build dir, never reusing a dev server: it talks to the fake
 // Spotify (tests/e2e/helpers/fake-spotify.ts), not the real one.
-export const BASE_URL = "http://127.0.0.1:3001";
-export const FAKE_SPOTIFY_URL = "http://127.0.0.1:4545";
-export const PROD_CHECK_URL = "http://127.0.0.1:3100";
+// Ports come from E2E_PORT / FAKE_SPOTIFY_PORT so parallel worktrees don't
+// collide; the production-gate app runs on E2E_PORT + 99.
+const E2E_PORT = Number(process.env.E2E_PORT ?? 3001);
+const FAKE_SPOTIFY_PORT = Number(process.env.FAKE_SPOTIFY_PORT ?? 4545);
+const PROD_CHECK_PORT = E2E_PORT + 99;
+export const BASE_URL = `http://127.0.0.1:${E2E_PORT}`;
+export const FAKE_SPOTIFY_URL = `http://127.0.0.1:${FAKE_SPOTIFY_PORT}`;
+export const PROD_CHECK_URL = `http://127.0.0.1:${PROD_CHECK_PORT}`;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -30,12 +35,13 @@ export default defineConfig({
   webServer: [
     {
       command: "pnpm exec tsx tests/e2e/helpers/fake-spotify.ts",
+      env: { FAKE_SPOTIFY_PORT: String(FAKE_SPOTIFY_PORT) },
       url: `${FAKE_SPOTIFY_URL}/health`,
       reuseExistingServer: false,
       timeout: 30_000,
     },
     {
-      command: "pnpm exec next dev -H 127.0.0.1 -p 3001",
+      command: `pnpm exec next dev -H 127.0.0.1 -p ${E2E_PORT}`,
       env: {
         NEXT_DIST_DIR: ".next-e2e",
         APP_URL: BASE_URL,
@@ -50,7 +56,7 @@ export default defineConfig({
     },
     // Same app with VERCEL_ENV=production, to check /dev/* is hidden there.
     {
-      command: "pnpm exec next dev -H 127.0.0.1 -p 3100",
+      command: `pnpm exec next dev -H 127.0.0.1 -p ${PROD_CHECK_PORT}`,
       env: { NEXT_DIST_DIR: ".next-prodcheck", VERCEL_ENV: "production" },
       url: `${PROD_CHECK_URL}/`,
       reuseExistingServer: true,
