@@ -231,6 +231,7 @@ export function Player(props: PlayerProps) {
       {sheet === "share" ? (
         <ShareSheet
           shareUrl={shareUrl}
+          title={title}
           onClose={() => setSheet(null)}
           recipientHref={creator ? `/track/${slug}?view=recipient` : undefined}
           initialCopied={initialCopied}
