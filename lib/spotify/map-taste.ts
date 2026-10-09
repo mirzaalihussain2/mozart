@@ -6,10 +6,10 @@ import type { SpotifyArtist, SpotifyImage, SpotifyProfile, SpotifyTrack } from "
 export const MAX_TRACKS = 20;
 export const MAX_ARTISTS = 12;
 
-/** "Blackbird - Remastered 2009" → "Blackbird"; "lovely (with Khalid)" → "lovely". */
+/** "Blackbird - Remastered 2009" → "Blackbird"; "lovely (with Khalid)" → "lovely"; 'Kesariya (From "Brahmastra")' → "Kesariya". */
 export function cleanTrackName(name: string): string {
   return name
-    .replace(/\s*[([](?:feat\.?|ft\.?|with)\s[^)\]]*[)\]]/gi, "")
+    .replace(/\s*[([](?:feat\.?|ft\.?|with|from)\s[^)\]]*[)\]]/gi, "")
     .replace(/\s+-\s+(?:.*\bremaster(?:ed)?\b.*|original version|.*\bremix|feat\.?\s.*|ft\.?\s.*|with\s.*)$/i, "")
     .replace(/\s{2,}/g, " ")
     .trim();

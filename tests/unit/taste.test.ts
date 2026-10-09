@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { MOCK_TASTE } from "../../lib/config/mock-taste";
+import { CANDICE, DEREK } from "../../lib/config/personas";
 import { singersFrom } from "../../lib/config/singers";
 import { songsFrom } from "../../lib/config/songs";
 import { parseGenerateInput, titleFor } from "../../lib/generation-input";
@@ -13,11 +14,11 @@ import { catalogueFor, getTasteFor } from "../../lib/server/taste";
 const fixture = <T>(n: string): T => JSON.parse(readFileSync(`docs/fixtures/spotify/${n}.json`, "utf8")) as T;
 const spotifyTaste = mapTaste(fixture<SpotifyPage<SpotifyTrack>>("top-tracks").items, fixture<SpotifyPage<SpotifyArtist>>("top-artists").items);
 const spotifyUser = { authProvider: "spotify" as const, spotifyTaste };
-const dummyUser = { authProvider: "dummy" as const, spotifyTaste: MOCK_TASTE };
 
-test("Spotify users with enough tracks get their own taste; everyone else MOCK_TASTE", () => {
+test("users with enough tracks get their own taste (Spotify users, Derek, Candice); signed-out visitors MOCK_TASTE", () => {
   assert.equal(getTasteFor(spotifyUser), spotifyTaste);
-  assert.equal(getTasteFor(dummyUser), MOCK_TASTE);
+  assert.equal(getTasteFor(DEREK), DEREK.spotifyTaste);
+  assert.equal(getTasteFor(CANDICE), CANDICE.spotifyTaste);
   assert.equal(getTasteFor(null), MOCK_TASTE);
   const thin = { authProvider: "spotify" as const, spotifyTaste: { ...spotifyTaste, topTracks: spotifyTaste.topTracks.slice(0, 5) } };
   assert.equal(getTasteFor(thin), MOCK_TASTE);
@@ -46,7 +47,7 @@ test("songs and singers carry the taste's artwork; the mock taste has none", () 
 
 test("validation follows the viewer's catalogue; names use the taste track as root", () => {
   const spotify = catalogueFor(spotifyUser);
-  const dummy = catalogueFor(dummyUser);
+  const dummy = catalogueFor(null); // MOCK_TASTE (signed-out visitors)
   const realId = spotify.songs[0].id;
 
   const ok = parseGenerateInput({ mode: "remix", sourceSongId: realId, genreId: "bollywood" }, spotify);
@@ -57,4 +58,16 @@ test("validation follows the viewer's catalogue; names use the taste track as ro
   assert.equal(parseGenerateInput({ mode: "remix", sourceSongId: "mock-track-01", genreId: "bollywood" }, spotify).ok, false);
   assert.ok(parseGenerateInput({ mode: "cover", sourceSongId: realId, singerId: "fred-again" }, spotify).ok);
   assert.equal(parseGenerateInput({ mode: "cover", sourceSongId: "mock-track-01", singerId: "frank-ocean" }, dummy).ok, false);
+});
+
+test("Derek and Candice: 20 songs and 10 singers each, all with real artwork, and every singer has a tagged file", async () => {
+  const { AUDIO_CATALOGUE } = await import("../../lib/config/audio-catalogue");
+  for (const p of [DEREK, CANDICE]) {
+    const c = catalogueFor(p);
+    assert.equal(c.songs.length, 20, p.firstName);
+    assert.equal(c.singers.length, 10, p.firstName);
+    assert.ok(c.songs.every((s) => s.imageUrl?.startsWith("https://i.scdn.co/")), `${p.firstName}'s covers`);
+    assert.ok(c.singers.every((s) => s.imageUrl?.startsWith("https://i.scdn.co/")), `${p.firstName}'s photos`);
+    for (const s of c.singers) assert.ok(AUDIO_CATALOGUE.some((a) => a.singers.includes(s.id)), `${s.name} (${s.id}) has a file`);
+  }
 });

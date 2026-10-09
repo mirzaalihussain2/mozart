@@ -2,11 +2,14 @@ import { expect, test, type Page } from "@playwright/test";
 import { AUDIO_CATALOGUE } from "../../lib/config/audio-catalogue";
 import { BASE_URL } from "../../playwright.config";
 import { closeDb, deleteTracks } from "./helpers/db";
+import { DEREK, DEREK_LATCH, DEREK_POP_PUNK, songId } from "./helpers/personas";
 
 // Milestone 3: Generate makes a real track (named by the rule, saved to the
 // library, playing catalogue audio), and the player drives one <audio>.
 
 const CATALOGUE_FILES = AUDIO_CATALOGUE.map((a) => a.file);
+const LATCH = songId(DEREK, "Latch");
+const HOLOCENE = "derek-holocene-lofi"; // acoustic-lofi.mp3, about 3:27 long
 
 // In order, one worker, so this file's tracks don't race each other in the Library.
 test.describe.configure({ mode: "default" });
@@ -39,55 +42,55 @@ const audioState = (page: Page) =>
 async function expectNewTrack(page: Page, title: string) {
   await expect(page).toHaveURL(new RegExp(`^${BASE_URL.replace(/\./g, "\\.")}/track/[0-9a-z]{10}$`), { timeout: 15_000 });
   const slug = new URL(page.url()).pathname.split("/")[2];
-  expect(slug).not.toBe("cruel-bolly");
+  expect(slug).not.toBe(DEREK_LATCH.slug);
   expect(created).toContain(slug);
   await expect(page.getByRole("heading", { name: title, exact: true })).toBeVisible();
   // ?autoplay=1 loads it straight away (playing unless the browser blocks it).
   await expect.poll(async () => (await audioState(page)).src).toMatch(/^\/audio\/.+\.mp3$/);
   expect(CATALOGUE_FILES).toContain((await audioState(page)).src);
 
-  // Saved straight away: in the Library as "Today", above every seeded track.
-  // (Other spec files may add newer tracks for Ali while this runs in parallel.)
+  // Saved straight away: in the Library as "Today", above every starter track.
+  // (Other spec files may add newer tracks for Derek while this runs in parallel.)
   await page.goto("/library");
   const row = page.locator(`a[href="/track/${slug}"]`);
   await expect(row).toHaveAttribute("aria-label", new RegExp(`^${escape(title)} .*Today$`));
   const hrefs = await page.locator('a[href^="/track/"]').evaluateAll((els) => els.map((e) => e.getAttribute("href")));
-  expect(hrefs.indexOf(`/track/${slug}`)).toBeLessThan(hrefs.indexOf("/track/cruel-bolly"));
+  expect(hrefs.indexOf(`/track/${slug}`)).toBeLessThan(hrefs.indexOf(`/track/${DEREK_LATCH.slug}`));
   return slug;
 }
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-test.describe("signed in as Ali", () => {
+test.describe("signed in as Derek", () => {
   test.beforeEach(async ({ page }) => {
     await page.request.post("/auth/dummy");
     recordCreated(page);
   });
 
-  test("Remix makes Cruel Summer × Bollywood and the Generating screen stays ≥ 3.5 s (02-02 → 03-01 → 03-05)", async ({ page }) => {
-    await page.goto("/create/remix/mock-track-01");
+  test("Remix makes Latch × Bollywood and the Generating screen stays ≥ 3.5 s (02-02 → 03-01 → 03-05)", async ({ page }) => {
+    await page.goto(`/create/remix/${LATCH}`);
     await page.getByRole("radio", { name: "Bollywood" }).click();
     const t0 = Date.now();
     await page.getByRole("button", { name: "Generate remix" }).click();
     await expect(page.getByText("Making your track…")).toBeVisible();
     await page.waitForURL(/\/track\/[0-9a-z]{10}/, { timeout: 15_000 });
     expect(Date.now() - t0).toBeGreaterThanOrEqual(3500);
-    await expectNewTrack(page, "Cruel Summer × Bollywood");
+    await expectNewTrack(page, "Latch × Bollywood");
   });
 
-  test("Cover makes In Too Deep × Arijit Singh (02-04 → 03-02)", async ({ page }) => {
+  test("Cover makes Holocene × Disclosure (02-04 → 03-02)", async ({ page }) => {
     await page.goto("/create/cover");
-    await page.getByRole("link", { name: "In Too Deep by Sum 41" }).click();
-    await page.getByRole("radio", { name: "Arijit Singh" }).click();
+    await page.getByRole("link", { name: "Holocene by Bon Iver" }).click();
+    await page.getByRole("radio", { name: "Disclosure" }).click();
     await page.getByRole("button", { name: "Generate cover" }).click();
-    await expectNewTrack(page, "In Too Deep × Arijit Singh");
+    await expectNewTrack(page, "Holocene × Disclosure");
   });
 
-  test("Rewrite makes Payphone × Moving to London (02-06 → 03-03)", async ({ page }) => {
+  test("Rewrite makes 505 × Moving to London (02-06 → 03-03)", async ({ page }) => {
     await page.goto("/create/rewrite");
-    await page.getByRole("link", { name: "Payphone by Maroon 5" }).click();
+    await page.getByRole("link", { name: "505 by Arctic Monkeys" }).click();
     await page.getByRole("radio", { name: "Moving to London" }).click();
     await page.getByRole("button", { name: "Generate rewrite" }).click();
-    await expectNewTrack(page, "Payphone × Moving to London");
+    await expectNewTrack(page, "505 × Moving to London");
   });
 
   test("Something new from free text is named after it (02-08 → 03-04)", async ({ page }) => {
@@ -103,19 +106,19 @@ test.describe("signed in as Ali", () => {
     await expectNewTrack(page, "Euphoric electronic pop");
   });
 
-  test("Remix from cruel-electro keeps the root song: Cruel Summer × Lo-fi (04-01)", async ({ page }) => {
-    await page.goto("/track/cruel-electro");
+  test("Remix from a remix keeps the root song: Do I Wanna Know? × Lo-fi (04-01)", async ({ page }) => {
+    await page.goto(`/track/${DEREK_POP_PUNK.slug}`);
     await page.getByRole("link", { name: "Remix", exact: true }).click();
     await page.getByRole("radio", { name: "Lo-fi" }).click();
     await page.getByRole("button", { name: "Generate remix" }).click();
-    await expectNewTrack(page, "Cruel Summer × Lo-fi");
+    await expectNewTrack(page, "Do I Wanna Know? × Lo-fi");
   });
 
   test("Vibe from a player names it {root} × {trimmed text} (04-05)", async ({ page }) => {
-    await page.goto("/track/cruel-bolly/vibe");
+    await page.goto(`/track/${DEREK_LATCH.slug}/vibe`);
     await page.getByLabel("Describe how to change this song").fill("make it a stripped-back acoustic version for a rainy Sunday");
     await page.getByRole("button", { name: "Generate song" }).click();
-    await expectNewTrack(page, "Cruel Summer × Make it a stripped-back");
+    await expectNewTrack(page, "Latch × Make it a stripped-back");
   });
 
   test("a double tap on Generate creates one track", async ({ page }) => {
@@ -123,7 +126,7 @@ test.describe("signed in as Ali", () => {
     page.on("request", (r) => {
       if (r.url().endsWith("/api/generate")) posts++;
     });
-    await page.goto("/create/remix/mock-track-01");
+    await page.goto(`/create/remix/${LATCH}`);
     await page.getByRole("radio", { name: "Electronic" }).click();
     await page.getByRole("button", { name: "Generate remix" }).dblclick();
     await page.waitForURL(/\/track\/[0-9a-z]{10}/, { timeout: 15_000 });
@@ -132,22 +135,22 @@ test.describe("signed in as Ali", () => {
   });
 
   test("Back from the new player returns to the step screen, not Generating", async ({ page }) => {
-    await page.goto("/create/remix/mock-track-01");
+    await page.goto(`/create/remix/${LATCH}`);
     await page.getByRole("radio", { name: "Jazz" }).click();
     await page.getByRole("button", { name: "Generate remix" }).click();
     await page.waitForURL(/\/track\/[0-9a-z]{10}/, { timeout: 15_000 });
     await page.goBack();
-    await expect(page).toHaveURL("/create/remix/mock-track-01");
+    await expect(page).toHaveURL(`/create/remix/${LATCH}`);
     await expect(page.getByRole("button", { name: "Generate remix" })).toBeVisible();
   });
 
   test("player: Play plays, Pause pauses, seeking moves the time (03-05)", async ({ page }) => {
-    await page.goto("/track/cruel-bolly");
+    await page.goto(`/track/${HOLOCENE}`);
     await page.getByRole("button", { name: "Play" }).click();
     await expect.poll(async () => (await audioState(page)).paused).toBe(false);
     const t1 = (await audioState(page)).time;
     await expect.poll(async () => (await audioState(page)).time).toBeGreaterThan(t1 + 0.3);
-    expect((await audioState(page)).src).toBe("/audio/bollywood-strings.mp3");
+    expect((await audioState(page)).src).toBe("/audio/acoustic-lofi.mp3");
 
     await page.getByRole("button", { name: "Pause" }).click();
     await expect.poll(async () => (await audioState(page)).paused).toBe(true);
@@ -161,11 +164,11 @@ test.describe("signed in as Ali", () => {
     const box = (await slider.boundingBox())!;
     await page.mouse.click(box.x + box.width * 0.5, box.y + box.height / 2);
     await expect.poll(async () => (await audioState(page)).time).toBeGreaterThan(80);
-    await expect(slider).toHaveAttribute("aria-valuetext", /^1:3\d of 3:0\d$/);
+    await expect(slider).toHaveAttribute("aria-valuetext", /^1:4\d of 3:2\d$/);
   });
 
   test("opening a track directly never autoplays", async ({ page }) => {
-    await page.goto("/track/cruel-bolly");
+    await page.goto(`/track/${DEREK_LATCH.slug}`);
     await expect(page.getByRole("button", { name: "Play" })).toBeVisible();
     await page.waitForTimeout(1000);
     const a = await audioState(page);
@@ -174,7 +177,7 @@ test.describe("signed in as Ali", () => {
   });
 
   test("audio keeps playing on the Library and Create home, and pauses on step screens", async ({ page }) => {
-    await page.goto("/track/cruel-bolly");
+    await page.goto(`/track/${DEREK_LATCH.slug}`);
     await page.getByRole("button", { name: "Play" }).click();
     await expect.poll(async () => (await audioState(page)).paused).toBe(false);
     await page.getByRole("link", { name: "Minimise player" }).click();
@@ -184,16 +187,16 @@ test.describe("signed in as Ali", () => {
     // Mini player → player → a step screen: paused, still loaded.
     await page.getByRole("link", { name: /^Now playing:/ }).click();
     await page.getByRole("link", { name: "Remix", exact: true }).click();
-    await expect(page).toHaveURL("/track/cruel-bolly/remix");
+    await expect(page).toHaveURL(`/track/${DEREK_LATCH.slug}/remix`);
     await expect.poll(async () => (await audioState(page)).paused).toBe(true);
-    expect((await audioState(page)).src).toBe("/audio/bollywood-strings.mp3");
+    expect((await audioState(page)).src).toBe("/audio/late-night-garage.mp3");
   });
 });
 
 test.describe("POST /api/generate", () => {
   test("400 for bad input", async ({ request }) => {
     await request.post("/auth/dummy");
-    for (const data of [{ mode: "dance" }, { mode: "remix", sourceSongId: "mock-track-01", genreId: "polka" }, { mode: "new", text: "" }]) {
+    for (const data of [{ mode: "dance" }, { mode: "remix", sourceSongId: LATCH, genreId: "polka" }, { mode: "remix", sourceSongId: "mock-track-01", genreId: "bollywood" }, { mode: "new", text: "" }]) {
       const res = await request.post("/api/generate", { data });
       expect(res.status(), JSON.stringify(data)).toBe(400);
       expect((await res.json()).error).toBe("bad_request");

@@ -1,17 +1,23 @@
 import "server-only";
+import type { Persona } from "../../config/personas";
 import { safeReturnTo } from "../../return-to";
 import { completeSignIn } from "./complete-sign-in";
-import { pickDummyPersona, upsertPersona } from "./personas";
+import { pickFallbackPersona, resetPersona } from "./personas";
 
 /**
- * Dummy sign-in (POST /auth/dummy, and /auth/spotify/login as the silent
- * fallback): validate returnTo → pick the persona → upsert → completeSignIn.
+ * Signs in as a demo persona: validate returnTo → reset their library →
+ * completeSignIn (which claims this browser's anonymous tracks afterwards).
  */
-export async function signInWithDummy(rawReturnTo: unknown): Promise<Response> {
+export async function signInAsPersona(persona: Persona, rawReturnTo: unknown): Promise<Response> {
   const returnTo = safeReturnTo(rawReturnTo);
-  const persona = await pickDummyPersona(returnTo);
-  const userId = await upsertPersona(persona);
+  const userId = await resetPersona(persona);
   return completeSignIn({ userId, returnTo });
+}
+
+/** Any Spotify failure (and Spotify switched off): Candice, or Derek from one of her tracks. */
+export async function signInWithFallback(rawReturnTo: unknown): Promise<Response> {
+  const persona = await pickFallbackPersona(safeReturnTo(rawReturnTo));
+  return signInAsPersona(persona, rawReturnTo);
 }
 
 export { isSameOrigin, seeOther } from "./http";

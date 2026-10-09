@@ -10,7 +10,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "tsx scripts/seed.ts",
+    "personas:tastes": "tsx scripts/persona-tastes.ts",
     "shots": "tsx scripts/shots.ts",
     "shots:diff": "tsx scripts/shots-diff.ts",
     "test:e2e": "playwright test",

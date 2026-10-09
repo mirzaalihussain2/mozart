@@ -25,7 +25,7 @@ test("Library has Create's header: Mozart, profile menu, title and track count; 
   await expect(count).toHaveCSS("line-height", "21px");
 
   const profile = page.getByRole("button", { name: "Profile" });
-  await expect(profile).toHaveText("A");
+  await expect(profile).toHaveText("D"); // Derek
   await profile.click();
   await page.getByRole("menuitem", { name: "Log out" }).click();
   await expect(page).toHaveURL("/");

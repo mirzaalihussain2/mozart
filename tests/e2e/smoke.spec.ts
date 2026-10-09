@@ -10,12 +10,12 @@ test("landing shows the headline and both buttons", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Log in" })).toBeVisible();
 });
 
-test("Log in lands on /create as Ali, and Log out returns to /", async ({ page }) => {
+test("Log in lands on /create as Derek, and Log out returns to /", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Log in" }).click();
   await expect(page).toHaveURL("/create");
   await expect(page.getByRole("heading", { name: "What do you want to make?" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Profile" })).toHaveText("A");
+  await expect(page.getByRole("button", { name: "Profile" })).toHaveText("D");
 
   await page.getByRole("button", { name: "Profile" }).click();
   await page.getByRole("menuitem", { name: "Log out" }).click();
@@ -23,11 +23,12 @@ test("Log in lands on /create as Ali, and Log out returns to /", async ({ page }
   await expect(page.getByRole("button", { name: "Log in" })).toBeVisible();
 });
 
-test("Connect Spotify signs in as Ali (silent fallback)", async ({ page }) => {
+test("Connect Spotify that fails signs in as Candice (silent fallback)", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("link", { name: "Connect Spotify to get started" }).click();
   await expect(page).toHaveURL("/create");
   await expect(page.getByRole("heading", { name: "What do you want to make?" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Profile" })).toHaveText("C");
 });
 
 test("signed-in visitors to / are sent to /create", async ({ page }) => {
@@ -41,12 +42,12 @@ test("/create redirects to / when signed out", async ({ page }) => {
   await expect(page).toHaveURL("/");
 });
 
-test("/api/me returns null signed out and Ali signed in", async ({ request }) => {
+test("/api/me returns null signed out and Derek signed in", async ({ request }) => {
   expect(await (await request.get("/api/me")).json()).toEqual({ user: null });
 
   await request.post("/auth/dummy");
   const { user } = await (await request.get("/api/me")).json();
-  expect(user).toMatchObject({ firstName: "Ali", displayName: "Ali", avatarUrl: null });
+  expect(user).toMatchObject({ firstName: "Derek", displayName: "Derek", avatarUrl: null });
   expect(typeof user.id).toBe("string");
 });
 
@@ -54,7 +55,7 @@ test("returnTo is honoured for same-site paths and ignored otherwise", async ({ 
   const location = async (url: string, method: "get" | "post") =>
     (await request[method](url, { maxRedirects: 0 })).headers()["location"];
 
-  expect(await location("/auth/dummy?returnTo=/track/cruel-bolly", "post")).toBe("/track/cruel-bolly");
+  expect(await location("/auth/dummy?returnTo=/track/derek-latch-weeknd", "post")).toBe("/track/derek-latch-weeknd");
   expect(await location("/auth/dummy?returnTo=//evil.com", "post")).toBe("/create");
   // Spotify sign-in goes via (fake) Spotify and back; with no scenario cookie it
   // falls back to the dummy persona — the bad returnTo still ends on /create.

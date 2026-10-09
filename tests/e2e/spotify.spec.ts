@@ -1,11 +1,12 @@
 import { expect, test, type Browser, type BrowserContext, type Page } from "@playwright/test";
-import { DUMMY_USER } from "../../lib/config/dummy-user";
 import { BASE_URL } from "../../playwright.config";
 import { closeDb, deleteSpotifyUser, deleteTracks, spotifyUser, trackRow } from "./helpers/db";
 import type { Scenario } from "./helpers/fake-spotify";
+import { CANDICE, CANDICE_KILL_BILL, DEREK, DEREK_LATCH } from "./helpers/personas";
 
 // Milestone 7: real Spotify sign-in against a fake Spotify (scenario per
-// browser via the fake_spotify_scenario cookie). The fixture user is "ali".
+// browser via the fake_spotify_scenario cookie). The fixture user is "ali";
+// failures become Candice (or Derek from one of her tracks), "Log in" is Derek.
 
 const FIXTURE_USER = "mozart-fixture-user";
 const created: string[] = [];
@@ -46,7 +47,7 @@ test("ok: Connect Spotify signs in the Spotify user, whose top tracks and artist
 
   const user = await me(page);
   expect(user?.firstName).toBe("Ali");
-  expect(user?.id).not.toBe(DUMMY_USER.id);
+  expect([DEREK.id, CANDICE.id]).not.toContain(user?.id);
   expect(await spotifyUser(FIXTURE_USER)).toMatchObject({ id: user!.id, first_name: "Ali", auth_provider: "spotify" });
   expect(await hasOAuthCookie(ctx)).toBe(false);
   // The profile circle shows their Spotify photo, on Create and on Library.
@@ -94,18 +95,18 @@ test("ok: Connect Spotify signs in the Spotify user, whose top tracks and artist
 });
 
 for (const scenario of ["deny", "forbidden", "slow", "bad_state"] as const) {
-  test(`${scenario}: silently becomes the dummy persona at the same destination`, async ({ browser }) => {
+  test(`${scenario}: silently becomes Candice at the same destination`, async ({ browser }) => {
     const ctx = await withScenario(browser, scenario);
     const page = await ctx.newPage();
     await page.goto("/");
     await page.getByRole("link", { name: "Connect Spotify to get started" }).click();
     await expect(page).toHaveURL("/create", { timeout: 15_000 });
-    expect((await me(page))?.id).toBe(DUMMY_USER.id);
+    expect((await me(page))?.id).toBe(CANDICE.id);
     await expect(page.getByText(/spotify/i)).toHaveCount(0);
     expect(await hasOAuthCookie(ctx)).toBe(false);
-    // Dummy users keep the mock picker.
+    // Candice has her own top songs, with real covers.
     await page.getByRole("link", { name: /^Remix/ }).click();
-    await expect(page.getByRole("link", { name: "Cruel Summer by Taylor Swift" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Kill Bill by SZA" }).locator("img")).toHaveAttribute("src", SCDN);
     await ctx.close();
   });
 }
@@ -113,15 +114,15 @@ for (const scenario of ["deny", "forbidden", "slow", "bad_state"] as const) {
 test("the recipient loop through Spotify: their anonymous track is claimed by the Spotify user", async ({ browser }) => {
   const friend = await withScenario(browser, "ok");
   const page = await friend.newPage();
-  await page.goto("/track/cruel-bolly");
+  await page.goto(`/track/${DEREK_LATCH.slug}`);
   await page.getByRole("link", { name: "Remix", exact: true }).click();
   await page.getByRole("radio", { name: "Drill" }).click();
   await page.getByRole("button", { name: "Generate remix" }).click();
   await page.waitForURL(/\/track\/[0-9a-z]{10}$/, { timeout: 15_000 });
   const theirSlug = new URL(page.url()).pathname.split("/")[2];
 
-  await page.getByRole("button", { name: "Send to Ali" }).click();
-  await page.getByRole("dialog", { name: "Send to Ali" }).getByRole("link", { name: "Continue with Spotify" }).click();
+  await page.getByRole("button", { name: "Send to Derek" }).click();
+  await page.getByRole("dialog", { name: "Send to Derek" }).getByRole("link", { name: "Continue with Spotify" }).click();
   await expect(page).toHaveURL(`/track/${theirSlug}`);
   await expect(page.getByRole("dialog", { name: "Share this track" })).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "Signed in · saved to your library" })).toBeVisible();
@@ -131,25 +132,46 @@ test("the recipient loop through Spotify: their anonymous track is claimed by th
   await friend.close();
 });
 
-test("'Log in' is still dummy Ali with the mock songs; a Spotify song id from Ali is a 400", async ({ browser }) => {
+test("'Log in' is Derek with his own songs; another user's song id is a 400", async ({ browser }) => {
   const ctx = await withScenario(browser, "ok");
   const page = await ctx.newPage();
   await page.goto("/");
   await page.getByRole("button", { name: "Log in" }).click();
   await expect(page).toHaveURL("/create");
-  expect((await me(page))?.id).toBe(DUMMY_USER.id);
-  await expect(page.getByRole("button", { name: "Profile" })).toHaveText("A");
+  expect((await me(page))?.id).toBe(DEREK.id);
+  await expect(page.getByRole("button", { name: "Profile" })).toHaveText("D");
   await expect(page.getByRole("button", { name: "Profile" }).locator("img")).toHaveCount(0);
   await page.getByRole("link", { name: /^Remix/ }).click();
-  await expect(page.getByRole("link", { name: "Cruel Summer by Taylor Swift" })).toBeVisible();
-  // The mock songs keep the grey initials tiles.
-  await expect(page.getByRole("link", { name: "Cruel Summer by Taylor Swift" })).toHaveText(/^TS/);
-  await expect(page.locator('a[href^="/create/remix/"] img')).toHaveCount(0);
+  // His 20 top songs, every one with its real cover; none of the mock songs.
+  await expect(page.getByRole("link", { name: "Latch by Disclosure" }).locator("img")).toHaveAttribute("src", SCDN);
+  await expect(page.locator('a[href^="/create/remix/"] img')).toHaveCount(20);
+  await expect(page.getByRole("link", { name: "Cruel Summer by Taylor Swift" })).toHaveCount(0);
 
-  // "Way Too Self Aware" (a Spotify id) isn't in Ali's catalogue.
+  // "Way Too Self Aware" (the fixture user's song) isn't in Derek's catalogue.
   const res = await page.request.post("/api/generate", { data: { mode: "remix", sourceSongId: "2rkUhGw5iWbBY1PE5AnCl8", genreId: "bollywood" } });
   expect(res.status()).toBe(400);
   await ctx.close();
+});
+
+test("a failed sign-in from one of Candice's tracks becomes Derek, who gets the friend's track", async ({ browser }) => {
+  const friend = await withScenario(browser, "forbidden");
+  const page = await friend.newPage();
+  await page.goto(`/track/${CANDICE_KILL_BILL.slug}`);
+  await expect(page.getByText("Sent by Candice")).toBeVisible();
+  await page.getByRole("link", { name: "Cover", exact: true }).click();
+  await page.getByRole("radio", { name: "Arijit Singh" }).click();
+  await page.getByRole("button", { name: "Generate cover" }).click();
+  await page.waitForURL(/\/track\/[0-9a-z]{10}$/, { timeout: 15_000 });
+  const theirSlug = new URL(page.url()).pathname.split("/")[2];
+  await expect(page.getByRole("heading", { name: "Kill Bill × Arijit Singh" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Send to Candice" }).click();
+  await page.getByRole("dialog", { name: "Send to Candice" }).getByRole("link", { name: "Continue with Spotify" }).click();
+  await expect(page).toHaveURL(`/track/${theirSlug}`);
+  await expect(page.getByRole("status").filter({ hasText: "Signed in · saved to your library" })).toBeVisible();
+  expect((await me(page))?.id).toBe(DEREK.id);
+  expect(await trackRow(theirSlug)).toMatchObject({ owner: DEREK.id, anon: null });
+  await friend.close();
 });
 
 // Step 1's picker (02-01 / 02-03 / 02-05) with the fixture's 20 top tracks.

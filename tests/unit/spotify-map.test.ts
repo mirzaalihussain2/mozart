@@ -13,6 +13,7 @@ const me = fixture<SpotifyProfile>("me");
 test("track names lose version suffixes and featured artists", () => {
   assert.equal(cleanTrackName("Blackbird - Remastered 2009"), "Blackbird");
   assert.equal(cleanTrackName("lovely (with Khalid)"), "lovely");
+  assert.equal(cleanTrackName('Kesariya (From "Brahmastra")'), "Kesariya");
   assert.equal(cleanTrackName("Beggin - Original Version"), "Beggin");
   assert.equal(cleanTrackName("Down Under (feat. Colin Hay)"), "Down Under");
   assert.equal(cleanTrackName("Where Are Ü Now (with Justin Bieber) - Ember Island Remix"), "Where Are Ü Now");
