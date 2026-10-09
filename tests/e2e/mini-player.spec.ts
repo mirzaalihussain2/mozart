@@ -55,9 +55,9 @@ test.describe("signed in as Ali", () => {
 
   test("tapping the mini player reopens the player at the same point, no restart", async ({ page }) => {
     await playThenMinimise(page);
-    await page.waitForTimeout(1200);
+    // Poll rather than sleep: under load the MP3 can still be buffering.
+    await expect.poll(async () => (await audio(page)).time).toBeGreaterThan(0.8);
     const before = await audio(page);
-    expect(before.time).toBeGreaterThan(0.8);
     await mini(page).click();
     await expect(page).toHaveURL("/track/cruel-electro");
     await expect(page.getByRole("button", { name: "Pause" })).toBeVisible();
