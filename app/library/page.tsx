@@ -13,6 +13,7 @@ export default async function LibraryPage() {
   const now = new Date();
   return (
     <LibraryView
+      live
       rows={tracks.map((t) => ({
         slug: t.publicSlug,
         title: t.title,
