@@ -1,7 +1,9 @@
 import { MOCK_TASTE } from "./mock-taste";
 
-// The predefined "Log in" user, also the silent fallback when Spotify fails.
-// Fixed id so seeding and /auth/dummy upsert the same row.
+// Dummy sign-in personas (fixed ids, upserted on sign-in and by the seed).
+// Ali is the "Log in" user and the creator in the demo; Sam is who a friend
+// becomes when signing in from someone else's track. Real Spotify (milestone
+// 7) replaces this for allowlisted accounts.
 export const DUMMY_USER = {
   id: "e56a3f29-d662-4e37-8952-a56d2c3f6a7e",
   displayName: "Ali",
@@ -10,6 +12,20 @@ export const DUMMY_USER = {
   authProvider: "dummy",
   spotifyTaste: MOCK_TASTE,
 } as const;
+
+export const SAM_USER = {
+  id: "ac3e2fb0-0148-4109-969c-39b73bf36d5d",
+  displayName: "Sam",
+  firstName: "Sam",
+  avatarUrl: null,
+  authProvider: "dummy",
+  spotifyTaste: MOCK_TASTE,
+} as const;
+
+export type Persona = typeof DUMMY_USER | typeof SAM_USER;
+
+/** In order: sign-in picks the first one who isn't the owner of the track being signed in from. */
+export const PERSONAS: readonly Persona[] = [DUMMY_USER, SAM_USER];
 
 // Ali's library (07-01), newest first. `ageMinutes` is relative to seeding time
 // so the dates read "Today", "Today", "Yesterday", then older (3 Oct, 1 Oct and

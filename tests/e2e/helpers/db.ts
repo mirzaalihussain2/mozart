@@ -24,6 +24,13 @@ export async function nonSeededSlugs(): Promise<string[]> {
   return rows.map((r) => r.public_slug);
 }
 
+/** owner_user_id / anonymous_session_id / id of a track. */
+export async function trackRow(slug: string): Promise<{ id: string; owner: string | null; anon: string | null } | null> {
+  const [row] = await db()<{ id: string; owner: string | null; anon: string | null }[]>`
+    select id, owner_user_id as owner, anonymous_session_id as anon from tracks where public_slug = ${slug}`;
+  return row ?? null;
+}
+
 export async function closeDb() {
   await sql?.end();
   sql = null;

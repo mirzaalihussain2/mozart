@@ -11,6 +11,7 @@ import { ModeTile } from "@/components/track/ModeTile";
 import { Toast } from "@/components/ui/Toast";
 import { MODES, PLAYER_MODES } from "@/lib/config/modes";
 import { formatTime } from "@/lib/format";
+import type { SignInPrompt, SignInReason } from "@/lib/sign-in-prompt";
 import { useAudio, type AudioTrack } from "./AudioProvider";
 
 export type PlayerVariant = "creator" | "recipient" | "recipientResult";
@@ -19,10 +20,16 @@ export type PlayerProps = {
   variant: PlayerVariant;
   slug: string;
   title: string;
-  /** Maker's first name, or "You" for an anonymous maker. */
+  /** Maker's first name; "You" for the anonymous maker, "A friend" to anyone else. */
   artist: string;
-  /** Who sent it ("Sent by Ali" / "Send to Ali"). */
+  /** Who it's from, for "Sent by {ownerName}" (05-01). */
   ownerName: string;
+  /**
+   * Signed-out visitors only (absent when signed in, which hides every
+   * sign-up prompt): who to "Send to", the sign-in link, and whether their
+   * one anonymous make is used (then the mode tiles open the sheet).
+   */
+  signIn?: SignInPrompt;
   /** Absolute /track/{slug} URL for the share sheet. */
   shareUrl: string;
   /** The track's catalogue file (real routes). Drives the global <audio>. */
@@ -31,7 +38,7 @@ export type PlayerProps = {
   autoplay?: boolean;
   /** Gallery: fixed playback state instead of the real audio element. */
   playback?: { playing: boolean; current: number; duration: number };
-  /** `?share=1` opens the share sheet on load. */
+  /** `?share=1` opens the share sheet on load; "signup" is the gallery's 06-06. */
   initialSheet?: "share" | "signup";
   /**
    * `?saved=1`: back from signing in (06-07). Shows the toast once and labels
@@ -56,10 +63,12 @@ const STOPPED = { playing: false, current: 0, duration: 30 };
  * CfPlayerSignedIn). Variants change the header and the save control.
  */
 export function Player(props: PlayerProps) {
-  const { variant, slug, title, artist, ownerName, shareUrl, cleanHref, staticToast, initialCopied } = props;
+  const { variant, slug, title, artist, ownerName, signIn, shareUrl, cleanHref, staticToast, initialCopied } = props;
   const playback = props.playback ?? STOPPED;
   const router = useRouter();
-  const [sheet, setSheet] = useState<"share" | "signup" | null>(props.initialSheet ?? null);
+  const [sheet, setSheet] = useState<"share" | SignInReason | null>(
+    props.initialSheet === "signup" ? "send" : (props.initialSheet ?? null),
+  );
   // Captured on first render so they survive the URL clean-up below.
   const [justSaved] = useState(!!props.justSaved);
   const [toastVisible, setToastVisible] = useState(!!props.justSaved);
@@ -110,7 +119,8 @@ export function Player(props: PlayerProps) {
     return () => clearTimeout(t);
   }, [toastVisible, staticToast]);
   const creator = variant === "creator";
-  const openSignup = () => setSheet("signup");
+  // Their own result, or anywhere after their one make: "save your remix and send it back".
+  const openSignup = () => setSheet(variant === "recipientResult" || signIn?.makeUsed ? "send" : "save");
 
   return (
     <main className="flex h-dvh min-h-[760px] flex-col bg-[linear-gradient(180deg,#3a2a24_0%,#1c1716_48%,#121212_100%)] px-6 pt-[52px] pb-8">
@@ -157,7 +167,7 @@ export function Player(props: PlayerProps) {
                 className="bg-accent text-on-accent relative flex h-9 w-32 cursor-pointer items-center justify-center gap-1.5 rounded-full text-sm font-bold whitespace-nowrap after:absolute after:-inset-y-1 after:inset-x-0"
               >
                 <SendIcon size={16} strokeWidth={2.2} />
-                Send to {ownerName}
+                Send to {signIn?.sendTo ?? ownerName}
               </button>
             )}
           </>
@@ -183,7 +193,7 @@ export function Player(props: PlayerProps) {
               <CheckIcon size={16} strokeWidth={3} />
             </span>
           </button>
-        ) : (
+        ) : signIn ? (
           <button
             type="button"
             aria-label="Save to your library (sign up)"
@@ -194,7 +204,7 @@ export function Player(props: PlayerProps) {
               <PlusIcon size={14} strokeWidth={3} />
             </span>
           </button>
-        )}
+        ) : null}
       </div>
 
       <div className="mt-auto flex flex-col gap-2">
@@ -224,7 +234,13 @@ export function Player(props: PlayerProps) {
 
       <div className="mt-6 flex justify-between">
         {PLAYER_MODES.map((id) => (
-          <ModeTile key={id} mode={MODES[id]} href={`/track/${slug}/${id}`} />
+          <ModeTile
+            key={id}
+            mode={MODES[id]}
+            href={`/track/${slug}/${id}`}
+            // One anonymous make per visitor: after it, every tile asks them to sign in.
+            onClick={signIn?.makeUsed ? () => setSheet("more") : undefined}
+          />
         ))}
       </div>
 
@@ -237,14 +253,7 @@ export function Player(props: PlayerProps) {
           initialCopied={initialCopied}
         />
       ) : null}
-      {sheet === "signup" ? (
-        <SignupSheet
-          ownerName={ownerName}
-          // Back on this track with the share sheet open and the toast (06-07).
-          signInHref={`/auth/spotify/login?returnTo=${encodeURIComponent(`/track/${slug}?share=1&saved=1`)}`}
-          onClose={() => setSheet(null)}
-        />
-      ) : null}
+      {sheet && sheet !== "share" && signIn ? <SignupSheet prompt={signIn} reason={sheet} onClose={() => setSheet(null)} /> : null}
       {toastVisible ? <Toast>Signed in · saved to your library</Toast> : null}
     </main>
   );

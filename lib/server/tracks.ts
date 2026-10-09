@@ -34,3 +34,23 @@ export const getTrackBySlug = cache(async (slug: string): Promise<TrackWithOwner
     owner: row.ownerId && row.ownerFirstName ? { id: row.ownerId, firstName: row.ownerFirstName } : null,
   };
 });
+
+/**
+ * Who a recipient "sends to" from this track: its owner's first name, or for
+ * an unowned (anonymous) track, the owner of the track it was made from.
+ */
+export async function sendToName(trackId: string): Promise<string | null> {
+  let id: string | null = trackId;
+  for (let depth = 0; id && depth < 4; depth++) {
+    const [row] = await db
+      .select({ source: tracks.sourceTrackId, owner: users.firstName })
+      .from(tracks)
+      .leftJoin(users, eq(users.id, tracks.ownerUserId))
+      .where(eq(tracks.id, id))
+      .limit(1);
+    if (!row) return null;
+    if (row.owner) return row.owner;
+    id = row.source;
+  }
+  return null;
+}

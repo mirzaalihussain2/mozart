@@ -148,28 +148,19 @@ test.describe("signed in as Ali", () => {
 });
 
 test.describe("signed out", () => {
-  test("shared track: recipient → Send to Ali → Continue with Spotify → back with sheet and toast (05-01, 06-06, 06-07)", async ({ page }) => {
+  test("shared track: recipient view; Save opens the Send to Ali sheet (05-01, 06-06)", async ({ page }) => {
     await page.goto("/track/cruel-bolly");
     await expect(page.getByText("Sent by Ali")).toBeVisible();
     await expect(page.getByRole("button", { name: "Play" })).toBeVisible();
-
     await page.getByRole("button", { name: "Save to your library (sign up)" }).click();
-    const signup = page.getByRole("dialog", { name: "Send to Ali" });
-    await expect(signup).toBeVisible();
-    await expect(signup.getByText("Sign in with Spotify to save your remix and send it back.")).toBeVisible();
-    await signup.getByRole("link", { name: "Continue with Spotify" }).click();
-
-    // Signed in (Spotify falls back to Ali), back on the track, params cleaned up.
-    await expect(page).toHaveURL("/track/cruel-bolly");
-    await expect(page.getByRole("dialog", { name: "Share this track" })).toBeVisible();
-    await expect(page.getByRole("status").filter({ hasText: "Signed in · saved to your library" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Close player" })).toBeVisible();
-
-    await page.getByRole("button", { name: "Close", exact: true }).first().click();
+    const sheet = page.getByRole("dialog", { name: "Send to Ali" });
+    await expect(sheet.getByRole("link", { name: "Continue with Spotify" })).toHaveAttribute(
+      "href",
+      "/auth/spotify/login?returnTo=%2Ftrack%2Fcruel-bolly",
+    );
+    await sheet.getByRole("button", { name: "Close" }).click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    await page.reload();
-    await expect(page.getByRole("dialog")).toHaveCount(0);
-    await expect(page.getByText("Signed in · saved to your library")).toHaveCount(0);
+    // The full sign-in round trip is in recipient-loop.spec.ts.
   });
 
   test("the Send to Ali sheet closes back to the player", async ({ page }) => {

@@ -28,7 +28,6 @@ export default async function StepTwoPage({ params }: PageProps<"/create/[mode]/
       }}
       song={song.title}
       source={{ sourceSongId: song.id }}
-      signInFallback={`/create/${mode}/${song.id}`}
     />
   );
 }

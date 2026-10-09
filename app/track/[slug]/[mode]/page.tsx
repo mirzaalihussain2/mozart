@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { StepTwo, type StepTwoMode } from "@/components/creation/StepTwo";
 import { rootTitle } from "@/lib/format";
-import { getCurrentUser } from "@/lib/server/session";
 import { getTrackBySlug } from "@/lib/server/tracks";
+import { artistLabel, viewerFor } from "@/lib/server/viewer";
 
 // 04-01…04-05 (creator) / 05-02…05-06 (recipient): step 2 from a player,
 // track already picked. No step counter. No sign-in required.
@@ -15,10 +15,8 @@ export default async function FromPlayerPage({ params }: PageProps<"/track/[slug
   if (!MODES_FROM_PLAYER.includes(mode as StepTwoMode)) notFound();
   const track = await getTrackBySlug(slug);
   if (!track) notFound();
-  const user = await getCurrentUser();
-
-  const isOwner = !!user && track.ownerUserId === user.id;
-  const maker = track.owner?.firstName ?? "You";
+  const viewer = await viewerFor(track);
+  const maker = artistLabel(track, viewer.isAnonMaker);
   const playerHref = `/track/${track.publicSlug}`;
 
   return (
@@ -35,10 +33,11 @@ export default async function FromPlayerPage({ params }: PageProps<"/track/[slug
         label: mode === "vibe" ? `${track.title}, ${maker}, back to the player` : `${track.title} ${maker}, back to the player`,
       }}
       song={rootTitle(track.title)}
-      owner={isOwner ? undefined : track.owner?.firstName}
+      owner={viewer.isOwner ? undefined : (track.owner?.firstName ?? undefined)}
       // The real id, looked up here so the client never has to fetch it.
       source={{ sourceTrackId: track.id }}
-      signInFallback={playerHref}
+      // Signed out: Generate works once, then opens the Send-to sheet.
+      signIn={viewer.signIn}
     />
   );
 }

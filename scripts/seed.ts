@@ -1,4 +1,4 @@
-// pnpm db:seed — idempotent: upserts the dummy user Ali and the six tracks in
+// pnpm db:seed — idempotent: upserts the personas (Ali, Sam) and Ali's six tracks in
 // 07-01 (by slug), refreshing their dates relative to now. Every track points
 // at a real catalogue file in public/audio/.
 // Uses its own client because lib/server/db imports "server-only".
@@ -7,7 +7,7 @@ import { inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { AUDIO_CATALOGUE } from "../lib/config/audio-catalogue";
-import { DUMMY_USER, SEED_TRACKS } from "../lib/config/dummy-user";
+import { DUMMY_USER, PERSONAS, SEED_TRACKS } from "../lib/config/dummy-user";
 import { tracks, users } from "../lib/server/db/schema";
 
 config({ path: ".env.local", quiet: true });
@@ -20,11 +20,12 @@ async function main() {
   const db = drizzle(sql);
 
   try {
-    const { id, ...userFields } = DUMMY_USER;
-    await db
-      .insert(users)
-      .values({ id, ...userFields })
-      .onConflictDoUpdate({ target: users.id, set: userFields });
+    for (const { id, ...userFields } of PERSONAS) {
+      await db
+        .insert(users)
+        .values({ id, ...userFields })
+        .onConflictDoUpdate({ target: users.id, set: userFields });
+    }
 
     // Sources first, so derived tracks can point at them.
     const ordered = [...SEED_TRACKS].sort((a, b) => Number(!!a.source) - Number(!!b.source));
@@ -61,7 +62,7 @@ async function main() {
     const seeded = await db.select({ id: tracks.id }).from(tracks).where(inArray(tracks.publicSlug, slugs));
     const [{ userCount }] = await sql<{ userCount: number }[]>`select count(*)::int as "userCount" from users`;
     const [{ trackCount }] = await sql<{ trackCount: number }[]>`select count(*)::int as "trackCount" from tracks`;
-    console.log(`Seeded ${DUMMY_USER.firstName} + ${seeded.length} tracks (${userCount} users, ${trackCount} tracks total)`);
+    console.log(`Seeded ${PERSONAS.map((p) => p.firstName).join(" + ")}, ${seeded.length} tracks (${userCount} users, ${trackCount} tracks total)`);
   } finally {
     await sql.end();
   }

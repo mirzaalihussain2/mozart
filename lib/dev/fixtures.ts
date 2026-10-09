@@ -43,7 +43,6 @@ export function createStepTwo(mode: StepTwoMode, title: string, choice: string):
     },
     song: song.title,
     source: { sourceSongId: song.id },
-    signInFallback: `/create/${mode}/${song.id}`,
     initialChoice: choice,
   };
 }
@@ -67,13 +66,21 @@ export function playerStepTwo(mode: StepTwoMode, recipient: boolean, extra: Part
     owner: recipient ? "Ali" : undefined,
     // Gallery only: a placeholder id (the real one comes from the track route).
     source: { sourceTrackId: "00000000-0000-4000-8000-000000000000" },
-    signInFallback: "/track/cruel-bolly",
+    signIn: recipient ? GALLERY_SIGN_IN : undefined,
     ...extra,
   };
 }
 
 export const NEW_TYPED = "A sad garage song about the night bus home";
 export const VIBE_TYPED = "Make it a stripped-back acoustic version for a rainy Sunday";
+
+// What a signed-out recipient sees for the Send-to sheet (before their make).
+export const GALLERY_SIGN_IN = {
+  sendTo: "Ali",
+  href: "/auth/spotify/login?returnTo=%2Ftrack%2Fcruel-bolly",
+  makeUsed: false,
+  noun: "remix",
+};
 
 // Players as designed. Ali's original, and Sam's remix of it (06-05…06-08).
 const ALI_TRACK = {
@@ -99,13 +106,20 @@ export const PLAYERS: Record<string, PlayerProps> = {
     initialSheet: "share",
     initialCopied: true,
   },
-  "05-01": { ...ALI_TRACK, variant: "recipient" },
-  "05-07": { ...ALI_TRACK, variant: "recipient", initialSheet: "share", initialCopied: true },
-  "06-05": { ...SAM_REMIX, artist: "You", variant: "recipientResult", playback: { playing: true, current: 7, duration: 30 } },
+  "05-01": { ...ALI_TRACK, variant: "recipient", signIn: GALLERY_SIGN_IN },
+  "05-07": { ...ALI_TRACK, variant: "recipient", signIn: GALLERY_SIGN_IN, initialSheet: "share", initialCopied: true },
+  "06-05": {
+    ...SAM_REMIX,
+    artist: "You",
+    variant: "recipientResult",
+    signIn: { ...GALLERY_SIGN_IN, makeUsed: true },
+    playback: { playing: true, current: 7, duration: 30 },
+  },
   "06-06": {
     ...SAM_REMIX,
     artist: "You",
     variant: "recipientResult",
+    signIn: { ...GALLERY_SIGN_IN, makeUsed: true },
     playback: { playing: true, current: 7, duration: 30 },
     initialSheet: "signup",
   },
