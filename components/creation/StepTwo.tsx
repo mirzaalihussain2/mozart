@@ -13,6 +13,7 @@ import { MODES, type ModeId } from "@/lib/config/modes";
 import { SINGERS, type Singer } from "@/lib/config/singers";
 import { THEMES } from "@/lib/config/themes";
 import { useGenerate } from "@/lib/client/use-generate";
+import { useKeyboardViewport } from "@/lib/client/use-keyboard-viewport";
 import { gridInitials } from "@/lib/format";
 import { generationQuote } from "@/lib/generation";
 import { SignupSheet } from "@/components/sharing/SignupSheet";
@@ -162,6 +163,7 @@ function VibeStep({ subject, backHref, song, owner, source, signIn, initialText 
   const box = useRef<HTMLTextAreaElement>(null);
   const blocked = useBlockedSheet(signIn);
   const gen = useGenerate({ onBlocked: blocked.open });
+  const keyboard = useKeyboardViewport(focused);
 
   if (gen.state.phase !== "idle") return <Generating gen={gen} />;
 
@@ -178,7 +180,7 @@ function VibeStep({ subject, backHref, song, owner, source, signIn, initialText 
   };
 
   return (
-    <main className="flex h-dvh flex-col">
+    <main className="mx-auto flex h-dvh w-full max-w-[390px] flex-col" style={keyboard}>
       <div className="px-4 pt-12">
         <StepHeader mode={mode} backHref={backHref} />
         {focused ? <SubjectRow subject={subject} /> : <SubjectCard subject={subject} />}

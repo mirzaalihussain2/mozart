@@ -8,7 +8,7 @@ type Props = {
   onClose: () => void;
   /** Accessible name of the dimmed backdrop (flow-index: "Close share sheet" / "Close"). */
   backdropLabel: string;
-  /** Bottom padding in px (share 14, recipient share 34, sign-in 52). */
+  /** Bottom padding in px (share 14, recipient share 34, sign-in 52); never less than the home-bar inset. */
   paddingBottom: number;
   children: React.ReactNode;
 };
@@ -74,7 +74,7 @@ export function BottomSheet({ title, onClose, backdropLabel, paddingBottom, chil
         aria-label={title}
         tabIndex={-1}
         className="bg-surface rounded-t-sheet outline-none absolute inset-x-0 bottom-0 flex flex-col gap-4 px-5 pt-2.5"
-        style={{ paddingBottom }}
+        style={{ paddingBottom: `max(${paddingBottom}px, env(safe-area-inset-bottom))` }}
       >
         <div className="bg-border-strong h-[5px] w-10 self-center rounded-[3px]" />
         <div className="flex items-center justify-between">

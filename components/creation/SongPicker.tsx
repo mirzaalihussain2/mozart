@@ -28,7 +28,7 @@ export function SongPicker({ songs, basePath }: { songs: Song[]; basePath: strin
           placeholder="Search any song"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="text-text placeholder:text-[#757575] min-w-0 flex-grow border-none bg-transparent text-[15px] outline-none"
+          className="text-text placeholder:text-[#757575] min-w-0 flex-grow self-stretch border-none bg-transparent text-[15px] outline-none"
         />
       </div>
       <div className="mt-[22px] grid grid-cols-4 gap-x-2.5 gap-y-[18px] pb-8">

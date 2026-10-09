@@ -4,14 +4,11 @@ Read `AGENTS.md` first (rules, stack, design system, git workflow). This page is
 
 ## Status
 
-Milestones 1–7 are merged to `main` and live on Vercel (PRs #1–#7). **Next: Milestone 8 — polish + E2E**:
-- the full core-loop test green;
-- the WhatsApp preview check on production;
-- a visual pass over all 39 screens.
+**v1 is complete.** Milestones 1–7 are merged (PRs #1–#7); M8 closes off v1 (PR #9). It's live at **https://mozart-iota.vercel.app**. The production check passed: the full loop works, including real Spotify sign-in and the WhatsApp preview. There's no next milestone; see **Later** at the end of this page.
 
-The core loop works end to end, as the code and e2e tests show:
+The core loop works end to end:
 1. Ali signs in (Spotify or "Log in") and makes a track (Remix / Cover / Rewrite / Something new).
-2. He shares the link.
+2. Ali shares the link.
 3. A friend with no account opens it and listens.
 4. The friend makes **one** version anonymously → "Send to Ali" → signs in.
 5. The friend lands back on **their** track, claimed into their library, with the share sheet open and the toast "Signed in · saved to your library".
@@ -26,8 +23,9 @@ pnpm test:e2e                                            # own app on :3001 (.ne
 pnpm shots [id] && pnpm shots:diff [id]                  # capture /dev/screens/{id} at 390×844@3x, diff with docs/designs/png
 ```
 
+- **iPhone checks:** run Playwright's WebKit with `devices["iPhone 14"]` and a 390 × 844 viewport (`pnpm exec playwright install webkit` once). It has no on-screen keyboard and reports every safe-area inset as 0, so test those two on a real phone.
 - **`/dev/screens`:** every one of the 39 screens in its design state (real components and fixtures). `/dev/compare/{id}` shows a screen beside its PNG. `/dev/*` is a hard 404 in production (`proxy.ts`).
-- **Before calling a screen done:** diff it, open both images and compare. The baseline after M7 is ≤ 1.9% everywhere, except 02-08, 04-05 and 05-06 (~24%: the design draws an iOS keyboard, which the app leaves to the device).
+- **Before calling a screen done:** diff it, open both images and compare. The baseline after M8 is ≤ 1.9% everywhere, except 02-08, 04-05 and 05-06 (~24%: the design draws an iOS keyboard, which the app leaves to the device).
 - **E2E rules:** tests delete every track they create (`tests/e2e/helpers/db.ts`) and never touch the seeded tracks; Sam may stay. Tests that check "first in the Library" must allow for other spec files adding tracks in parallel.
 
 ## Code map
@@ -62,6 +60,9 @@ pnpm shots [id] && pnpm shots:diff [id]                  # capture /dev/screens/
 - **Track URL parameters:** `?share=1` opens the share sheet. `?saved=1` shows the toast once and labels the chevron "Close player". `?autoplay=1` is only ever set by Generate. The Player strips all three from the URL after reading them.
 - **Naming:** `{root song} × {change}`. The root song is stored in `generation_input.rootSong`, so a chain never gets a double ×. Free text is trimmed (Vibe ~24 chars, Something new ~32 or the idea's label).
 - **Audio picking:** an exact tag match → free-text keywords → a hashed fallback. It's deterministic, and never the source track's own file when another exists.
+- **Safe areas:** `viewport-fit=cover`; the design's bottom spacing is kept and only grows to `env(safe-area-inset-bottom)` when the device needs more (`max(…)` on the tab bar, bottom sheets and player). Tops need nothing: iOS Safari and home-screen apps without `black-translucent` start the page below the status bar.
+- **Keyboard:** Something new and Vibe use `useKeyboardViewport` (`lib/client/use-keyboard-viewport.ts`). While the box is focused and the keyboard covers the screen, the screen is pinned to `visualViewport`, so Generate sits just above the keyboard (02-08, 04-05). iOS never shrinks `h-dvh` for the keyboard.
+- **404 / errors:** `app/not-found.tsx` and `app/error.tsx` share `components/ui/ErrorScreen.tsx` (landing layout, no design). "Back to Mozart" goes to `/create` when `/api/me` says signed in, else `/`.
 - **Playback:** music keeps playing on `/track/{slug}`, `/create` and `/library`. Everywhere else it pauses but stays loaded. The mini player shows only on `/create` and `/library`. Minimise keeps playing; Close player and Log out call `stop()`.
 - **Generate:** the Generating screen shows for ≥ 3.5 s. Generate uses `router.push` (not `replace`), so Back returns to the step screen. Errors show Try again / Back.
 - **Rate limits:** 20 makes per user per 10 minutes; 30 anonymous makes per 10 minutes app-wide (counted from `tracks`).
@@ -85,19 +86,23 @@ pnpm shots [id] && pnpm shots:diff [id]                  # capture /dev/screens/
 
 ## Environment
 
-- **`.env.local`:** `DATABASE_URL` (Supabase pooler :6543), `SESSION_SECRET`, `APP_URL=http://127.0.0.1:3000`, `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET`.
-- **Vercel:** `DATABASE_URL` and `SESSION_SECRET` (Production + Preview), `APP_URL` (Production only). **Check that** `SPOTIFY_CLIENT_ID` / `SECRET` are set and the production redirect URI `{APP_URL}/auth/spotify/callback` is registered in the Spotify dashboard (`http://127.0.0.1:3000/auth/spotify/callback` is registered). Previews sit behind Vercel's login, so WhatsApp can't unfurl them: test previews on production.
-- **The database holds 8 tracks from manual testing** (6 Ali, 2 Sam) on top of the seed. Delete them for a clean demo; re-seeding doesn't.
+- **`.env.local`:** `DATABASE_URL` (Supabase pooler :6543), `SESSION_SECRET`, `APP_URL=http://127.0.0.1:3000`, `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET`. Local and production share **one** database.
+- **Vercel:** `DATABASE_URL`, `SESSION_SECRET` and the Spotify credentials (Production + Preview); `APP_URL=https://mozart-iota.vercel.app` (Production only). Both Spotify redirect URIs are registered. Previews sit behind Vercel's login, so WhatsApp can't unfurl them: test previews on production.
+- **Test data:** as of 9 Oct 2026 the database holds 9 tracks from manual testing (7 Ali, 2 Sam) on top of the seed; listed in PR #9 and kept until Ali says to delete them. Re-seeding doesn't remove them. Never delete seeded tracks or Spotify users' tracks.
 
-## Known gaps / open items
+## Known gaps (v1)
 
-- **Playback:** no persistence across reloads, no queue.
-- **Anonymous:** clearing cookies loses the result and resets the one-make limit; no cross-device claim.
-- **Libraries:** no saving of other people's tracks (signing in from 05-01 makes you Sam viewing Ali's track).
-- **Generating flash:** a brief Generating screen can show only when the page's view of the limit is stale (e.g. a second tab).
-- **Dummy sign-in is a plain GET** that signs in directly (no CSRF protection); real Spotify uses state + PKCE.
-- **Spotify:** genres, themes and Something new ideas aren't personalised (Spotify returns no genres); only 5 allowlisted users.
-- **Not built for M8:**
-  - one test covering the full loop, Create → share → friend → Spotify sign-in, in a single run (today it's split across `recipient-loop.spec.ts` and `spotify.spec.ts`);
-  - a check of the WhatsApp preview on production;
-  - a final visual pass over all 39 screens.
+- **No cross-device claiming:** an anonymous make is tied to that browser's `mozart_anon` cookie. Clearing cookies loses it and resets the one-make limit.
+- **No saving others' tracks:** signing in from 05-01 makes you Sam viewing Ali's track; nothing is added to your library.
+- **Playback isn't kept after a reload**, and there's **no queue**.
+- **Something new ideas aren't personalised**; neither are genres or themes (Spotify returns no genres). Song and singer pickers are.
+- **Previews use the dummy sign-in:** Vercel previews always fall back to a demo user. The dummy sign-in is a plain request with no CSRF protection; real Spotify uses state + PKCE.
+- **Spotify Development Mode** allows only 5 allowlisted users; everyone else silently becomes a demo user.
+- **Generating flash:** a brief Generating screen can show when the page's view of the one-make limit is stale (e.g. a second tab).
+- **Keyboard and safe areas** were checked in WebKit with a simulated keyboard and zero insets, not on a physical iPhone.
+
+## Later
+
+- **Parked design ideas:** idea chips under Something new, a "More" (native share) row in the share sheet, and personalised genres, themes and ideas.
+- **Real AI generation** in place of the mock catalogue (`lib/server/generate/`).
+- Cross-device claiming, saving other people's tracks, playback that survives a reload, and a queue (the gaps above).
