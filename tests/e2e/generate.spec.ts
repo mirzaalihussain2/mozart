@@ -7,7 +7,7 @@ import { closeDb, deleteTracks } from "./helpers/db";
 
 const CATALOGUE_FILES = AUDIO_CATALOGUE.map((a) => a.file);
 
-// In order, one worker: each test checks its new track is first in the Library.
+// In order, one worker, so this file's tracks don't race each other in the Library.
 test.describe.configure({ mode: "default" });
 const created: string[] = [];
 
@@ -45,10 +45,13 @@ async function expectNewTrack(page: Page, title: string) {
   await expect.poll(async () => (await audioState(page)).src).toMatch(/^\/audio\/.+\.mp3$/);
   expect(CATALOGUE_FILES).toContain((await audioState(page)).src);
 
+  // Saved straight away: in the Library as "Today", above every seeded track.
+  // (Other spec files may add newer tracks for Ali while this runs in parallel.)
   await page.goto("/library");
-  const first = page.locator('a[href^="/track/"]').first();
-  await expect(first).toHaveAttribute("href", `/track/${slug}`);
-  await expect(first).toHaveAttribute("aria-label", new RegExp(`^${escape(title)} .*Today$`));
+  const row = page.locator(`a[href="/track/${slug}"]`);
+  await expect(row).toHaveAttribute("aria-label", new RegExp(`^${escape(title)} .*Today$`));
+  const hrefs = await page.locator('a[href^="/track/"]').evaluateAll((els) => els.map((e) => e.getAttribute("href")));
+  expect(hrefs.indexOf(`/track/${slug}`)).toBeLessThan(hrefs.indexOf("/track/cruel-bolly"));
   return slug;
 }
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

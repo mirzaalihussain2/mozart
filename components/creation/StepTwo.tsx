@@ -15,6 +15,8 @@ import { THEMES } from "@/lib/config/themes";
 import { useGenerate } from "@/lib/client/use-generate";
 import { gridInitials } from "@/lib/format";
 import { generationQuote } from "@/lib/generation";
+import { SignupSheet } from "@/components/sharing/SignupSheet";
+import type { SignInPrompt, SignInReason } from "@/lib/sign-in-prompt";
 import { GeneratingScreen } from "./GeneratingScreen";
 
 export type StepTwoMode = Exclude<ModeId, "new">;
@@ -40,8 +42,12 @@ export type StepTwoProps = {
   owner?: string;
   /** What's being changed: a picked song (Create flow) or the track (from a player). */
   source: { sourceSongId: string } | { sourceTrackId: string };
-  /** Where a 401 from the API lands until milestone 5 (the player, or this step). */
-  signInFallback: string;
+  /**
+   * Signed-out recipients (05-02…05-06): who to "Send to" and the sign-in
+   * link. Once their one make is used, Generate opens the Send-to sheet
+   * instead of Generating.
+   */
+  signIn?: SignInPrompt;
   /** Design states for the dev gallery (an option id). */
   initialChoice?: string;
   initialText?: string;
@@ -67,7 +73,8 @@ function OptionsStep(props: StepTwoProps) {
   const { mode: modeId, subject, backHref, showStep, song, owner, initialChoice } = props;
   const mode = MODES[modeId];
   const [choice, setChoice] = useState<string | undefined>(initialChoice);
-  const gen = useGenerate();
+  const blocked = useBlockedSheet(props.signIn);
+  const gen = useGenerate({ onBlocked: blocked.open });
   // `choice` is an option id; the heading shows its label.
   const word =
     modeId === "remix"
@@ -80,18 +87,14 @@ function OptionsStep(props: StepTwoProps) {
 
   const generate = () => {
     if (!word || !choice) return;
+    if (props.signIn?.makeUsed) return blocked.open("more");
     const input =
       modeId === "remix"
         ? { mode: modeId, genreId: choice, ...props.source }
         : modeId === "cover"
           ? { mode: modeId, singerId: choice, ...props.source }
           : { mode: "rewrite" as const, themeId: choice, ...props.source };
-    void gen.start({
-      mode: modeId,
-      quote: generationQuote({ mode: modeId, song, owner, change: word }),
-      input,
-      signInFallback: props.signInFallback,
-    });
+    void gen.start({ mode: modeId, quote: generationQuote({ mode: modeId, song, owner, change: word }), input });
   };
 
   return (
@@ -145,16 +148,18 @@ function OptionsStep(props: StepTwoProps) {
       >
         Generate {modeId}
       </ModeButton>
+      {blocked.sheet}
     </main>
   );
 }
 
-function VibeStep({ subject, backHref, song, owner, source, signInFallback, initialText = "", initialFocused = false }: StepTwoProps) {
+function VibeStep({ subject, backHref, song, owner, source, signIn, initialText = "", initialFocused = false }: StepTwoProps) {
   const mode = MODES.vibe;
   const [text, setText] = useState(initialText);
   const [focused, setFocused] = useState(initialFocused);
   const box = useRef<HTMLTextAreaElement>(null);
-  const gen = useGenerate();
+  const blocked = useBlockedSheet(signIn);
+  const gen = useGenerate({ onBlocked: blocked.open });
 
   if (gen.state.phase !== "idle") return <Generating gen={gen} />;
 
@@ -162,11 +167,11 @@ function VibeStep({ subject, backHref, song, owner, source, signInFallback, init
   const generate = () => {
     if (!text.trim()) return box.current?.focus();
     if (!("sourceTrackId" in source)) return;
+    if (signIn?.makeUsed) return blocked.open("more");
     void gen.start({
       mode: "vibe",
       quote: generationQuote({ mode: "vibe", song, owner, change: text }),
       input: { mode: "vibe", sourceTrackId: source.sourceTrackId, text },
-      signInFallback,
     });
   };
 
@@ -214,8 +219,22 @@ function VibeStep({ subject, backHref, song, owner, source, signInFallback, init
           Generate song
         </ModeButton>
       </div>
+      {blocked.sheet}
     </main>
   );
+}
+
+/**
+ * The Send-to sheet over a step screen, opened when a signed-out visitor
+ * can't make (another) track. `sendTo` from a 403 overrides the page's guess.
+ */
+function useBlockedSheet(prompt?: SignInPrompt) {
+  const [open, setOpen] = useState<{ reason: SignInReason; sendTo?: string } | null>(null);
+  const sheet =
+    open && prompt ? (
+      <SignupSheet prompt={{ ...prompt, sendTo: open.sendTo ?? prompt.sendTo }} reason={open.reason} onClose={() => setOpen(null)} />
+    ) : null;
+  return { open: (reason: SignInReason, sendTo?: string) => setOpen({ reason, sendTo }), sheet };
 }
 
 /** The Generating screen (or its error state) while a request is running. */

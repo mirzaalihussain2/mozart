@@ -16,9 +16,10 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const track = await getTrackBySlug(slug);
   const fonts = await ogFonts();
   const title = track?.title ?? "Mozart";
-  const owner = track?.owner?.firstName;
+  // Unowned (anonymous) tracks are "by a friend": nothing about the viewer or cookie.
+  const owner = track ? (track.owner?.firstName ?? "a friend") : undefined;
   const mode = MODES[track?.mode ?? "remix"];
-  const initial = (owner ?? "M").charAt(0).toUpperCase();
+  const initial = (track?.owner?.firstName ?? (track ? "A" : "M")).charAt(0).toUpperCase();
 
   return new ImageResponse(
     (

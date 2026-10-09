@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { StepHeader } from "@/components/navigation/StepHeader";
 import { ModeButton } from "@/components/ui/Buttons";
@@ -25,7 +26,9 @@ export function SomethingNew({ initialText = "", initialFocused = false, rotate 
   const [text, setText] = useState(initialText);
   const [focused, setFocused] = useState(initialFocused);
   const [idea, setIdea] = useState(0);
-  const gen = useGenerate();
+  const router = useRouter();
+  // Signed-in only; if the session has gone, start again from the landing page.
+  const gen = useGenerate({ onBlocked: () => router.push("/") });
 
   useEffect(() => {
     if (!rotate || focused || text) return;
@@ -93,7 +96,6 @@ export function SomethingNew({ initialText = "", initialFocused = false, rotate 
               mode: "new",
               quote: generationQuote({ mode: "new", change: input.text }),
               input,
-              signInFallback: "/create/new",
             });
           }}
         >

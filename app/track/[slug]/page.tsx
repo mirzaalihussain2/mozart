@@ -3,10 +3,13 @@ import { notFound } from "next/navigation";
 import { Player, type PlayerVariant } from "@/components/audio/Player";
 import { getAudioByFile } from "@/lib/config/audio-catalogue";
 import { trackUrl } from "@/lib/server/app-url";
-import { getCurrentUser } from "@/lib/server/session";
 import { getTrackBySlug } from "@/lib/server/tracks";
+import { artistLabel, viewerFor } from "@/lib/server/viewer";
 
-// 03-05 Player · creator / 05-01 Player · recipient. No sign-in required.
+// The one player. No sign-in required. The variant comes from the viewer:
+//   signed in, owner                         → creator          (03-05 / 06-08)
+//   signed out, this browser made it (anon)  → recipientResult  (06-05)
+//   anyone else                              → recipient        (05-01)
 //   ?view=recipient   the owner previews what a friend sees ("Open as recipient")
 //   ?share=1          open the share sheet on load
 //   ?saved=1          back from signing in: toast + "Close player" (06-07)
@@ -25,7 +28,8 @@ export async function generateMetadata({ params }: PageProps<"/track/[slug]">): 
   const track = await getTrackBySlug(slug);
   if (!track) return { title: "Track not found · Mozart", robots: { index: false, follow: false } };
 
-  const title = `${track.title} · ${track.owner?.firstName ?? "Someone"} on Mozart`;
+  // Never viewer-specific (crawlers have no cookies): an unowned track is "A friend".
+  const title = `${track.title} · ${track.owner?.firstName ?? "A friend"} on Mozart`;
   const url = await trackUrl(track.publicSlug);
   return {
     title,
@@ -41,15 +45,13 @@ export default async function TrackPage({ params, searchParams }: PageProps<"/tr
   const [{ slug }, query] = await Promise.all([params, searchParams]);
   const track = await getTrackBySlug(slug);
   if (!track) notFound();
-  const user = await getCurrentUser();
-
   const view = query.view === "recipient" ? "recipient" : undefined;
+  const viewer = await viewerFor(track, { preview: !!view });
   const share = query.share === "1";
   const saved = query.saved === "1";
   const autoplay = query.autoplay === "1";
-  const isOwner = !!user && track.ownerUserId === user.id;
-  // recipientResult (06-05) becomes reachable in milestone 5.
-  const variant: PlayerVariant = isOwner && !view ? "creator" : "recipient";
+  const variant: PlayerVariant =
+    viewer.isOwner && !view ? "creator" : viewer.isAnonMaker ? "recipientResult" : "recipient";
 
   const path = `/track/${track.publicSlug}`;
 
@@ -59,8 +61,9 @@ export default async function TrackPage({ params, searchParams }: PageProps<"/tr
       variant={variant}
       slug={track.publicSlug}
       title={track.title}
-      artist={track.owner?.firstName ?? "You"}
+      artist={artistLabel(track, viewer.isAnonMaker)}
       ownerName={track.owner?.firstName ?? "a friend"}
+      signIn={viewer.signIn}
       shareUrl={await trackUrl(track.publicSlug)}
       initialSheet={share ? "share" : undefined}
       justSaved={saved}

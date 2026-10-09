@@ -11,9 +11,14 @@ export type GenerationRequest = {
   quote: string;
   /** The POST /api/generate body. */
   input: GenerateInput;
-  /** Where to go if the API says sign-in is required (the source track or step). */
-  signInFallback: string;
 };
+
+/**
+ * The server said this visitor must sign in first: "more" (403 anon_limit:
+ * their one anonymous make is used; `sendTo` from the server) or "save"
+ * (401: signed out, and this kind of make needs an account).
+ */
+export type OnBlocked = (reason: "more" | "save", sendTo?: string) => void;
 
 export type GenerationState =
   | { phase: "idle" }
@@ -34,7 +39,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
  * /api/generate in parallel, and opens the new track once both the request
  * has succeeded and GENERATING_MS have passed. A double tap never sends twice.
  */
-export function useGenerate() {
+export function useGenerate({ onBlocked }: { onBlocked?: OnBlocked } = {}) {
   const router = useRouter();
   const [state, setState] = useState<GenerationState>({ phase: "idle" });
   const inFlight = useRef(false);
@@ -62,7 +67,14 @@ export function useGenerate() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(request.input),
         });
-        const body = (await res.json().catch(() => null)) as { track?: { slug: string } } | null;
+        const body = (await res.json().catch(() => null)) as { track?: { slug: string }; sendTo?: string } | null;
+        // Blocked: no Generating screen at all — straight to the Send-to sheet.
+        if (res.status === 401 || res.status === 403) {
+          inFlight.current = false;
+          setState({ phase: "idle" });
+          onBlocked?.(res.status === 403 ? "more" : "save", body?.sendTo);
+          return;
+        }
         await minWait;
         if (res.ok && body?.track) {
           // push, not replace: the Generating screen has no URL of its own, so
@@ -70,11 +82,6 @@ export function useGenerate() {
           // drop the step screen from history).
           router.push(`/track/${body.track.slug}?autoplay=1`);
           setState({ phase: "done", request });
-          return;
-        }
-        if (res.status === 401) {
-          // TODO(M5): anonymous recipients make their one track here instead.
-          router.replace(request.signInFallback);
           return;
         }
         setState({ phase: "error", request, message: ERROR_MESSAGE });
@@ -85,7 +92,7 @@ export function useGenerate() {
         inFlight.current = false;
       }
     },
-    [router],
+    [router, onBlocked],
   );
 
   const retry = useCallback(() => {
