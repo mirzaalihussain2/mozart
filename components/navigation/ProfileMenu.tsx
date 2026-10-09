@@ -6,9 +6,10 @@ import { useAudio } from "@/components/audio/AudioProvider";
 /**
  * Avatar on the Create home (CfHome) — opens a small menu with Log out.
  * A native <details> so it works before hydration; JS only adds closing on an
- * outside tap and Escape.
+ * outside tap and Escape. Spotify users see their profile photo (from
+ * sign-in); everyone else, their initial.
  */
-export function ProfileMenu({ initial }: { initial: string }) {
+export function ProfileMenu({ initial, avatarUrl }: { initial: string; avatarUrl?: string | null }) {
   const root = useRef<HTMLDetailsElement>(null);
   const { stop } = useAudio();
 
@@ -35,7 +36,13 @@ export function ProfileMenu({ initial }: { initial: string }) {
         // 40 px circle per the design; ::after brings the tap target to 44 px.
         className="bg-raised text-text relative flex size-10 cursor-pointer list-none items-center justify-center rounded-full text-[15px] font-semibold after:absolute after:-inset-0.5 [&::-webkit-details-marker]:hidden"
       >
-        {initial}
+        {avatarUrl ? (
+          // Rounded on the img, not overflow-hidden on the summary, which would clip the ::after tap target.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={avatarUrl} alt="" className="absolute inset-0 size-full rounded-full object-cover" />
+        ) : (
+          initial
+        )}
       </summary>
       <div role="menu" className="bg-surface border-raised absolute top-12 right-0 z-30 min-w-36 rounded-xl border p-1 shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
         {/* Logging out stops the music (the form still posts without JS). */}

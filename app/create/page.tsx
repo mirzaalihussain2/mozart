@@ -6,5 +6,5 @@ export const instant = false;
 
 export default async function CreatePage() {
   const user = await requireUser();
-  return <CreateHome live initial={user.firstName.slice(0, 1).toUpperCase()} />;
+  return <CreateHome live initial={user.firstName.slice(0, 1).toUpperCase()} avatarUrl={user.avatarUrl} />;
 }
