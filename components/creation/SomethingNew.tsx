@@ -64,7 +64,7 @@ export function SomethingNew({ destination, initialText = "", initialFocused = f
               aria-hidden="true"
               className={`pointer-events-none absolute inset-5 text-[22px] leading-[1.32] font-medium ${focused ? "text-[#737373]" : "text-text-secondary"}`}
             >
-              {IDEAS[idea]}
+              {IDEAS[idea].text}
             </div>
           )}
           {!focused && !text ? (
@@ -87,7 +87,7 @@ export function SomethingNew({ destination, initialText = "", initialFocused = f
           mode={mode}
           // Keep the box focused while tapping Generate (CfVibe "keep").
           onClick={() => {
-            const prompt = text.trim() || IDEAS[idea];
+            const prompt = text.trim() || IDEAS[idea].text;
             start({ mode: "new", destination, quote: generationQuote({ mode: "new", change: prompt }) });
           }}
         >

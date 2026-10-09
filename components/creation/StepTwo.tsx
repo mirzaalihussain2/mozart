@@ -39,7 +39,7 @@ export type StepTwoProps = {
   song: string;
   owner?: string;
   destination: string;
-  /** Design states for the dev gallery. */
+  /** Design states for the dev gallery (an option id). */
   initialChoice?: string;
   initialText?: string;
   initialFocused?: boolean;
@@ -64,7 +64,13 @@ function OptionsStep({ mode: modeId, subject, backHref, showStep, song, owner, d
   const mode = MODES[modeId];
   const [choice, setChoice] = useState<string | undefined>(initialChoice);
   const { request, start } = useGenerate();
-  const word = modeId === "rewrite" ? THEMES.find((t) => t.label === choice)?.phrase : choice;
+  // `choice` is an option id; the heading shows its label.
+  const word =
+    modeId === "remix"
+      ? GENRES.find((g) => g.id === choice)?.name
+      : modeId === "cover"
+        ? SINGERS.find((s) => s.id === choice)?.name
+        : THEMES.find((t) => t.id === choice)?.phrase;
 
   if (request) return <GeneratingScreen mode={request.mode} quote={request.quote} destination={request.destination} />;
 
@@ -83,15 +89,15 @@ function OptionsStep({ mode: modeId, subject, backHref, showStep, song, owner, d
       >
         {modeId === "remix"
           ? GENRES.map((g) => (
-              <Pill key={g.name} mode={mode} size="icon" selected={choice === g.name} onSelect={() => setChoice(g.name)}>
+              <Pill key={g.id} mode={mode} size="icon" selected={choice === g.id} onSelect={() => setChoice(g.id)}>
                 <ModeIcon icon={[{ d: g.icon }]} size={18} strokeWidth={1.8} />
                 {g.name}
               </Pill>
             ))
           : null}
         {modeId === "cover"
-          ? SINGERS.map((name, k) => (
-              <Pill key={name} mode={mode} size="avatar" selected={choice === name} onSelect={() => setChoice(name)}>
+          ? SINGERS.map(({ id, name }, k) => (
+              <Pill key={id} mode={mode} size="avatar" selected={choice === id} onSelect={() => setChoice(id)}>
                 <span
                   aria-hidden="true"
                   className="flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-[rgba(217,217,217,0.7)]"
@@ -105,7 +111,7 @@ function OptionsStep({ mode: modeId, subject, backHref, showStep, song, owner, d
           : null}
         {modeId === "rewrite"
           ? THEMES.map((t) => (
-              <Pill key={t.label} mode={mode} size="text" selected={choice === t.label} onSelect={() => setChoice(t.label)}>
+              <Pill key={t.id} mode={mode} size="text" selected={choice === t.id} onSelect={() => setChoice(t.id)}>
                 {t.label}
               </Pill>
             ))
