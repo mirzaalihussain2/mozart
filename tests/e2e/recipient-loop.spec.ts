@@ -1,5 +1,6 @@
 import { expect, test, type Browser, type BrowserContext, type Page } from "@playwright/test";
 import { SAM_USER } from "../../lib/config/dummy-user";
+import { BASE_URL } from "../../playwright.config";
 import { closeDb, deleteTracks, trackRow } from "./helpers/db";
 
 // Milestone 5: the core loop. Ali shares → a friend with no account makes one
@@ -62,7 +63,7 @@ test("the core loop, with two browsers", async ({ browser }) => {
   await aliPage.getByRole("button", { name: "Share", exact: true }).click();
   await aliPage.getByRole("button", { name: /Copy link/ }).click();
   const link = await aliPage.evaluate(() => navigator.clipboard.readText());
-  expect(link).toBe(`http://127.0.0.1:3000/track/${aliSlug}`);
+  expect(link).toBe(`${BASE_URL}/track/${aliSlug}`);
 
   // 2. A friend with no account opens it: recipient view, paused; Play plays.
   const friend = await stranger(browser);
@@ -204,21 +205,22 @@ test.describe("edge cases", () => {
     await page.goto("/track/cruel-bolly");
     const theirSlug = await remixFromPlayer(page, "Afrobeats");
     const anonId = (await friend.cookies()).find((c) => c.name === "mozart_anon")!.value;
-    const login = `/auth/spotify/login?returnTo=${encodeURIComponent(`/track/${theirSlug}?share=1`)}`;
+    // The dummy sign-in also finishes in completeSignIn (the Spotify route now goes via Spotify).
+    const login = `/auth/dummy?returnTo=${encodeURIComponent(`/track/${theirSlug}?share=1`)}`;
 
-    const first = await friend.request.get(login, { maxRedirects: 0 });
+    const first = await friend.request.post(login, { maxRedirects: 0 });
     expect(first.headers()["location"]).toBe(`/track/${theirSlug}?share=1&saved=1`);
     // Replay with the same (now cleared) cookie value: nothing more to claim.
     const replay = await browser.newContext();
-    await replay.addCookies([{ name: "mozart_anon", value: anonId, url: "http://127.0.0.1:3000" }]);
-    const again = await replay.request.get(login, { maxRedirects: 0 });
+    await replay.addCookies([{ name: "mozart_anon", value: anonId, url: BASE_URL }]);
+    const again = await replay.request.post(login, { maxRedirects: 0 });
     expect(again.headers()["location"]).toBe(`/track/${theirSlug}?share=1`);
     expect(await trackRow(theirSlug)).toMatchObject({ owner: SAM_USER.id, anon: null });
 
     // A cookie that isn't a UUID is ignored entirely.
     const tampered = await browser.newContext();
-    await tampered.addCookies([{ name: "mozart_anon", value: "not-a-uuid--drop-table-tracks", url: "http://127.0.0.1:3000" }]);
-    const t = await tampered.request.get(login, { maxRedirects: 0 });
+    await tampered.addCookies([{ name: "mozart_anon", value: "not-a-uuid--drop-table-tracks", url: BASE_URL }]);
+    const t = await tampered.request.post(login, { maxRedirects: 0 });
     expect(t.headers()["location"]).toBe(`/track/${theirSlug}?share=1`);
     await friend.close();
     await replay.close();

@@ -31,6 +31,21 @@ export async function trackRow(slug: string): Promise<{ id: string; owner: strin
   return row ?? null;
 }
 
+/** A user row by Spotify id (auth_provider, first name, id). */
+export async function spotifyUser(spotifyUserId: string) {
+  const [row] = await db()<{ id: string; first_name: string; auth_provider: string }[]>`
+    select id, first_name, auth_provider from users where spotify_user_id = ${spotifyUserId}`;
+  return row ?? null;
+}
+
+/** Deletes a Spotify test user and every track they own (seeded tracks are never theirs). */
+export async function deleteSpotifyUser(spotifyUserId: string): Promise<void> {
+  const user = await spotifyUser(spotifyUserId);
+  if (!user) return;
+  await db()`delete from tracks where owner_user_id = ${user.id}`;
+  await db()`delete from users where id = ${user.id}`;
+}
+
 export async function closeDb() {
   await sql?.end();
   sql = null;

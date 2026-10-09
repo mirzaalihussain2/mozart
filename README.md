@@ -30,6 +30,10 @@ Set these in **Project → Settings → Environment Variables**:
 | `DATABASE_URL` | ✓ | ✓ | Supabase transaction pooler URL (port 6543) |
 | `SESSION_SECRET` | ✓ | ✓ | 32+ random characters |
 | `APP_URL` | ✓ | — | Your production domain, e.g. `https://mozart.example.com`. Leave **unset** for Preview: previews use `https://$VERCEL_URL` |
-| `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` | ✓ | ✓ | Needed from milestone 7 |
+| `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` | ✓ | ✓ | Real Spotify sign-in (previews always use the dummy fallback) |
+
+In the **Spotify dashboard**, register the redirect URIs `http://127.0.0.1:3000/auth/spotify/callback` and `{production APP_URL}/auth/spotify/callback`. Development Mode allows 5 allowlisted users; everyone else silently becomes a dummy persona.
+
+`pnpm test:e2e` runs its own app on port 3001 (`.next-e2e`) against a fake Spotify on 4545, so it never touches the real one.
 
 Migrations don't run during the build: run `pnpm db:migrate` against the database yourself when the schema changes.

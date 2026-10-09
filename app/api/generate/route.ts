@@ -4,6 +4,7 @@ import { countAnonTracks, getAnonId, getOrCreateAnonId } from "@/lib/server/anon
 import { isSameOrigin } from "@/lib/server/auth";
 import { createGeneratedTrack, type Maker } from "@/lib/server/generate/create-track";
 import { getCurrentUser } from "@/lib/server/session";
+import { catalogueFor } from "@/lib/server/taste";
 import { sendToName } from "@/lib/server/tracks";
 
 // POST /api/generate — mock generation (tech-spec §6): validate, pick a
@@ -25,11 +26,13 @@ export async function POST(request: NextRequest) {
   } catch {
     return json(400, { error: "bad_request", message: "Expected a JSON body." });
   }
-  const parsed = parseGenerateInput(body);
+  // Songs and singers are validated against what this viewer could pick.
+  const user = await getCurrentUser();
+  const catalogue = catalogueFor(user);
+  const parsed = parseGenerateInput(body, catalogue);
   if (!parsed.ok) return json(400, { error: "bad_request", message: parsed.error });
 
   const input = parsed.input;
-  const user = await getCurrentUser();
   let maker: Maker;
   if (user) {
     maker = { userId: user.id };
@@ -44,7 +47,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await createGeneratedTrack(maker, input);
+    const result = await createGeneratedTrack(maker, input, catalogue);
     if (!result.ok) {
       return json(result.status, { error: result.status === 429 ? "rate_limited" : "not_found", message: result.error });
     }

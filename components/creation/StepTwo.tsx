@@ -10,7 +10,7 @@ import { Pill } from "@/components/ui/Pill";
 import { GENRES } from "@/lib/config/genres";
 import { VIBE_PLACEHOLDER } from "@/lib/config/ideas";
 import { MODES, type ModeId } from "@/lib/config/modes";
-import { SINGERS } from "@/lib/config/singers";
+import { SINGERS, type Singer } from "@/lib/config/singers";
 import { THEMES } from "@/lib/config/themes";
 import { useGenerate } from "@/lib/client/use-generate";
 import { gridInitials } from "@/lib/format";
@@ -48,6 +48,8 @@ export type StepTwoProps = {
    * instead of Generating.
    */
   signIn?: SignInPrompt;
+  /** Cover singers: the viewer's top artists (server-provided); MOCK by default. */
+  singers?: Singer[];
   /** Design states for the dev gallery (an option id). */
   initialChoice?: string;
   initialText?: string;
@@ -70,7 +72,7 @@ export function StepTwo(props: StepTwoProps) {
 }
 
 function OptionsStep(props: StepTwoProps) {
-  const { mode: modeId, subject, backHref, showStep, song, owner, initialChoice } = props;
+  const { mode: modeId, subject, backHref, showStep, song, owner, initialChoice, singers = SINGERS } = props;
   const mode = MODES[modeId];
   const [choice, setChoice] = useState<string | undefined>(initialChoice);
   const blocked = useBlockedSheet(props.signIn);
@@ -80,7 +82,7 @@ function OptionsStep(props: StepTwoProps) {
     modeId === "remix"
       ? GENRES.find((g) => g.id === choice)?.name
       : modeId === "cover"
-        ? SINGERS.find((s) => s.id === choice)?.name
+        ? singers.find((s) => s.id === choice)?.name
         : THEMES.find((t) => t.id === choice)?.phrase;
 
   if (gen.state.phase !== "idle") return <Generating gen={gen} />;
@@ -119,7 +121,7 @@ function OptionsStep(props: StepTwoProps) {
             ))
           : null}
         {modeId === "cover"
-          ? SINGERS.map(({ id, name }, k) => (
+          ? singers.map(({ id, name }, k) => (
               <Pill key={id} mode={mode} size="avatar" selected={choice === id} onSelect={() => setChoice(id)}>
                 <span
                   aria-hidden="true"

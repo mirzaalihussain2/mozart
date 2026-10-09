@@ -1,0 +1,555 @@
+{
+  "items": [
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/4oLeXFyACqeem2VImYeBFe"
+      },
+      "href": "https://api.spotify.com/v1/artists/4oLeXFyACqeem2VImYeBFe",
+      "id": "4oLeXFyACqeem2VImYeBFe",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab6761610000e5ebf760292919aee89e58d943d9",
+          "width": 640
+        },
+        {
+          "height": 320,
+          "url": "https://i.scdn.co/image/ab67616100005174f760292919aee89e58d943d9",
+          "width": 320
+        },
+        {
+          "height": 160,
+          "url": "https://i.scdn.co/image/ab6761610000f178f760292919aee89e58d943d9",
+          "width": 160
+        }
+      ],
+      "name": "Fred again..",
+      "type": "artist",
+      "uri": "spotify:artist:4oLeXFyACqeem2VImYeBFe"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/24eDfi2MSYo3A87hCcgpIL"
+      },
+      "href": "https://api.spotify.com/v1/artists/24eDfi2MSYo3A87hCcgpIL",
+      "id": "24eDfi2MSYo3A87hCcgpIL",
+      "images": [
+        {
+          "height": 1000,
+          "url": "https://i.scdn.co/image/e7a97b420e09f4f125cd3e14fca5e7ea174e74e0",
+          "width": 1000
+        },
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/70cbb19cc5b77451245b2266c0e0bef002886c8a",
+          "width": 640
+        },
+        {
+          "height": 200,
+          "url": "https://i.scdn.co/image/9d98b806041da6d445df412ae7233c55e5ff63d4",
+          "width": 200
+        },
+        {
+          "height": 64,
+          "url": "https://i.scdn.co/image/0602b84d7be66f164ab566553846fdbbe0e78ba3",
+          "width": 64
+        }
+      ],
+      "name": "Ludwig Göransson",
+      "type": "artist",
+      "uri": "spotify:artist:24eDfi2MSYo3A87hCcgpIL"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/1uNFoZAHBGtllmzznpCI3s"
+      },
+      "href": "https://api.spotify.com/v1/artists/1uNFoZAHBGtllmzznpCI3s",
+      "id": "1uNFoZAHBGtllmzznpCI3s",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab6761610000e5ebaf20f7db5288bce9beede034",
+          "width": 640
+        },
+        {
+          "height": 320,
+          "url": "https://i.scdn.co/image/ab67616100005174af20f7db5288bce9beede034",
+          "width": 320
+        },
+        {
+          "height": 160,
+          "url": "https://i.scdn.co/image/ab6761610000f178af20f7db5288bce9beede034",
+          "width": 160
+        }
+      ],
+      "name": "Justin Bieber",
+      "type": "artist",
+      "uri": "spotify:artist:1uNFoZAHBGtllmzznpCI3s"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/4anRsJeihT0h3v3YO2q8wQ"
+      },
+      "href": "https://api.spotify.com/v1/artists/4anRsJeihT0h3v3YO2q8wQ",
+      "id": "4anRsJeihT0h3v3YO2q8wQ",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab67616d0000b273f2d6270c0844fc6cc99a77ae",
+          "width": 640
+        },
+        {
+          "height": 300,
+          "url": "https://i.scdn.co/image/ab67616d00001e02e553ec6205d024cb1e1aacde",
+          "width": 300
+        },
+        {
+          "height": 64,
+          "url": "https://i.scdn.co/image/ab67616d00004851e553ec6205d024cb1e1aacde",
+          "width": 64
+        }
+      ],
+      "name": "DRILL GATES",
+      "type": "artist",
+      "uri": "spotify:artist:4anRsJeihT0h3v3YO2q8wQ"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/1LpsDU7OK8dBh49zmydzft"
+      },
+      "href": "https://api.spotify.com/v1/artists/1LpsDU7OK8dBh49zmydzft",
+      "id": "1LpsDU7OK8dBh49zmydzft",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab6761610000e5eb963fa55b3903ca75e781348b",
+          "width": 640
+        },
+        {
+          "height": 320,
+          "url": "https://i.scdn.co/image/ab67616100005174963fa55b3903ca75e781348b",
+          "width": 320
+        },
+        {
+          "height": 160,
+          "url": "https://i.scdn.co/image/ab6761610000f178963fa55b3903ca75e781348b",
+          "width": 160
+        }
+      ],
+      "name": "Syrex",
+      "type": "artist",
+      "uri": "spotify:artist:1LpsDU7OK8dBh49zmydzft"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/2h93pZq0e7k5yf4dywlkpM"
+      },
+      "href": "https://api.spotify.com/v1/artists/2h93pZq0e7k5yf4dywlkpM",
+      "id": "2h93pZq0e7k5yf4dywlkpM",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab6761610000e5ebee3123e593174208f9754fab",
+          "width": 640
+        },
+        {
+          "height": 320,
+          "url": "https://i.scdn.co/image/ab67616100005174ee3123e593174208f9754fab",
+          "width": 320
+        },
+        {
+          "height": 160,
+          "url": "https://i.scdn.co/image/ab6761610000f178ee3123e593174208f9754fab",
+          "width": 160
+        }
+      ],
+      "name": "Frank Ocean",
+      "type": "artist",
+      "uri": "spotify:artist:2h93pZq0e7k5yf4dywlkpM"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/7oPxPZSk7y5q0fhzpmX5Gi"
+      },
+      "href": "https://api.spotify.com/v1/artists/7oPxPZSk7y5q0fhzpmX5Gi",
+      "id": "7oPxPZSk7y5q0fhzpmX5Gi",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab6761610000e5eb5f5574223312519527fea221",
+          "width": 640
+        },
+        {
+          "height": 320,
+          "url": "https://i.scdn.co/image/ab676161000051745f5574223312519527fea221",
+          "width": 320
+        },
+        {
+          "height": 160,
+          "url": "https://i.scdn.co/image/ab6761610000f1785f5574223312519527fea221",
+          "width": 160
+        }
+      ],
+      "name": "SEB",
+      "type": "artist",
+      "uri": "spotify:artist:7oPxPZSk7y5q0fhzpmX5Gi"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/0cGUm45nv7Z6M6qdXYQGTX"
+      },
+      "href": "https://api.spotify.com/v1/artists/0cGUm45nv7Z6M6qdXYQGTX",
+      "id": "0cGUm45nv7Z6M6qdXYQGTX",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab6761610000e5ebcf865d7d399a41e1bd036149",
+          "width": 640
+        },
+        {
+          "height": 320,
+          "url": "https://i.scdn.co/image/ab67616100005174cf865d7d399a41e1bd036149",
+          "width": 320
+        },
+        {
+          "height": 160,
+          "url": "https://i.scdn.co/image/ab6761610000f178cf865d7d399a41e1bd036149",
+          "width": 160
+        }
+      ],
+      "name": "Kehlani",
+      "type": "artist",
+      "uri": "spotify:artist:0cGUm45nv7Z6M6qdXYQGTX"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/0YC192cP3KPCRWx8zr8MfZ"
+      },
+      "href": "https://api.spotify.com/v1/artists/0YC192cP3KPCRWx8zr8MfZ",
+      "id": "0YC192cP3KPCRWx8zr8MfZ",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab6761610000e5eb371632043a8c12bb7eeeaf9d",
+          "width": 640
+        },
+        {
+          "height": 320,
+          "url": "https://i.scdn.co/image/ab67616100005174371632043a8c12bb7eeeaf9d",
+          "width": 320
+        },
+        {
+          "height": 160,
+          "url": "https://i.scdn.co/image/ab6761610000f178371632043a8c12bb7eeeaf9d",
+          "width": 160
+        }
+      ],
+      "name": "Hans Zimmer",
+      "type": "artist",
+      "uri": "spotify:artist:0YC192cP3KPCRWx8zr8MfZ"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/1W0ZfdIS6PyamkZthz31kI"
+      },
+      "href": "https://api.spotify.com/v1/artists/1W0ZfdIS6PyamkZthz31kI",
+      "id": "1W0ZfdIS6PyamkZthz31kI",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab6761610000e5eb933873e236e4f9c48a05f447",
+          "width": 640
+        },
+        {
+          "height": 320,
+          "url": "https://i.scdn.co/image/ab67616100005174933873e236e4f9c48a05f447",
+          "width": 320
+        },
+        {
+          "height": 160,
+          "url": "https://i.scdn.co/image/ab6761610000f178933873e236e4f9c48a05f447",
+          "width": 160
+        }
+      ],
+      "name": "FASTKID",
+      "type": "artist",
+      "uri": "spotify:artist:1W0ZfdIS6PyamkZthz31kI"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/3TVXtAsR1Inumwj472S9r4"
+      },
+      "href": "https://api.spotify.com/v1/artists/3TVXtAsR1Inumwj472S9r4",
+      "id": "3TVXtAsR1Inumwj472S9r4",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab6761610000e5eb4293385d324db8558179afd9",
+          "width": 640
+        },
+        {
+          "height": 320,
+          "url": "https://i.scdn.co/image/ab676161000051744293385d324db8558179afd9",
+          "width": 320
+        },
+        {
+          "height": 160,
+          "url": "https://i.scdn.co/image/ab6761610000f1784293385d324db8558179afd9",
+          "width": 160
+        }
+      ],
+      "name": "Drake",
+      "type": "artist",
+      "uri": "spotify:artist:3TVXtAsR1Inumwj472S9r4"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/0nnF48t4C8uqGS5HPnCN3F"
+      },
+      "href": "https://api.spotify.com/v1/artists/0nnF48t4C8uqGS5HPnCN3F",
+      "id": "0nnF48t4C8uqGS5HPnCN3F",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab6761610000e5ebab73bd8f11aff7be9c185c0b",
+          "width": 640
+        },
+        {
+          "height": 320,
+          "url": "https://i.scdn.co/image/ab67616100005174ab73bd8f11aff7be9c185c0b",
+          "width": 320
+        },
+        {
+          "height": 160,
+          "url": "https://i.scdn.co/image/ab6761610000f178ab73bd8f11aff7be9c185c0b",
+          "width": 160
+        }
+      ],
+      "name": "49th & Main",
+      "type": "artist",
+      "uri": "spotify:artist:0nnF48t4C8uqGS5HPnCN3F"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/1I5eQkzyM8jCVZIM3k2bKL"
+      },
+      "href": "https://api.spotify.com/v1/artists/1I5eQkzyM8jCVZIM3k2bKL",
+      "id": "1I5eQkzyM8jCVZIM3k2bKL",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab6761610000e5eb642d7199ff6bd246302041a0",
+          "width": 640
+        },
+        {
+          "height": 320,
+          "url": "https://i.scdn.co/image/ab67616100005174642d7199ff6bd246302041a0",
+          "width": 320
+        },
+        {
+          "height": 160,
+          "url": "https://i.scdn.co/image/ab6761610000f178642d7199ff6bd246302041a0",
+          "width": 160
+        }
+      ],
+      "name": "Ember Island",
+      "type": "artist",
+      "uri": "spotify:artist:1I5eQkzyM8jCVZIM3k2bKL"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/7n2wHs1TKAczGzO7Dd2rGr"
+      },
+      "href": "https://api.spotify.com/v1/artists/7n2wHs1TKAczGzO7Dd2rGr",
+      "id": "7n2wHs1TKAczGzO7Dd2rGr",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab6761610000e5eb58b4b9419486550f6fda0535",
+          "width": 640
+        },
+        {
+          "height": 320,
+          "url": "https://i.scdn.co/image/ab6761610000517458b4b9419486550f6fda0535",
+          "width": 320
+        },
+        {
+          "height": 160,
+          "url": "https://i.scdn.co/image/ab6761610000f17858b4b9419486550f6fda0535",
+          "width": 160
+        }
+      ],
+      "name": "Shawn Mendes",
+      "type": "artist",
+      "uri": "spotify:artist:7n2wHs1TKAczGzO7Dd2rGr"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/4EVpmkEwrLYEg6jIsiPMIb"
+      },
+      "href": "https://api.spotify.com/v1/artists/4EVpmkEwrLYEg6jIsiPMIb",
+      "id": "4EVpmkEwrLYEg6jIsiPMIb",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab6761610000e5eb7d2e812e63d6df77ee087b47",
+          "width": 640
+        },
+        {
+          "height": 320,
+          "url": "https://i.scdn.co/image/ab676161000051747d2e812e63d6df77ee087b47",
+          "width": 320
+        },
+        {
+          "height": 160,
+          "url": "https://i.scdn.co/image/ab6761610000f1787d2e812e63d6df77ee087b47",
+          "width": 160
+        }
+      ],
+      "name": "Fleet Foxes",
+      "type": "artist",
+      "uri": "spotify:artist:4EVpmkEwrLYEg6jIsiPMIb"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/66CXWjxzNUsdJxJ2JdwvnR"
+      },
+      "href": "https://api.spotify.com/v1/artists/66CXWjxzNUsdJxJ2JdwvnR",
+      "id": "66CXWjxzNUsdJxJ2JdwvnR",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab6761610000e5eb68412f2d0177a9ebc265ff58",
+          "width": 640
+        },
+        {
+          "height": 320,
+          "url": "https://i.scdn.co/image/ab6761610000517468412f2d0177a9ebc265ff58",
+          "width": 320
+        },
+        {
+          "height": 160,
+          "url": "https://i.scdn.co/image/ab6761610000f17868412f2d0177a9ebc265ff58",
+          "width": 160
+        }
+      ],
+      "name": "Ariana Grande",
+      "type": "artist",
+      "uri": "spotify:artist:66CXWjxzNUsdJxJ2JdwvnR"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/6FLqwgd1Ks0JvEmqpewIpv"
+      },
+      "href": "https://api.spotify.com/v1/artists/6FLqwgd1Ks0JvEmqpewIpv",
+      "id": "6FLqwgd1Ks0JvEmqpewIpv",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab6761610000e5ebe52af8e4c0e4e17ea38e5768",
+          "width": 640
+        },
+        {
+          "height": 320,
+          "url": "https://i.scdn.co/image/ab67616100005174e52af8e4c0e4e17ea38e5768",
+          "width": 320
+        },
+        {
+          "height": 160,
+          "url": "https://i.scdn.co/image/ab6761610000f178e52af8e4c0e4e17ea38e5768",
+          "width": 160
+        }
+      ],
+      "name": "Jasmine Jethwa",
+      "type": "artist",
+      "uri": "spotify:artist:6FLqwgd1Ks0JvEmqpewIpv"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/7dGJo4pcD2V6oG8kP0tJRR"
+      },
+      "href": "https://api.spotify.com/v1/artists/7dGJo4pcD2V6oG8kP0tJRR",
+      "id": "7dGJo4pcD2V6oG8kP0tJRR",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab6761610000e5eba00b11c129b27a88fc72f36b",
+          "width": 640
+        },
+        {
+          "height": 320,
+          "url": "https://i.scdn.co/image/ab67616100005174a00b11c129b27a88fc72f36b",
+          "width": 320
+        },
+        {
+          "height": 160,
+          "url": "https://i.scdn.co/image/ab6761610000f178a00b11c129b27a88fc72f36b",
+          "width": 160
+        }
+      ],
+      "name": "Eminem",
+      "type": "artist",
+      "uri": "spotify:artist:7dGJo4pcD2V6oG8kP0tJRR"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/10exVja0key0uqUkk6LJRT"
+      },
+      "href": "https://api.spotify.com/v1/artists/10exVja0key0uqUkk6LJRT",
+      "id": "10exVja0key0uqUkk6LJRT",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab6761610000e5eb4be87c6d504aa62024a87f48",
+          "width": 640
+        },
+        {
+          "height": 320,
+          "url": "https://i.scdn.co/image/ab676161000051744be87c6d504aa62024a87f48",
+          "width": 320
+        },
+        {
+          "height": 160,
+          "url": "https://i.scdn.co/image/ab6761610000f1784be87c6d504aa62024a87f48",
+          "width": 160
+        }
+      ],
+      "name": "Vance Joy",
+      "type": "artist",
+      "uri": "spotify:artist:10exVja0key0uqUkk6LJRT"
+    },
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/1XgVoPT2Va5L64LFzskVBW"
+      },
+      "href": "https://api.spotify.com/v1/artists/1XgVoPT2Va5L64LFzskVBW",
+      "id": "1XgVoPT2Va5L64LFzskVBW",
+      "images": [
+        {
+          "height": 640,
+          "url": "https://i.scdn.co/image/ab67616d0000b2735c9f612cc6d6a0d0317d4171",
+          "width": 640
+        },
+        {
+          "height": 300,
+          "url": "https://i.scdn.co/image/ab67616d00001e0202b90d5203aca903e0238f14",
+          "width": 300
+        },
+        {
+          "height": 64,
+          "url": "https://i.scdn.co/image/ab67616d0000485102b90d5203aca903e0238f14",
+          "width": 64
+        }
+      ],
+      "name": "Mason Williams",
+      "type": "artist",
+      "uri": "spotify:artist:1XgVoPT2Va5L64LFzskVBW"
+    }
+  ],
+  "total": 71,
+  "limit": 20,
+  "offset": 0,
+  "href": "https://api.spotify.com/v1/me/top/artists?limit=20",
+  "next": "https://api.spotify.com/v1/me/top/artists?offset=50&limit=20",
+  "previous": null
+}

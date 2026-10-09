@@ -4,8 +4,8 @@
 
 import { getGenre } from "./config/genres";
 import { getIdea } from "./config/ideas";
-import { getSinger } from "./config/singers";
-import { getSong } from "./config/songs";
+import { findSinger, SINGERS, type Singer } from "./config/singers";
+import { findSong, SONGS, type Song } from "./config/songs";
 import { getTheme } from "./config/themes";
 
 /** Made from a picked song (Create flow) or from an existing track (player). */
@@ -22,11 +22,15 @@ export const MAX_TEXT = 280;
 
 export type ParseResult = { ok: true; input: GenerateInput } | { ok: false; error: string };
 
+/** The songs and singers this viewer may pick (their Spotify taste, or MOCK_TASTE). */
+export type Catalogue = { songs: Song[]; singers: Singer[] };
+export const MOCK_CATALOGUE: Catalogue = { songs: SONGS, singers: SINGERS };
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const str = (v: unknown): string | undefined => (typeof v === "string" ? v : undefined);
 
-/** Validates an untrusted request body. Unknown fields are ignored. */
-export function parseGenerateInput(body: unknown): ParseResult {
+/** Validates an untrusted request body against the viewer's catalogue. Unknown fields are ignored. */
+export function parseGenerateInput(body: unknown, catalogue: Catalogue = MOCK_CATALOGUE): ParseResult {
   if (typeof body !== "object" || body === null) return { ok: false, error: "Expected a JSON object." };
   const b = body as Record<string, unknown>;
   const mode = b.mode;
@@ -35,7 +39,7 @@ export function parseGenerateInput(body: unknown): ParseResult {
     const songId = str(b.sourceSongId);
     const trackId = str(b.sourceTrackId);
     if (songId && trackId) return { ok: false, error: "Send sourceSongId or sourceTrackId, not both." };
-    if (songId) return getSong(songId) ? { ok: true, source: { sourceSongId: songId } } : { ok: false, error: "Unknown song." };
+    if (songId) return findSong(catalogue.songs, songId) ? { ok: true, source: { sourceSongId: songId } } : { ok: false, error: "Unknown song." };
     if (trackId) return UUID.test(trackId) ? { ok: true, source: { sourceTrackId: trackId } } : { ok: false, error: "Invalid sourceTrackId." };
     return { ok: false, error: "A source song or track is required." };
   };
@@ -59,7 +63,9 @@ export function parseGenerateInput(body: unknown): ParseResult {
       }
       if (mode === "cover") {
         const singerId = str(b.singerId) ?? "";
-        return getSinger(singerId) ? { ok: true, input: { mode, singerId, ...s.source } } : { ok: false, error: "Unknown singer." };
+        return findSinger(catalogue.singers, singerId)
+          ? { ok: true, input: { mode, singerId, ...s.source } }
+          : { ok: false, error: "Unknown singer." };
       }
       const themeId = str(b.themeId) ?? "";
       return getTheme(themeId) ? { ok: true, input: { mode, themeId, ...s.source } } : { ok: false, error: "Unknown theme." };
@@ -82,12 +88,12 @@ export function parseGenerateInput(body: unknown): ParseResult {
 }
 
 /** The change in "{root} × {change}" — or the whole title for Something new. */
-export function changeLabel(input: GenerateInput): string {
+export function changeLabel(input: GenerateInput, catalogue: Catalogue = MOCK_CATALOGUE): string {
   switch (input.mode) {
     case "remix":
       return getGenre(input.genreId)!.name;
     case "cover":
-      return getSinger(input.singerId)!.name;
+      return findSinger(catalogue.singers, input.singerId)!.name;
     case "rewrite":
       return getTheme(input.themeId)!.label;
     case "vibe":
@@ -105,8 +111,8 @@ export function changeLabel(input: GenerateInput): string {
  * the root song so a chain never gets a double ×. `new` has no root: the
  * idea's label or the trimmed text.
  */
-export function titleFor(input: GenerateInput, root: string | null): string {
-  const change = changeLabel(input);
+export function titleFor(input: GenerateInput, root: string | null, catalogue: Catalogue = MOCK_CATALOGUE): string {
+  const change = changeLabel(input, catalogue);
   return input.mode === "new" || !root ? change : `${root} × ${change}`;
 }
 

@@ -56,7 +56,10 @@ test("returnTo is honoured for same-site paths and ignored otherwise", async ({ 
 
   expect(await location("/auth/dummy?returnTo=/track/cruel-bolly", "post")).toBe("/track/cruel-bolly");
   expect(await location("/auth/dummy?returnTo=//evil.com", "post")).toBe("/create");
-  expect(await location("/auth/spotify/login?returnTo=//evil.com", "get")).toBe("/create");
-  expect(await location("/auth/spotify/login?returnTo=https://evil.com", "get")).toBe("/create");
-  expect(await location("/auth/spotify/login?returnTo=/%5Cevil.com", "get")).toBe("/create");
+  // Spotify sign-in goes via (fake) Spotify and back; with no scenario cookie it
+  // falls back to the dummy persona — the bad returnTo still ends on /create.
+  for (const bad of ["//evil.com", "https://evil.com", "/%5Cevil.com"]) {
+    const res = await request.get(`/auth/spotify/login?returnTo=${bad}`);
+    expect(new URL(res.url()).pathname, bad).toBe("/create");
+  }
 });
