@@ -71,7 +71,7 @@ A creator can share a track and a friend gets something worth tapping:
 ### Known gaps
 - In production builds, a missing track shows the 404 page with **status 200 to browsers**: Next 16 streams `notFound()`. Crawlers get a real 404.
 - Text renders up to 1 pt lower than the PNGs (the DM Sans difference).
-- Three tracks you made while testing M3 (Delilah × A summer roadtrip, Delilah × First dates, Euphoric electronic pop) are still in Ali's library. Delete them if you want a clean demo, or re-seed won't touch them.
+- Three tracks you made while testing M3 (Delilah × A summer roadtrip, Delilah × First dates, Euphoric electronic pop) are still in Ali's library. Delete them for a clean demo (re-seeding doesn't remove them).
 
 ### TODOs left for later milestones
 - **M5:**
