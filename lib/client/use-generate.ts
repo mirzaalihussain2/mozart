@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ModeId } from "../config/modes";
 import type { GenerateInput } from "../generation-input";
 
@@ -18,6 +18,8 @@ export type GenerationRequest = {
 export type GenerationState =
   | { phase: "idle" }
   | { phase: "generating"; request: GenerationRequest }
+  /** Navigating to the new track; the Generating screen stays up until it opens. */
+  | { phase: "done"; request: GenerationRequest }
   | { phase: "error"; request: GenerationRequest; message: string };
 
 /** The Generating screen shows for at least this long, even if the API is instant. */
@@ -37,6 +39,17 @@ export function useGenerate() {
   const [state, setState] = useState<GenerationState>({ phase: "idle" });
   const inFlight = useRef(false);
 
+  // Back from the new track: Next keeps this screen's state, and re-runs its
+  // effects when it's shown again — so show the step (choices intact), not a
+  // finished Generating screen.
+  useEffect(() => {
+    if (state.phase !== "done") return;
+    return () => {
+      inFlight.current = false;
+      setState({ phase: "idle" });
+    };
+  }, [state.phase]);
+
   const run = useCallback(
     async (request: GenerationRequest) => {
       if (inFlight.current) return;
@@ -52,8 +65,11 @@ export function useGenerate() {
         const body = (await res.json().catch(() => null)) as { track?: { slug: string } } | null;
         await minWait;
         if (res.ok && body?.track) {
-          // replace: Back from the new player returns to the step screen.
-          router.replace(`/track/${body.track.slug}?autoplay=1`);
+          // push, not replace: the Generating screen has no URL of its own, so
+          // Back from the new player lands on this step screen (replace would
+          // drop the step screen from history).
+          router.push(`/track/${body.track.slug}?autoplay=1`);
+          setState({ phase: "done", request });
           return;
         }
         if (res.status === 401) {
