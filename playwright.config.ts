@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 // Always 127.0.0.1, never localhost (AGENTS.md §3).
 const BASE_URL = "http://127.0.0.1:3000";
+export const PROD_CHECK_URL = "http://127.0.0.1:3100";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -23,10 +24,15 @@ export default defineConfig({
       },
     },
   ],
-  webServer: {
-    command: "pnpm dev",
-    url: BASE_URL,
-    reuseExistingServer: true,
-    timeout: 120_000,
-  },
+  webServer: [
+    { command: "pnpm dev", url: BASE_URL, reuseExistingServer: true, timeout: 120_000 },
+    // Same app with VERCEL_ENV=production, to check /dev/* is hidden there.
+    {
+      command: "pnpm exec next dev -H 127.0.0.1 -p 3100",
+      env: { NEXT_DIST_DIR: ".next-prodcheck", VERCEL_ENV: "production" },
+      url: `${PROD_CHECK_URL}/`,
+      reuseExistingServer: true,
+      timeout: 120_000,
+    },
+  ],
 });

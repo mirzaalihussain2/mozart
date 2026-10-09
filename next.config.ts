@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // The e2e production-gate check runs a second dev server in its own dir.
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
   /* config options here */
   experimental: {
     agentFeedback: true,

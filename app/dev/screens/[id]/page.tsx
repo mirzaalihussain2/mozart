@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import { SCREEN_LIST } from "@/lib/dev/screen-list";
 import { SCREENS } from "../registry";
 
+// Dev tooling: allowed to block on params.
+export const instant = false;
+
 export function generateStaticParams() {
   return SCREEN_LIST.map((s) => ({ id: s.id }));
 }
