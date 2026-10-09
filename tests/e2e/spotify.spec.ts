@@ -33,6 +33,7 @@ async function withScenario(browser: Browser, scenario: Scenario): Promise<Brows
   return ctx;
 }
 
+const SCDN = /^https:\/\/i\.scdn\.co\/image\//;
 const me = async (page: Page) => (await (await page.request.get("/api/me")).json()).user as { id: string; firstName: string } | null;
 const hasOAuthCookie = async (ctx: BrowserContext) => (await ctx.cookies(`${BASE_URL}/auth/spotify/callback`)).some((c) => c.name === "mozart_oauth");
 
@@ -58,17 +59,29 @@ test("ok: Connect Spotify signs in the Spotify user, whose top tracks and artist
   expect(new Set(labels).size).toBe(labels.length);
   await expect(page.getByRole("link", { name: "Cruel Summer by Taylor Swift" })).toHaveCount(0);
 
-  // Generate a remix: named after the real top track.
+  // Every tile shows its real album cover.
+  const covers = await page.locator('a[href^="/create/remix/"] img').evaluateAll((els) => els.map((e) => e.getAttribute("src")));
+  expect(covers).toHaveLength(20);
+  for (const src of covers) expect(src).toMatch(SCDN);
+
+  // Generate a remix: named after the real top track; step 2's card shows its cover.
   await page.getByRole("link", { name: "Way Too Self Aware by Ian Asher" }).click();
+  await expect(page.getByRole("link", { name: "Way Too Self Aware by Ian Asher, change song" }).locator("img")).toHaveAttribute("src", SCDN);
   await page.getByRole("radio", { name: "Bollywood" }).click();
   await page.getByRole("button", { name: "Generate remix" }).click();
   await page.waitForURL(/\/track\/[0-9a-z]{10}$/, { timeout: 15_000 });
   await expect(page.getByRole("heading", { name: "Way Too Self Aware × Bollywood" })).toBeVisible();
 
-  // Cover singers are their top artists.
+  // From the player, the card is the generated track: still a placeholder.
+  await page.goto(`${new URL(page.url()).pathname}/remix`);
+  await expect(page.getByRole("link", { name: "Way Too Self Aware × Bollywood Ali, back to the player" })).toHaveText(/^A/);
+  await expect(page.locator("main img")).toHaveCount(0);
+
+  // Cover singers are their top artists, with their photos.
   await page.goto("/create/cover");
   await page.getByRole("link", { name: "Blackbird by The Beatles" }).click();
   await expect(page.getByRole("radio", { name: /Fred again\.\./ })).toBeVisible();
+  await expect(page.getByRole("radio", { name: /Fred again\.\./ }).locator("img")).toHaveAttribute("src", SCDN);
   await expect(page.getByRole("radio", { name: /Arijit Singh/ })).toHaveCount(0);
   await ctx.close();
 });
@@ -120,6 +133,9 @@ test("'Log in' is still dummy Ali with the mock songs; a Spotify song id from Al
   expect((await me(page))?.id).toBe(DUMMY_USER.id);
   await page.getByRole("link", { name: /^Remix/ }).click();
   await expect(page.getByRole("link", { name: "Cruel Summer by Taylor Swift" })).toBeVisible();
+  // The mock songs keep the grey initials tiles.
+  await expect(page.getByRole("link", { name: "Cruel Summer by Taylor Swift" })).toHaveText(/^TS/);
+  await expect(page.locator('a[href^="/create/remix/"] img')).toHaveCount(0);
 
   // "Way Too Self Aware" (a Spotify id) isn't in Ali's catalogue.
   const res = await page.request.post("/api/generate", { data: { mode: "remix", sourceSongId: "2rkUhGw5iWbBY1PE5AnCl8", genreId: "bollywood" } });

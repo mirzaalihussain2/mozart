@@ -27,6 +27,7 @@ export default async function StepTwoPage({ params }: PageProps<"/create/[mode]/
         title: song.title,
         subtitle: song.artist,
         initials: heroInitials(song.artist),
+        imageUrl: song.imageUrl,
         href: `/create/${mode}`,
         label: `${song.title} by ${song.artist}, change song`,
       }}

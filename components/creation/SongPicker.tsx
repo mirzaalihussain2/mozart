@@ -39,7 +39,7 @@ export function SongPicker({ songs, basePath }: { songs: Song[]; basePath: strin
             aria-label={`${song.title} by ${song.artist}`}
             className="text-text flex min-w-0 flex-col items-center gap-2 text-center"
           >
-            <Artwork variant="grid" initials={gridInitials(song.artist)} tone={tone} />
+            <Artwork variant="grid" initials={gridInitials(song.artist)} tone={tone} src={song.imageUrl} lazy />
             <span className="line-clamp-2 w-full text-[13px] leading-[1.25] font-semibold">{song.title}</span>
           </Link>
         ))}

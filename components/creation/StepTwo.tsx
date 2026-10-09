@@ -27,6 +27,8 @@ export type Subject = {
   title: string;
   subtitle: string;
   initials: string;
+  /** The picked song's album cover (Create flow only; a generated track has none). */
+  imageUrl?: string | null;
   /** "change song" link back to step 1, or back to the player. */
   href: string;
   label: string;
@@ -122,14 +124,19 @@ function OptionsStep(props: StepTwoProps) {
             ))
           : null}
         {modeId === "cover"
-          ? singers.map(({ id, name }, k) => (
+          ? singers.map(({ id, name, imageUrl }, k) => (
               <Pill key={id} mode={mode} size="avatar" selected={choice === id} onSelect={() => setChoice(id)}>
                 <span
                   aria-hidden="true"
-                  className="flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-[rgba(217,217,217,0.7)]"
+                  className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold text-[rgba(217,217,217,0.7)]"
                   style={{ background: toneAt(k, 1) }}
                 >
-                  {gridInitials(name)}
+                  {imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={imageUrl} alt="" className="size-full object-cover" />
+                  ) : (
+                    gridInitials(name)
+                  )}
                 </span>
                 {name}
               </Pill>
@@ -263,7 +270,7 @@ function SubjectCard({ subject }: { subject: Subject }) {
       className="text-text mt-5 flex shrink-0 flex-col items-center gap-1.5 self-center text-center"
     >
       <span className="mb-2.5">
-        <Artwork variant="hero" initials={subject.initials} />
+        <Artwork variant="hero" initials={subject.initials} src={subject.imageUrl} />
       </span>
       <span className="text-[26px] leading-[1.15] font-bold">{subject.title}</span>
       <span className="text-text-secondary text-[15px]">{subject.subtitle}</span>
