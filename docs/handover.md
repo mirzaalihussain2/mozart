@@ -112,7 +112,6 @@ pnpm shots [id] && pnpm shots:diff [id]                  # capture /dev/screens/
 - **Vercel:** `DATABASE_URL`, `SESSION_SECRET` and the Spotify credentials (Production + Preview); `APP_URL=https://mozart-iota.vercel.app` (Production only). Both Spotify redirect URIs are registered. Previews sit behind Vercel's login, so WhatsApp can't unfurl them: test previews on production.
 - **Test data (9 Oct 2026):** on top of the seed, there are:
   - 9 manual-test tracks from M8 (7 Ali, 2 Sam; listed in PR #9);
-  - 3 from M9 testing (`l30kesvtya`, `c49u78i7gg` owned by dummy Ali, `nvs7lf9bme` unowned);
   - 2 older unowned anonymous tracks (`fw3is4qnrm`, `97j5arat4e`).
 
   All are kept until Ali says otherwise, and Ali and Sam are retired after Derek and Candice work. The Spotify user `hussa1995` is Ali's real account: never delete it or its tracks, and never delete any Spotify user's tracks.
