@@ -1,12 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
 import { shareMessage } from "../../lib/share-message";
+import { BASE_URL } from "../../playwright.config";
 
 // Milestone 4: Copy link, WhatsApp, link previews and the shared-link
 // recipient view (03-06, 05-07, 06-07).
 
 const TRACK = "cruel-bolly";
 const TITLE = "Cruel Summer × Bollywood";
-const URL_ = `http://127.0.0.1:3000/track/${TRACK}`;
+const URL_ = `${BASE_URL}/track/${TRACK}`;
 const WHATSAPP_UA = "WhatsApp/2.23.20.0 A";
 
 test.use({ permissions: ["clipboard-read", "clipboard-write"] });

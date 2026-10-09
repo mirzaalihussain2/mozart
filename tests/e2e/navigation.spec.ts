@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { BASE_URL } from "../../playwright.config";
 import { PROD_CHECK_URL } from "../../playwright.config";
 import { SCREEN_LIST } from "../../lib/dev/screen-list";
 
@@ -99,7 +100,7 @@ test.describe("signed in as Ali", () => {
     await expect(sheet).toBeVisible();
     await expect(sheet.getByRole("button", { name: /Copy link/ })).toHaveAttribute(
       "data-share-url",
-      "http://127.0.0.1:3000/track/cruel-bolly",
+      `${BASE_URL}/track/cruel-bolly`,
     );
     await sheet.getByRole("button", { name: "Close" }).click();
     await expect(sheet).toHaveCount(0);

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { AUDIO_CATALOGUE } from "../../lib/config/audio-catalogue";
+import { BASE_URL } from "../../playwright.config";
 import { closeDb, deleteTracks } from "./helpers/db";
 
 // Milestone 3: Generate makes a real track (named by the rule, saved to the
@@ -36,7 +37,7 @@ const audioState = (page: Page) =>
 
 /** After Generate: on a new /track/{slug}, with this title and a catalogue file; first in the Library. */
 async function expectNewTrack(page: Page, title: string) {
-  await expect(page).toHaveURL(/^http:\/\/127\.0\.0\.1:3000\/track\/[0-9a-z]{10}$/, { timeout: 15_000 });
+  await expect(page).toHaveURL(new RegExp(`^${BASE_URL.replace(/\./g, "\\.")}/track/[0-9a-z]{10}$`), { timeout: 15_000 });
   const slug = new URL(page.url()).pathname.split("/")[2];
   expect(slug).not.toBe("cruel-bolly");
   expect(created).toContain(slug);
