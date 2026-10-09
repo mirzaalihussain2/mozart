@@ -131,6 +131,22 @@ test("resetPersona: back to the starters, same ids; their other tracks go; track
   assert.equal(kept.source, before[0].id);
 });
 
+test("deleteOwnedTrack: only the owner's; a deleted starter comes back at the next reset", async () => {
+  const { deleteOwnedTrack } = await import("../../lib/server/tracks");
+  const { resetPersona } = await import("../../lib/server/auth/personas");
+  await dbHelpers();
+  const slug = "candice-espresso-disco";
+  const id = async () => (await sql!<{ id: string }[]>`select id from tracks where public_slug = ${slug}`)[0]?.id;
+  const before = await id();
+  assert.ok(before);
+  assert.equal(await deleteOwnedTrack(slug, DEREK.id), false, "not Derek's");
+  assert.equal(await id(), before);
+  assert.equal(await deleteOwnedTrack(slug, CANDICE.id), true);
+  assert.equal(await id(), undefined);
+  await resetPersona(CANDICE);
+  assert.ok(await id(), "back after her next sign-in");
+});
+
 test("claiming moves only this browser's unowned tracks, once", async () => {
   const { claimAnonTracks } = await import("../../lib/server/auth/claim");
   const { insert, owner } = await dbHelpers();
