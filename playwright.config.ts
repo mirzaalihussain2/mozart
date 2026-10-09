@@ -3,8 +3,10 @@ import { defineConfig, devices } from "@playwright/test";
 // Always 127.0.0.1, never localhost (AGENTS.md §3). The e2e app runs on its
 // own port and build dir, never reusing a dev server: it talks to the fake
 // Spotify (tests/e2e/helpers/fake-spotify.ts), not the real one.
-export const BASE_URL = "http://127.0.0.1:3001";
-export const FAKE_SPOTIFY_URL = "http://127.0.0.1:4545";
+// E2E_PORT / FAKE_SPOTIFY_PORT let parallel worktrees run side by side.
+const E2E_PORT = process.env.E2E_PORT ?? "3001";
+export const BASE_URL = `http://127.0.0.1:${E2E_PORT}`;
+export const FAKE_SPOTIFY_URL = `http://127.0.0.1:${process.env.FAKE_SPOTIFY_PORT ?? "4545"}`;
 export const PROD_CHECK_URL = "http://127.0.0.1:3100";
 
 export default defineConfig({
@@ -35,7 +37,7 @@ export default defineConfig({
       timeout: 30_000,
     },
     {
-      command: "pnpm exec next dev -H 127.0.0.1 -p 3001",
+      command: `pnpm exec next dev -H 127.0.0.1 -p ${E2E_PORT}`,
       env: {
         NEXT_DIST_DIR: ".next-e2e",
         APP_URL: BASE_URL,
