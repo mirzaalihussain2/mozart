@@ -14,6 +14,7 @@ import { SINGERS, type Singer } from "@/lib/config/singers";
 import { THEMES } from "@/lib/config/themes";
 import { useGenerate } from "@/lib/client/use-generate";
 import { useKeyboardViewport } from "@/lib/client/use-keyboard-viewport";
+import { markPickerReturn } from "@/lib/client/use-shuffle-seed";
 import { gridInitials } from "@/lib/format";
 import { generationQuote } from "@/lib/generation";
 import { SignupSheet } from "@/components/sharing/SignupSheet";
@@ -88,6 +89,8 @@ function OptionsStep(props: StepTwoProps) {
 
   if (gen.state.phase !== "idle") return <Generating gen={gen} />;
 
+  // Both links back to the step-1 picker keep the order it showed.
+  const toPicker = showStep ? () => markPickerReturn(backHref) : undefined;
   const generate = () => {
     if (!word || !choice) return;
     if (props.signIn?.makeUsed) return blocked.open("more");
@@ -102,8 +105,8 @@ function OptionsStep(props: StepTwoProps) {
 
   return (
     <main className="flex min-h-dvh flex-col px-4 pt-12 pb-9">
-      <StepHeader mode={mode} backHref={backHref} step={showStep ? 2 : undefined} />
-      <SubjectCard subject={subject} />
+      <StepHeader mode={mode} backHref={backHref} step={showStep ? 2 : undefined} onBack={toPicker} />
+      <SubjectCard subject={subject} onClick={toPicker} />
       <div className="border-raised mt-6 shrink-0 border-t pt-4 text-center text-[30px] leading-[1.15] font-bold">
         <span className="text-text-secondary">{LEAD[modeId]} </span>
         {word ? <span className={mode.textClass}>{word}.</span> : null}
@@ -255,10 +258,11 @@ export function Generating({ gen }: { gen: ReturnType<typeof useGenerate> }) {
 }
 
 /** Large picked-song / current-track card (CfRemix2, CfCRemix). */
-function SubjectCard({ subject }: { subject: Subject }) {
+function SubjectCard({ subject, onClick }: { subject: Subject; onClick?: () => void }) {
   return (
     <Link
       href={subject.href}
+      onClick={onClick}
       aria-label={subject.label}
       className="text-text mt-5 flex shrink-0 flex-col items-center gap-1.5 self-center text-center"
     >
