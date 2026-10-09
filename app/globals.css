@@ -31,6 +31,12 @@
   --radius-sheet: 24px;
 }
 
+/* The designs leave line-height at the browser default ("normal", ≈1.3 for DM
+   Sans); Tailwind's preflight sets 1.5, which makes unstyled text taller. */
+html {
+  line-height: normal;
+}
+
 html,
 body {
   background: var(--color-bg);

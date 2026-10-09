@@ -16,7 +16,7 @@ export function LandingView() {
       <div className="absolute right-6 bottom-10 left-6 flex flex-col gap-3">
         <a
           href="/auth/spotify/login"
-          className="bg-accent text-on-accent flex h-14 items-center justify-center gap-2.5 rounded-full text-[17px] font-semibold"
+          className="bg-accent text-on-accent flex h-14 items-center justify-center gap-2.5 rounded-full text-[17px] leading-tight font-semibold"
         >
           <SpotifyIcon />
           Connect Spotify to get started
@@ -24,7 +24,7 @@ export function LandingView() {
         <form action="/auth/dummy" method="post">
           <button
             type="submit"
-            className="bg-raised text-text flex h-14 w-full cursor-pointer items-center justify-center rounded-full text-[17px] font-semibold"
+            className="bg-raised text-text flex h-14 w-full cursor-pointer items-center justify-center rounded-full text-[17px] leading-tight font-semibold"
           >
             Log in
           </button>

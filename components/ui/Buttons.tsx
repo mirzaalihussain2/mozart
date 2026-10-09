@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Mode } from "@/lib/config/modes";
 
-const BASE = "flex h-14 w-full items-center justify-center gap-2.5 rounded-full text-[17px] font-semibold";
+const BASE = "flex h-14 w-full items-center justify-center gap-2.5 rounded-full text-[17px] leading-tight font-semibold";
 
 type Common = { children: React.ReactNode; className?: string };
 type AsLink = Common & { href: string; onClick?: never; disabled?: never; type?: never };
