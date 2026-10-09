@@ -31,6 +31,12 @@
   --radius-sheet: 24px;
 }
 
+/* The designs leave line-height at the browser default ("normal", ≈1.3 for DM
+   Sans); Tailwind's preflight sets 1.5, which makes unstyled text taller. */
+html {
+  line-height: normal;
+}
+
 html,
 body {
   background: var(--color-bg);
@@ -41,4 +47,15 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Generating screen bars (GeneratingScreen); only under motion-safe. */
+@keyframes bar {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.45);
+  }
 }

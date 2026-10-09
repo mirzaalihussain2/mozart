@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-// Milestone 1: landing (01-01), dummy login, Spotify fallback, logout,
+// Landing (01-01), dummy login, Spotify fallback, logout,
 // protected /create, /api/me and returnTo validation.
 
 test("landing shows the headline and both buttons", async ({ page }) => {
@@ -14,9 +14,11 @@ test("Log in lands on /create as Ali, and Log out returns to /", async ({ page }
   await page.goto("/");
   await page.getByRole("button", { name: "Log in" }).click();
   await expect(page).toHaveURL("/create");
-  await expect(page.getByText("Signed in as Ali")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "What do you want to make?" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Profile" })).toHaveText("A");
 
-  await page.getByRole("button", { name: "Log out" }).click();
+  await page.getByRole("button", { name: "Profile" }).click();
+  await page.getByRole("menuitem", { name: "Log out" }).click();
   await expect(page).toHaveURL("/");
   await expect(page.getByRole("button", { name: "Log in" })).toBeVisible();
 });
@@ -25,7 +27,7 @@ test("Connect Spotify signs in as Ali (silent fallback)", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("link", { name: "Connect Spotify to get started" }).click();
   await expect(page).toHaveURL("/create");
-  await expect(page.getByText("Signed in as Ali")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "What do you want to make?" })).toBeVisible();
 });
 
 test("signed-in visitors to / are sent to /create", async ({ page }) => {

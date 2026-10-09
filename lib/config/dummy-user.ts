@@ -11,12 +11,65 @@ export const DUMMY_USER = {
   spotifyTaste: MOCK_TASTE,
 } as const;
 
-// Seed track owned by the dummy user (shown in the Library and the player designs).
-export const SEED_TRACK = {
-  publicSlug: "cruel-bolly",
-  mode: "remix",
-  title: "Cruel Summer × Bollywood",
-  audioUrl: "/audio/placeholder.mp3",
-  artworkUrl: null,
-  generationInput: { sourceSong: "Cruel Summer", sourceArtist: "Taylor Swift", genre: "Bollywood" },
-} as const;
+// Ali's library (07-01), newest first. `ageMinutes` is relative to seeding time
+// so the dates read "Today", "Today", "Yesterday", then older (3 Oct, 1 Oct and
+// 28 Sep when seeded on 9 Oct). `source` is the slug of the track it was made from.
+export type SeedTrack = {
+  publicSlug: string;
+  mode: "remix" | "cover" | "rewrite" | "vibe" | "new";
+  title: string;
+  generationInput: Record<string, string>;
+  source?: string;
+  ageMinutes: number;
+};
+
+const DAY = 24 * 60;
+
+export const SEED_TRACKS: SeedTrack[] = [
+  {
+    publicSlug: "cruel-bolly",
+    mode: "remix",
+    title: "Cruel Summer × Bollywood",
+    generationInput: { sourceSong: "Cruel Summer", sourceArtist: "Taylor Swift", genre: "Bollywood" },
+    ageMinutes: 1,
+  },
+  {
+    publicSlug: "cruel-electro",
+    mode: "remix",
+    title: "Cruel Summer × Electronic",
+    generationInput: { sourceSong: "Cruel Summer", sourceArtist: "Taylor Swift", genre: "Electronic" },
+    source: "cruel-bolly",
+    ageMinutes: 2,
+  },
+  {
+    publicSlug: "deep-bolly",
+    mode: "cover",
+    title: "In Too Deep × Bollywood",
+    generationInput: { sourceSong: "In Too Deep", sourceArtist: "Sum 41", coverArtist: "Arijit Singh" },
+    ageMinutes: DAY,
+  },
+  {
+    publicSlug: "euphoric-pop",
+    mode: "new",
+    title: "Euphoric electronic pop",
+    generationInput: { prompt: "A euphoric Fred again..-style anthem about a summer that ended too soon" },
+    ageMinutes: 6 * DAY,
+  },
+  {
+    publicSlug: "cinematic-pop",
+    mode: "new",
+    title: "Cinematic pop",
+    generationInput: { prompt: "A cinematic pop ballad with soaring strings" },
+    ageMinutes: 8 * DAY,
+  },
+  {
+    publicSlug: "deep-lofi",
+    mode: "remix",
+    title: "In Too Deep × Lo-fi",
+    generationInput: { sourceSong: "In Too Deep", sourceArtist: "Sum 41", genre: "Lo-fi" },
+    source: "deep-bolly",
+    ageMinutes: 11 * DAY,
+  },
+];
+
+export const PLACEHOLDER_AUDIO = "/audio/placeholder.mp3";

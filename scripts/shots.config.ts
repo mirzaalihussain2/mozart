@@ -9,4 +9,8 @@ export type Shot = {
   auth: "none" | "dummy";
 };
 
-export const SHOTS: Shot[] = [{ id: "01-01", route: "/", auth: "none" }];
+import { SCREEN_LIST } from "../lib/dev/screen-list";
+
+// Every screen is captured from its gallery page (/dev/screens/{id}), which
+// renders the real components in the exact state the design shows.
+export const SHOTS: Shot[] = SCREEN_LIST.map((s) => ({ id: s.id, route: `/dev/screens/${s.id}`, auth: "none" }));
