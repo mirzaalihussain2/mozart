@@ -1,6 +1,6 @@
 import "server-only";
 import { and, asc, eq, isNull } from "drizzle-orm";
-import { MODE_NOUN, type SignInPrompt } from "../sign-in-prompt";
+import { MODE_NOUN, signInHref, type SignInPrompt } from "../sign-in-prompt";
 import { getAnonId } from "./anon";
 import { db } from "./db";
 import { tracks } from "./db/schema";
@@ -22,9 +22,10 @@ export async function viewerFor(track: TrackWithOwner, { preview = false } = {})
       isOwner && preview
         ? {
             sendTo: (await sendToName(track.id)) ?? "them",
-            href: `/auth/spotify/login?returnTo=${encodeURIComponent(`/track/${track.publicSlug}`)}`,
+            href: signInHref(`/track/${track.publicSlug}`),
             makeUsed: false,
             noun: MODE_NOUN[track.mode],
+            slug: track.publicSlug,
           }
         : undefined;
     return { user, isOwner, isAnonMaker: false, signIn };
@@ -34,12 +35,14 @@ export async function viewerFor(track: TrackWithOwner, { preview = false } = {})
   const made = anonId ? await anonTrack(anonId) : null;
   const isAnonMaker = !!anonId && !track.ownerUserId && track.anonymousSessionId === anonId;
   // Signing in returns to their own track (share sheet open) if they made one, else here.
+  // ("more" goes back to the mode they tapped instead: lib/sign-in-prompt.ts.)
   const returnTo = made ? `/track/${made.slug}?share=1` : `/track/${track.publicSlug}`;
   const signIn: SignInPrompt = {
     sendTo: (await sendToName(made?.id ?? track.id)) ?? "them",
-    href: `/auth/spotify/login?returnTo=${encodeURIComponent(returnTo)}`,
+    href: signInHref(returnTo),
     makeUsed: !!made,
     noun: MODE_NOUN[made?.mode ?? track.mode],
+    slug: track.publicSlug,
   };
   return { user: null, isOwner: false, isAnonMaker, signIn };
 }
