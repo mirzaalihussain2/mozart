@@ -11,7 +11,6 @@ import { users, type User } from "./db/schema";
 export type SessionData = { userId?: string };
 
 const SESSION_COOKIE = "mozart_session";
-const ANON_COOKIE = "mozart_anon";
 const THIRTY_DAYS = 60 * 60 * 24 * 30;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -55,10 +54,4 @@ export async function requireUser(): Promise<User> {
   const user = await getCurrentUser();
   if (!user) redirect("/");
   return user;
-}
-
-/** Anonymous recipient id from `mozart_anon`. Read-only here; set in milestone 5. */
-export async function getAnonId(): Promise<string | null> {
-  const value = (await cookies()).get(ANON_COOKIE)?.value;
-  return value && UUID_RE.test(value) ? value : null;
 }
