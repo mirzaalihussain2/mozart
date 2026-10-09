@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   },
   cacheComponents: true,
   partialPrefetching: true,
+  // The dev-only design PNG route reads docs/ at runtime on Vercel previews.
+  outputFileTracingIncludes: {
+    "/dev/designs/[id]": ["./docs/designs/png/**"],
+  },
   turbopack: {
     rules: {
       "*.css": {
