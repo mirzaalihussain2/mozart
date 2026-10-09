@@ -7,6 +7,8 @@ import { closeDb, deleteTracks, trackRow } from "./helpers/db";
 // version → "Send to Ali" → signs in (as Sam) → lands on their own track,
 // claimed into their library, with the share sheet and toast.
 
+const MORE_COPY = "You’ve made your free track. Sign in with Spotify to keep making more. They’ll be saved to your library.";
+
 const created: string[] = [];
 test.afterEach(async () => {
   await deleteTracks(created.splice(0));
@@ -96,12 +98,12 @@ test("the core loop, with two browsers", async ({ browser }) => {
   expect(anon?.httpOnly).toBe(true);
   expect(await trackRow(theirSlug)).toMatchObject({ owner: null, anon: anon!.value });
 
-  // 4. A second make asks them to sign in — no Generating screen — and the API refuses.
+  // 4. A second make asks them to sign in to make another — no Generating screen — and the API refuses.
   await page.getByRole("button", { name: "Cover", exact: true }).click();
-  const sheet = page.getByRole("dialog", { name: "Send to Ali" });
-  await expect(sheet).toBeVisible();
+  const more = page.getByRole("dialog", { name: "Sign in to make another cover" });
+  await expect(more.getByText(MORE_COPY)).toBeVisible();
   await expect(page.getByText("Making your track…")).toHaveCount(0);
-  await sheet.getByRole("button", { name: "Close" }).click();
+  await more.getByRole("button", { name: "Close" }).click();
   const aliTrack = await trackRow(aliSlug);
   const forced = await friend.request.post("/api/generate", { data: { mode: "cover", sourceTrackId: aliTrack!.id, singerId: "dua-lipa" } });
   expect(forced.status()).toBe(403);
@@ -109,6 +111,8 @@ test("the core loop, with two browsers", async ({ browser }) => {
 
   // 5. Send to Ali → Continue with Spotify → back on their track: creator, sheet open, toast.
   await page.getByRole("button", { name: "Send to Ali" }).click();
+  const sheet = page.getByRole("dialog", { name: "Send to Ali" });
+  await expect(sheet.getByText("Sign in with Spotify to save your remix and send it back.")).toBeVisible();
   await sheet.getByRole("link", { name: "Continue with Spotify" }).click();
   await expect(page).toHaveURL(`/track/${theirSlug}`);
   await expect(page.getByRole("dialog", { name: "Share this track" })).toBeVisible();
@@ -181,6 +185,52 @@ test.describe("edge cases", () => {
     expect(await trackRow(made)).toMatchObject({ owner: SAM_USER.id, anon: null });
     await friend.close();
     await sam.close();
+  });
+
+  test("after their make, 'Sign in to make another …' (tile, step 2, stale page's 403) returns to that mode's step 2, claimed", async ({ browser }) => {
+    const friend = await stranger(browser);
+    // Opened before the make, so this page still thinks they have one left.
+    const stale = await friend.newPage();
+    await stale.goto("/track/cruel-bolly/rewrite");
+    const page = await friend.newPage();
+    await page.goto("/track/cruel-bolly");
+    const theirSlug = await remixFromPlayer(page, "Classical");
+
+    // The server's 403 opens the same sheet, for the mode on screen.
+    await stale.getByRole("radio", { name: "Heartbreak" }).click();
+    await stale.getByRole("button", { name: "Generate rewrite" }).click();
+    const staleSheet = stale.getByRole("dialog", { name: "Sign in to make another rewrite" });
+    await expect(staleSheet.getByText(MORE_COPY)).toBeVisible();
+    await stale.close();
+
+    // Generate on a step 2 after the make.
+    await page.goto(`/track/${theirSlug}/vibe`);
+    await page.getByRole("textbox").fill("slower");
+    await page.getByRole("button", { name: "Generate song" }).click();
+    await expect(page.getByRole("dialog", { name: "Sign in to make another version" })).toBeVisible();
+
+    // The Cover tile on their track → sign in → that track's Cover step 2, with the toast, claimed.
+    await page.goto(`/track/${theirSlug}`);
+    await page.getByRole("button", { name: "Cover", exact: true }).click();
+    const sheet = page.getByRole("dialog", { name: "Sign in to make another cover" });
+    await expect(sheet.getByText(MORE_COPY)).toBeVisible();
+    await expect(sheet.getByText(/Ali/)).toHaveCount(0);
+    await sheet.getByRole("link", { name: "Continue with Spotify" }).click();
+    await expect(page).toHaveURL(`/track/${theirSlug}/cover`); // ?saved=1 dropped once read
+    await expect(page.getByRole("status").filter({ hasText: "Signed in · saved to your library" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Generate cover" })).toBeVisible();
+    expect((await (await friend.request.get("/api/me")).json()).user.firstName).toBe("Sam");
+    expect(await trackRow(theirSlug)).toMatchObject({ owner: SAM_USER.id, anon: null });
+    expect((await friend.cookies()).some((c) => c.name === "mozart_anon")).toBe(false);
+
+    // Signed in now: no sheet, and a refresh shows no toast.
+    await page.reload();
+    await expect(page.getByText("Signed in · saved to your library")).toHaveCount(0);
+    await page.getByRole("radio").first().click();
+    await page.getByRole("button", { name: "Generate cover" }).click();
+    await page.waitForURL(/\/track\/[0-9a-z]{10}$/, { timeout: 15_000 });
+    expect(await trackRow(slugOf(page))).toMatchObject({ owner: SAM_USER.id, anon: null });
+    await friend.close();
   });
 
   test("signing in from 05-01 without making anything claims nothing: Sam on Ali's track, no toast, no prompts", async ({ browser }) => {
