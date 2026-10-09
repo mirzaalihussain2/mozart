@@ -49,8 +49,13 @@ test("ok: Connect Spotify signs in the Spotify user, whose top tracks and artist
   expect(user?.id).not.toBe(DUMMY_USER.id);
   expect(await spotifyUser(FIXTURE_USER)).toMatchObject({ id: user!.id, first_name: "Ali", auth_provider: "spotify" });
   expect(await hasOAuthCookie(ctx)).toBe(false);
-  // The profile circle shows their Spotify photo.
+  // The profile circle shows their Spotify photo, on Create and on Library.
   await expect(page.getByRole("button", { name: "Profile" }).locator("img")).toHaveAttribute("src", SCDN);
+  await page.getByRole("link", { name: "Library" }).click();
+  await expect(page).toHaveURL("/library");
+  await expect(page.getByRole("button", { name: "Profile" }).locator("img")).toHaveAttribute("src", SCDN);
+  await page.getByRole("link", { name: "Create", exact: true }).click();
+  await expect(page).toHaveURL("/create");
 
   // Remix song picker: the fixture's top tracks, cleaned and de-duplicated.
   await page.getByRole("link", { name: /^Remix/ }).click();

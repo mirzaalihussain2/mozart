@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useAudio } from "@/components/audio/AudioProvider";
 
 /**
- * Avatar on the Create home (CfHome) — opens a small menu with Log out.
+ * Avatar on the Create and Library tabs (TabHeader) — opens a small menu with Log out.
  * A native <details> so it works before hydration; JS only adds closing on an
  * outside tap and Escape. Spotify users see their profile photo (from
  * sign-in); everyone else, their initial.

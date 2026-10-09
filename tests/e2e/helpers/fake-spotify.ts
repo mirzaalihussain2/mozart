@@ -21,6 +21,14 @@ function cookie(header: string | undefined, name: string): string | null {
   return header?.split(/;\s*/).find((c) => c.startsWith(`${name}=`))?.split("=")[1] ?? null;
 }
 
+// A "fresh-" prefix on the scenario cookie (e.g. "fresh-ok") signs in a second
+// Spotify user with no tracks instead of the fixture user. It rides along in
+// the code and the access token like the scenario.
+const FRESH_USER = "mozart-fresh-user";
+const FRESH = "fresh-";
+const freshOf = (value: string | null | undefined) => (value?.includes(FRESH) ? FRESH : "");
+const freshMe = () => ({ ...JSON.parse(fixture("me")), id: FRESH_USER, display_name: "Fresh", images: [] });
+
 const server = createServer(async (req, res) => {
   const url = new URL(req.url ?? "/", `http://127.0.0.1:${FAKE_SPOTIFY_PORT}`);
   const json = (status: number, body: unknown) => {
@@ -31,10 +39,11 @@ const server = createServer(async (req, res) => {
   if (url.pathname === "/health") return json(200, { ok: true });
 
   if (url.pathname === "/authorize") {
-    const scenario = scenarioOf(cookie(req.headers.cookie, "fake_spotify_scenario"));
+    const raw = cookie(req.headers.cookie, "fake_spotify_scenario");
+    const scenario = scenarioOf(raw);
     const back = new URL(url.searchParams.get("redirect_uri")!);
     if (scenario === "deny") back.searchParams.set("error", "access_denied");
-    else back.searchParams.set("code", `code-${scenario}`);
+    else back.searchParams.set("code", `code-${freshOf(raw)}${scenario}`);
     back.searchParams.set("state", scenario === "bad_state" ? "not-the-state" : (url.searchParams.get("state") ?? ""));
     res.writeHead(302, { Location: back.toString() });
     return res.end();
@@ -45,14 +54,15 @@ const server = createServer(async (req, res) => {
     for await (const chunk of req) body += chunk;
     const code = new URLSearchParams(body).get("code");
     if (!req.headers.authorization?.startsWith("Basic ") || !code) return json(400, { error: "invalid_request" });
-    return json(200, { access_token: `token-${scenarioOf(code)}`, token_type: "Bearer", expires_in: 3600 });
+    return json(200, { access_token: `token-${freshOf(code)}${scenarioOf(code)}`, token_type: "Bearer", expires_in: 3600 });
   }
 
   if (url.pathname.startsWith("/v1/me")) {
-    const scenario = scenarioOf(req.headers.authorization?.replace(/^Bearer /, ""));
+    const token = req.headers.authorization?.replace(/^Bearer /, "");
+    const scenario = scenarioOf(token);
     if (scenario === "slow") await new Promise((r) => setTimeout(r, 6000));
     if (scenario === "forbidden") return json(403, { error: { status: 403, message: "User not registered in the Developer Dashboard" } });
-    if (url.pathname === "/v1/me") return json(200, fixture("me"));
+    if (url.pathname === "/v1/me") return json(200, freshOf(token) ? freshMe() : fixture("me"));
     if (url.pathname === "/v1/me/top/tracks") return json(200, fixture("top-tracks"));
     if (url.pathname === "/v1/me/top/artists") return json(200, fixture("top-artists"));
   }

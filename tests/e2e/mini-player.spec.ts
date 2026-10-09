@@ -104,6 +104,8 @@ test.describe("signed in as Ali", () => {
   test("Log out stops the music; signing back in shows no mini player", async ({ page }) => {
     await playThenMinimise(page);
     await page.getByRole("link", { name: "Create", exact: true }).click();
+    // The Library has a Profile button too: open the menu on /create, not before it.
+    await expect(page).toHaveURL("/create");
     await page.getByRole("button", { name: "Profile" }).click();
     await page.getByRole("menuitem", { name: "Log out" }).click();
     await expect(page).toHaveURL("/");
