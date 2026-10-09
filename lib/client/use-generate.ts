@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ModeId } from "../config/modes";
 
 export type GenerationRequest = {
@@ -12,19 +12,27 @@ export type GenerationRequest = {
   destination: string;
 };
 
+/** How long the Generating screen shows before the player opens. */
+export const GENERATING_MS = 3500;
+
 /**
- * Milestone 2 mock: every Generate button runs through here.
- * TODO(M3): replace with POST /api/generate (creates the track, returns its slug).
+ * Milestone 2 mock: every Generate button runs through here. It shows the
+ * Generating screen (the caller renders GeneratingScreen while `request` is
+ * set) for ~3.5 s, then opens `destination`.
+ * TODO(M3): replace with POST /api/generate, which creates the track and
+ * returns its slug; the destination becomes /track/{slug}.
  */
 export function useGenerate() {
   const router = useRouter();
   const [request, setRequest] = useState<GenerationRequest | null>(null);
-  const start = useCallback(
-    (req: GenerationRequest) => {
-      setRequest(req);
-      router.push(req.destination);
-    },
-    [router],
-  );
+
+  useEffect(() => {
+    if (!request) return;
+    router.prefetch(request.destination);
+    const t = setTimeout(() => router.push(request.destination), GENERATING_MS);
+    return () => clearTimeout(t);
+  }, [request, router]);
+
+  const start = useCallback((req: GenerationRequest) => setRequest(req), []);
   return { request, start };
 }
