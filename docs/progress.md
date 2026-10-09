@@ -1,6 +1,73 @@
 # Progress
 
-## Milestone 1 — Foundations · done (PR #1, branch `m1-foundations`)
+## Milestone 2 — Static UI · in progress (PR #2, branch `m2-static-ui`)
+
+The instructions I received stopped partway through Step 6 (Player). Steps 0–6 are done; the rest is waiting on the remaining instructions.
+
+### Built (all 39 screens exist and are in the gallery)
+- **Gallery**: `/dev/screens` lists all 39; `/dev/screens/[id]` renders each with the real components in its design state; `/dev/compare/[id]` shows it beside the PNG (served by `/dev/designs/[id]`). All `/dev/*` return 404 when `VERCEL_ENV=production` (verified with a production build). `pnpm shots` / `pnpm shots:diff` cover all 39.
+- **Create home** `/create` (01-02; 01-03 with the static mini player). The avatar opens a menu with **Log out** (the design has an avatar, so logout lives there).
+- **Create flows**:
+  - Step 1 `/create/remix|cover|rewrite` (02-01, 02-03, 02-05), with a search box that filters the 16 songs.
+  - Step 2 `/create/[mode]/[songId]` (02-02, 02-04, 02-06). Generate is disabled until an option is picked.
+  - Something new `/create/new` (02-07, 02-08).
+- **Generating** (03-01…03-04, 06-01…06-04): `useGenerate` shows the screen for ~3.5 s, then opens the player. `TODO(M3)`: POST `/api/generate`. From the Create flows it opens `/track/cruel-bolly`; from a player, that track.
+- **Player** `/track/[slug]`:
+  - Signed-in owner → `creator` (03-05); anyone else → `recipient` (05-01); `?view=recipient` previews the recipient view.
+  - `recipientResult` (06-05), the share sheet states (03-06, 05-07, 06-07 + toast) and Send to Ali (06-06) are built and shown in the gallery.
+  - Share opens the sheet; the save `+` opens Send to Ali, whose "Continue with Spotify" goes to `/auth/spotify/login?returnTo=/track/{slug}`.
+- **From a player** `/track/[slug]/remix|cover|rewrite|vibe` (04-xx creator, 05-xx recipient): the same `StepTwo` component, with no step counter.
+- **Library** `/library` (07-01; 07-02 with the mini player): Ali's tracks from the DB, newest first, REMIX badge on derived tracks, Today / Yesterday / "3 Oct" dates.
+- **Seed**: Ali owns the six 07-01 tracks (slugs `cruel-bolly`, `cruel-electro`, `deep-bolly`, `euphoric-pop`, `cinematic-pop`, `deep-lofi`), with dates relative to now. Re-running is safe.
+- **Shared components**:
+  - `components/ui`: BottomSheet (dimmed backdrop, Escape, backdrop and X close, focus trap), Toast, Pill, PrimaryButton / ModeButton.
+  - `components/navigation`: PillBackButton, StepHeader, TabBar, ProfileMenu.
+  - `components/creation`: ModeCard, SongPicker, StepOne, StepTwo, SomethingNew, GeneratingScreen.
+  - `components/track`: Artwork, ModeTile.
+  - `components/audio`: Player, MiniPlayer.
+  - `components/sharing`: ShareSheet, SignupSheet.
+  - `components/library`: LibraryView.
+- **Config**: `lib/config/songs|genres|singers|themes|ideas.ts`.
+
+### Verified
+- `pnpm typecheck` (now runs `next typegen` first), `pnpm lint` and `pnpm build`: no errors.
+- `pnpm db:seed` twice: still 6 tracks, 1 user.
+- `pnpm test:e2e`: 17/17 (smoke + `static-ui.spec.ts`, clicking by flow-index names). Covers:
+  - Create → Remix → song → genre → Generating → player;
+  - step 2 back links;
+  - Something new;
+  - share sheet closes by X, backdrop and Escape;
+  - Open as recipient;
+  - player tiles → step 2 → back;
+  - Generate from a player;
+  - Library → player → Minimise;
+  - signed-out recipient + Send to Ali sheet;
+  - 404s.
+- `pnpm shots` + `pnpm shots:diff` on all 39:
+  - 01-01, 03-xx, 05-01, 06-0x players: ≤0.3%.
+  - Steps, Create home, Library and sheets: 0.6–1.9%, all text anti-aliasing or the systemic ≤1 pt text offset below.
+  - 02-08 / 04-05 / 05-06: ~24%, because of the drawn keyboard.
+
+### Decisions / assumptions
+- Designs over the brief, where they disagree:
+  - Something new has **no idea chips**. Ideas rotate as ghost text with dots, and Generate with an empty box uses the idea on screen, so it's never disabled.
+  - Vibe-from-player Generate stays enabled (as designed); with an empty box it focuses the box.
+- The "If time" badge on WhatsApp in the share sheet is a designer's scope note and is omitted.
+- The drawn iOS keyboard in 02-08 / 04-05 / 05-06 is not rendered; the device keyboard provides it.
+- Player and mini-player art is the crossed placeholder from the designs. Library art is a plain grey square; pickers use initials.
+- Step 2 with nothing picked shows the lead ("…but make it") with no coloured word, and Generate is disabled. The designs only show the picked state.
+- Generating quotes are built by `lib/generation.ts`. From someone else's track it's "Ali’s Cruel Summer, …"; for Vibe it's "…, but {prompt}."
+- `In Too Deep × Bollywood` is seeded as a cover by Arijit Singh (the brief says cover; the title follows the design).
+- Recipients see "Sent by {owner}"; an ownerless track says "a friend". `recipientResult` becomes reachable in M5.
+- `html { line-height: normal }`: the designs leave line-height at the browser default, while Tailwind sets 1.5.
+- Design CSS is content-box, so sizes include borders: 81 px library rows, 22 px badge, 172/134/202 px text boxes.
+
+### Known gaps
+- Text renders ≤1 pt lower than the PNGs throughout. This is a DM Sans font-metrics difference (`next/font` build vs the one used to render the designs), not layout. Boxes and positions match.
+- Copy link and WhatsApp are `TODO(M4)`. Play/pause and the mini player are static (M3/M6). 05-07 has no entry point in the flow index (gallery only).
+- Turbopack sometimes serves stale CSS after editing `app/globals.css`. If a style change doesn't show, restart `pnpm dev` (delete `.next/dev` if needed).
+
+## Milestone 1 — Foundations · done (PR #1, merged)
 
 ### Built
 - **01-01 Landing / Sign in** at `/`, matching the design at 390 × 844. Signed-in visitors are redirected to `/create`.
@@ -55,4 +122,3 @@
 - No Vercel preview is connected to the repo, so testing is local.
 - Supabase: right after the database password was reset, the pooler rejected some new connections (`28P01`), then briefly locked out new connections (`ECIRCUITBREAKER`). It cleared by itself within ~10 minutes. If `pnpm db:migrate` hangs on port 6543, set `DATABASE_URL_MIGRATE` to the same URL on port 5432.
 
-## Next: Milestone 2 — Static UI
