@@ -11,9 +11,7 @@ Read `AGENTS.md` first (rules, stack, design system, git workflow). This page is
 - the shared Create/Library header and empty Library (#11);
 - "Sign in to make another {mode}" after the free make (#12);
 - the shuffled song picker (#14);
-- Derek and Candice replace Ali, Sam and the seed (#16, this branch).
-
-**Next:** once Ali has checked Derek, Candice and the Spotify fallbacks in production, retire the old Ali and Sam rows (and their tracks) from the database.
+- Derek and Candice replace Ali, Sam and the seed (#16); the old Ali and Sam rows and tracks are deleted from the database.
 
 The core loop works end to end:
 1. A creator signs in (Spotify, or "Log in" as Derek) and makes a track (Remix / Cover / Rewrite / Something new).
@@ -115,11 +113,7 @@ pnpm shots [id] && pnpm shots:diff [id]                  # capture /dev/screens/
 
 - **`.env.local`:** `DATABASE_URL` (Supabase pooler :6543), `SESSION_SECRET`, `APP_URL=http://127.0.0.1:3000`, `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET`. Local and production share **one** database.
 - **Vercel:** `DATABASE_URL`, `SESSION_SECRET` and the Spotify credentials (Production + Preview); `APP_URL=https://mozart-iota.vercel.app` (Production only). Both Spotify redirect URIs are registered. Previews sit behind Vercel's login, so WhatsApp can't unfurl them: test previews on production.
-- **Test data (9 Oct 2026):** besides Derek and Candice (reset on every sign-in), the database still holds the retired Ali and Sam rows with the old seed (6 tracks) and:
-  - 9 manual-test tracks from M8 (7 Ali, 2 Sam; listed in PR #9);
-  - 2 older unowned anonymous tracks (`fw3is4qnrm`, `97j5arat4e`).
-
-  The code no longer knows Ali or Sam (dummy users still signed in as them keep working until they log out). All of this is kept until Ali says otherwise; retire Ali and Sam (delete their tracks first, then the users) only after Derek and Candice are checked in production. The Spotify user `hussa1995` is Ali's real account: never delete it or its tracks, and never delete any Spotify user's tracks.
+- **Data (9 Oct 2026):** three users — Derek and Candice (6 starter tracks each, reset on every sign-in) and Ali's real Spotify account `hussa1995` (never delete it or its tracks, and never delete any Spotify user's tracks) — plus 2 old unowned anonymous tracks (`fw3is4qnrm`, `97j5arat4e`) whose source tracks were deleted. The old dummy Ali and Sam, their seed and test tracks were deleted with Ali's OK.
 
 ## Known gaps (v1)
 
