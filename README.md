@@ -6,7 +6,7 @@ Mozart v1 is a mobile-first web prototype for making songs from music you alread
 
 1. **Make a track.** Sign in with Spotify (or "Log in" as a demo user), pick Remix / Cover / Rewrite / Something new, and generate a track.
 2. **Share it.** Copy the link or send it on WhatsApp.
-3. **A friend makes one back.** They open the link without an account, listen, and make **one** version of their own. "Send to Ali" asks them to sign in, which saves their track to their library and opens the share sheet.
+3. **A friend makes one back.** They open the link without an account, listen, and make **one** version of their own. "Send to {sharer}" asks them to sign in, which saves their track to their library and opens the share sheet.
 
 Generation is **mocked**: each request maps to one of 8 pre-made MP3s in `public/audio/`. Everything else is real: Postgres, sessions, Spotify sign-in and taste import, share links with previews, anonymous makes and claiming.
 
@@ -18,9 +18,19 @@ See `AGENTS.md` for the rules and design system, and `docs/handover.md` for how 
 cp .env.example .env.local   # then fill in the variables below
 pnpm i
 pnpm db:migrate              # create the two tables (users, tracks)
-pnpm db:seed                 # Ali, Sam and Ali's 6 library tracks (idempotent)
 pnpm dev                     # http://127.0.0.1:3000 — never localhost
 ```
+
+No seeding: the demo users are created when they sign in.
+
+### Demo users
+
+| Who | How you become them | Taste | Library |
+| --- | --- | --- | --- |
+| **Derek** | "Log in" on the landing page | Indie, electronic, UK garage | 6 starter tracks |
+| **Candice** | Any failed Spotify sign-in (cancel, not allowlisted, rate limit, timeout, previews), unless you're signing in from one of her tracks, then Derek | Pop, R&B, Bollywood, Afrobeats | 6 starter tracks |
+
+Each demo sign-in resets that user's library to their starter tracks, so demos always start clean (two people demoing as the same user reset each other). Their songs and artists are real Spotify ones with covers and photos: edit the lists in `scripts/persona-tastes.ts` and run `pnpm personas:tastes` to regenerate `lib/config/persona-tastes.ts`. Real Spotify users start with an empty library and keep it.
 
 Use `127.0.0.1`, not `localhost`: Spotify rejects `localhost` redirect URIs, and cookies don't carry between the two.
 
