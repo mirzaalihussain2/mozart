@@ -11,7 +11,8 @@ Read `AGENTS.md` first (rules, stack, design system, git workflow). This page is
 - the shared Create/Library header and empty Library (#11);
 - "Sign in to make another {mode}" after the free make (#12);
 - the shuffled song picker (#14);
-- Derek and Candice replace Ali, Sam and the seed (#16); the old Ali and Sam rows and tracks are deleted from the database.
+- Derek and Candice replace Ali, Sam and the seed (#16); the old Ali and Sam rows and tracks are deleted from the database;
+- deleting tracks from the Library ⋯ menu (#17).
 
 The core loop works end to end:
 1. A creator signs in (Spotify, or "Log in" as Derek) and makes a track (Remix / Cover / Rewrite / Something new).
@@ -32,10 +33,10 @@ pnpm shots [id] && pnpm shots:diff [id]                  # capture /dev/screens/
 
 - **Ports (parallel worktrees):** `PORT` (`pnpm shots`; `pnpm dev` stays on 3000, so run `pnpm exec next dev -H 127.0.0.1 -p …`), `E2E_PORT` and `FAKE_SPOTIFY_PORT` override 3000 / 3001 / 4545; the e2e production-gate app runs on `E2E_PORT + 99`. New worktrees need a copy of `.env.local`. Real Spotify sign-in only works on 3000 (the registered redirect URI). With several worktrees busy at once, start the dev server before `pnpm shots`, and expect the 30 s core-loop test to time out under heavy load.
 - **iPhone checks:** run Playwright's WebKit with `devices["iPhone 14"]` and a 390 × 844 viewport (`pnpm exec playwright install webkit` once). It has no on-screen keyboard and reports every safe-area inset as 0, so test those two on a real phone.
-- **`/dev/screens`:** every one of the 39 screens in its design state (real components and fixtures), plus states with no design (`noDesign` in `lib/dev/screen-list.ts`, e.g. `07-01-empty`), which `shots:diff` skips. `/dev/compare/{id}` shows a screen beside its PNG. `/dev/*` is a hard 404 in production (`proxy.ts`).
+- **`/dev/screens`:** every one of the 39 screens in its design state (real components and fixtures), plus states with no design (`noDesign` in `lib/dev/screen-list.ts`: `07-01-empty`, `07-01-menu`), which `shots:diff` skips. `/dev/compare/{id}` shows a screen beside its PNG. `/dev/*` is a hard 404 in production (`proxy.ts`).
 - **Before calling a screen done:** diff it, open both images and compare. The baseline is ≤ 1.9% everywhere, except:
   - 02-08, 04-05 and 05-06 (~24%): the design draws an iOS keyboard, which the app leaves to the device;
-  - 07-01 and 07-02 (~11%): the Library header follows Create's on purpose (#11).
+  - 07-01 and 07-02 (~11%): the Library header follows Create's, and each row has a ⋯ button, on purpose (#11, #17).
 - **E2E rules:** tests delete every track they create (`tests/e2e/helpers/db.ts`) and never touch Derek's or Candice's starter tracks. "Log in" is Derek and a refused (fake) Spotify sign-in is Candice; songs by name via `tests/e2e/helpers/personas.ts`. The e2e app sets `E2E_KEEP_PERSONA_TRACKS=1` so parallel sign-ins don't delete each other's tracks; the reset's deletes are covered by `tests/unit/sign-in.test.ts`. Tests that check "first in the Library" must allow for other spec files adding tracks in parallel. Test Spotify users (`mozart-fixture-user`; `mozart-fresh-user` via the fake Spotify's `fresh-` scenario prefix, a user with no tracks) are deleted by their spec files. They're shared across worktrees, so two worktrees running `spotify.spec` / `library.spec` at once can delete each other's.
 
 ## Code map
@@ -49,6 +50,7 @@ pnpm shots [id] && pnpm shots:diff [id]                  # capture /dev/screens/
 | Spotify | `lib/server/spotify/` (`client.ts` = every Spotify call, `pkce.ts`, `oauth-cookie.ts`), `lib/spotify/map-taste.ts`, `lib/server/taste.ts` (`getTasteFor`, `catalogueFor`). `Song.imageUrl` / `Singer.imageUrl` come from `users.spotify_taste` via `songsFrom` / `singersFrom`; the profile photo is `users.avatar_url` (refreshed at each sign-in) |
 | Pickers | `components/creation/SongPicker.tsx`, `StepOne.tsx`, `StepTwo.tsx`; shuffle in `lib/shuffle.ts` + `lib/client/use-shuffle-seed.ts` (`markPickerReturn`); `components/track/Artwork.tsx` takes `src` / `lazy` for **source songs only** |
 | Sign-in sheet | `components/sharing/SignupSheet.tsx`; title, copy and link in `lib/sign-in-prompt.ts` (`signInTitle` / `signInCopy` / `signInLink`, driven by a `SignInAsk`); `SavedToast` in `components/ui/Toast.tsx` is the non-player `?saved=1` toast |
+| Library | `components/library/LibraryView.tsx` (client: ⋯ menu, share and delete state), `LibraryRowLink.tsx` (row link + ⋯ button), `TrackActionsSheet.tsx`; `DELETE /api/tracks/[slug]` → `deleteOwnedTrack` in `lib/server/tracks.ts` |
 | Tabs | `components/navigation/TabHeader.tsx` (wordmark, `ProfileMenu` with photo or initial, title, subtitle) on Create and Library; `TabBar.tsx` |
 | Generation | `app/api/generate/route.ts`, `lib/server/generate/{create-track,pick-audio}.ts`, `lib/generation-input.ts` (validator, `titleFor`), `lib/client/use-generate.ts` |
 | Who's viewing a track | `lib/server/viewer.ts` → player variant + sign-in prompt |
@@ -76,6 +78,7 @@ pnpm shots [id] && pnpm shots:diff [id]                  # capture /dev/screens/
 - **Claiming:** `completeSignIn` sets the session, claims this browser's unowned tracks in one atomic UPDATE, deletes `mozart_anon`, and adds `saved=1` **only if something was claimed**. After making a track, "Send to {name}" / ＋ signs in back to *their* track with `?share=1`. "Sign in to make another {mode}" (a mode tile, step-2 Generate, or a 403 `anon_limit` after the free make) signs in back to `/track/{slug}/{mode}` for the track they were on. The sheet looks the same; only its title and copy change.
 - **Player variant:** owner → `creator`; this browser's anonymous maker → `recipientResult`; everyone else → `recipient`. Signed-in non-owners get no sign-up prompts. `?view=recipient` previews the recipient view.
 - **Track URL parameters:** `?share=1` opens the share sheet. `?saved=1` shows the toast once and labels the chevron "Close player". `?autoplay=1` is only ever set by Generate. The Player strips all three from the URL after reading them. `/track/{slug}/{mode}` also accepts `?saved=1` (toast, then stripped).
+- **Deleting tracks:** Library ⋯ → **Delete** hard-deletes at once (no confirmation, Ali's call). Owner only: `DELETE /api/tracks/{slug}` is same-origin, 401 signed out, 404 for anything not theirs. The link then 404s; tracks made from it keep their title (root song is stored on them) and lose the source link. Deleting the loaded track calls `stop()`, so the mini player goes. The row and count go at once, then `router.refresh()`. Demo users' starter tracks come back at their next sign-in. No delete in the player (kept uncluttered), and nothing to delete for signed-out makers (their track isn't in a library yet).
 - **Song order:** step 1 (02-01/03/05) shows the songs in a seeded random order, new on each visit from Create and different per mode; Back from step 2 keeps it. The seed lives in `history.state.shuffleSeed`; step 2's Back pill and "change song" hand it back via `sessionStorage` (`markPickerReturn`). The gallery passes `shuffle={false}`. No weighting.
 - **Naming:** `{root song} × {change}`. The root song is stored in `generation_input.rootSong`, so a chain never gets a double ×. Free text is trimmed (Vibe ~24 chars, Something new ~32 or the idea's label).
 - **Audio picking:** an exact tag match → free-text keywords → a hashed fallback. It's deterministic, and never the source track's own file when another exists.
@@ -91,6 +94,7 @@ pnpm shots [id] && pnpm shots:diff [id]                  # capture /dev/screens/
   - The Library uses Create's header (`TabHeader`) instead of 07-01's 28 px "Library".
   - An empty Library shows "Nothing here yet" and **Make your first track** (→ `/create`).
   - Spotify users see real artwork in the pickers (AGENTS.md §4).
+  - Each Library row has a ⋯ menu (Share / Delete); `--color-danger` (#ff453a) is used for Delete only.
 - **Where I followed the designs over the briefs:**
   - Something new has no idea chips; the ideas rotate inside the box, and Generate with an empty box uses the idea shown.
   - The WhatsApp row has no "If time" badge.
@@ -100,7 +104,7 @@ pnpm shots [id] && pnpm shots:diff [id]                  # capture /dev/screens/
 ## Gotchas (each cost real time)
 
 - **Next 16 `cacheComponents`:** pages that read the session or URL need `export const instant = false`. `getSession()` awaits `connection()`, because iron-session's `Date.now()` trips dev validation. `notFound()` reaches browsers as the 404 page with **status 200** in production (crawlers get 404); `proxy.ts` gives `/dev/*` a real 404.
-- **Turbopack serves stale CSS or modules** after edits (e.g. "X is not a function" for a new export). Fix: `pkill -f "next dev"; rm -rf .next/dev; pnpm dev`. Check the served CSS before trusting a capture.
+- **Turbopack serves stale CSS or modules** after edits (e.g. "X is not a function" for a new export, or a new `@theme` colour that doesn't apply). Fix: stop that dev server, `rm -rf .next/dev`, restart. The e2e apps have their own caches: after adding a CSS token, `rm -rf .next-e2e .next-prodcheck` before `pnpm test:e2e`. Check the served CSS before trusting a capture.
 - **Hosts:** in dev, `request.url` and file-based `og:image` say `localhost`. Redirects use a **relative** `Location` (`seeOther`); use `trackUrl()` for absolute URLs.
 - **Design CSS is content-box:** add border widths to sizes (81 px Library rows, 22 px badges, 142/172 px landing tiles). Global `line-height: normal` (Tailwind's default is 1.5).
 - **Font offset:** text renders up to 1 pt lower than the PNGs. It's a DM Sans build difference; trying the variable font made it worse. Accept it.

@@ -22,6 +22,9 @@
   --color-new: #ffc93c;
   --color-on-mode: #121212;
 
+  /* Destructive actions only (Delete in the Library ⋯ sheet). Not in the designs. */
+  --color-danger: #ff453a;
+
   /* Pills (buttons, chips, avatars) use rounded-full. */
   --radius-art: 10px;
   --radius-art-lg: 14px;

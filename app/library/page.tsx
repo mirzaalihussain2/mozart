@@ -1,6 +1,7 @@
 import { LibraryView } from "@/components/library/LibraryView";
 import { MODES } from "@/lib/config/modes";
 import { relativeDay } from "@/lib/format";
+import { trackUrl } from "@/lib/server/app-url";
 import { requireUser } from "@/lib/server/session";
 import { listLibrary } from "@/lib/server/tracks";
 
@@ -16,13 +17,14 @@ export default async function LibraryPage() {
       live
       initial={user.firstName.slice(0, 1).toUpperCase()}
       avatarUrl={user.avatarUrl}
-      rows={tracks.map((t) => ({
+      rows={await Promise.all(tracks.map(async (t) => ({
         slug: t.publicSlug,
         title: t.title,
         // The design badges tracks made from another track ("REMIX").
         badge: t.sourceTrackId ? MODES[t.mode].label.toUpperCase() : undefined,
         dateLabel: relativeDay(t.createdAt, now),
-      }))}
+        shareUrl: await trackUrl(t.publicSlug),
+      })))}
     />
   );
 }

@@ -62,6 +62,7 @@ export const SCREENS: Record<string, () => ReactNode> = {
   "07-01": () => <LibraryView initial="A" rows={LIBRARY_ROWS} />,
   "07-02": () => <LibraryView initial="A" rows={LIBRARY_ROWS} nowPlaying={NOW_PLAYING} />,
   "07-01-empty": () => <LibraryView initial="A" rows={[]} />,
+  "07-01-menu": () => <LibraryView initial="A" rows={LIBRARY_ROWS} initialMenu="cruel-electro" />,
 };
 
 function Gen({ mode, quote }: { mode: ModeId; quote: string }) {
