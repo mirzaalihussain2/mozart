@@ -1,10 +1,14 @@
+import { devToolsOnly } from "@/lib/server/dev-gate";
 import Link from "next/link";
 import { SCREEN_LIST } from "@/lib/dev/screen-list";
 import { BUILT } from "./registry";
 
 export const metadata = { title: "Screens · Mozart dev" };
 
-export default function ScreensIndex() {
+export const instant = false;
+
+export default async function ScreensIndex() {
+  await devToolsOnly();
   return (
     <main className="px-5 py-10">
       <h1 className="text-2xl font-bold">Screens</h1>
