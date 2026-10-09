@@ -1,7 +1,7 @@
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { Player, type PlayerVariant } from "@/components/audio/Player";
 import { getAudioByFile } from "@/lib/config/audio-catalogue";
+import { trackUrl } from "@/lib/server/app-url";
 import { getCurrentUser } from "@/lib/server/session";
 import { getTrackBySlug } from "@/lib/server/tracks";
 
@@ -27,8 +27,6 @@ export default async function TrackPage({ params, searchParams }: PageProps<"/tr
   const variant: PlayerVariant = isOwner && !view ? "creator" : "recipient";
 
   const path = `/track/${track.publicSlug}`;
-  const host = (await headers()).get("host");
-  const origin = process.env.APP_URL ?? (host ? `http://${host}` : "");
 
   return (
     <Player
@@ -38,7 +36,7 @@ export default async function TrackPage({ params, searchParams }: PageProps<"/tr
       title={track.title}
       artist={track.owner?.firstName ?? "You"}
       ownerName={track.owner?.firstName ?? "a friend"}
-      shareUrl={`${origin}${path}`}
+      shareUrl={await trackUrl(track.publicSlug)}
       initialSheet={share ? "share" : undefined}
       justSaved={saved}
       audio={{ src: track.audioUrl, durationSec: getAudioByFile(track.audioUrl)?.durationSec }}
