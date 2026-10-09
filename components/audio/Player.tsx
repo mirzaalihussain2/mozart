@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { CheckIcon, ChevronDownIcon, PauseIcon, PlayIcon, PlusIcon, SendIcon, ShareIcon } from "@/components/icons";
 import { ShareSheet } from "@/components/sharing/ShareSheet";
 import { SignupSheet } from "@/components/sharing/SignupSheet";
@@ -21,14 +22,27 @@ export type PlayerProps = {
   artist: string;
   /** Who sent it ("Sent by Ali" / "Send to Ali"). */
   ownerName: string;
-  /** "Minimise player" normally; "Close player" right after signing in (06-07 / 06-08). */
-  closeLabel?: "Minimise player" | "Close player";
+  /** Absolute /track/{slug} URL for the share sheet. */
+  shareUrl: string;
   /** Static until milestone 3 wires real audio. */
   playback?: { playing: boolean; current: number; duration: number };
+  /** `?share=1` opens the share sheet on load. */
   initialSheet?: "share" | "signup";
-  toast?: string;
+  /**
+   * `?saved=1`: back from signing in (06-07). Shows the toast once and labels
+   * the chevron "Close player" (06-07 / 06-08).
+   */
+  justSaved?: boolean;
+  /** Gallery override for the chevron's name (06-08 shows "Close player" without the toast). */
+  closeLabel?: "Minimise player" | "Close player";
+  /** This URL without ?share / ?saved, replaced in once they've been handled. */
+  cleanHref?: string;
+  /** Gallery: show the toast without the timer, and the "Copied ✓" state. */
+  staticToast?: boolean;
   initialCopied?: boolean;
 };
+
+const TOAST_MS = 4000;
 
 const STOPPED = { playing: false, current: 0, duration: 30 };
 
@@ -37,9 +51,26 @@ const STOPPED = { playing: false, current: 0, duration: 30 };
  * CfPlayerSignedIn). Variants change the header and the save control.
  */
 export function Player(props: PlayerProps) {
-  const { variant, slug, title, artist, ownerName, closeLabel = "Minimise player", toast, initialCopied } = props;
+  const { variant, slug, title, artist, ownerName, shareUrl, cleanHref, staticToast, initialCopied } = props;
   const playback = props.playback ?? STOPPED;
+  const router = useRouter();
   const [sheet, setSheet] = useState<"share" | "signup" | null>(props.initialSheet ?? null);
+  // Captured on first render so they survive the URL clean-up below.
+  const [justSaved] = useState(!!props.justSaved);
+  const [toastVisible, setToastVisible] = useState(!!props.justSaved);
+  // TODO(M3): driven by the global <audio> element; for now it only toggles the icon.
+  const [playing, setPlaying] = useState(playback.playing);
+  const closeLabel = props.closeLabel ?? (justSaved ? "Close player" : "Minimise player");
+
+  useEffect(() => {
+    if (cleanHref) router.replace(cleanHref, { scroll: false });
+  }, [cleanHref, router]);
+
+  useEffect(() => {
+    if (!toastVisible || staticToast) return;
+    const t = setTimeout(() => setToastVisible(false), TOAST_MS);
+    return () => clearTimeout(t);
+  }, [toastVisible, staticToast]);
   const progress = playback.duration ? playback.current / playback.duration : 0;
   const creator = variant === "creator";
   const openSignup = () => setSheet("signup");
@@ -147,11 +178,11 @@ export function Player(props: PlayerProps) {
       <div className="mt-3 flex justify-center">
         <button
           type="button"
-          aria-label={playback.playing ? "Pause" : "Play"}
-          // TODO(M3): drive the global <audio> element.
+          aria-label={playing ? "Pause" : "Play"}
+          onClick={() => setPlaying((p) => !p)}
           className="bg-accent text-on-accent flex size-16 cursor-pointer items-center justify-center rounded-full"
         >
-          {playback.playing ? <PauseIcon size={26} /> : <PlayIcon size={28} />}
+          {playing ? <PauseIcon size={26} /> : <PlayIcon size={28} />}
         </button>
       </div>
 
@@ -163,6 +194,7 @@ export function Player(props: PlayerProps) {
 
       {sheet === "share" ? (
         <ShareSheet
+          shareUrl={shareUrl}
           onClose={() => setSheet(null)}
           recipientHref={creator ? `/track/${slug}?view=recipient` : undefined}
           initialCopied={initialCopied}
@@ -171,11 +203,12 @@ export function Player(props: PlayerProps) {
       {sheet === "signup" ? (
         <SignupSheet
           ownerName={ownerName}
-          signInHref={`/auth/spotify/login?returnTo=${encodeURIComponent(`/track/${slug}`)}`}
+          // Back on this track with the share sheet open and the toast (06-07).
+          signInHref={`/auth/spotify/login?returnTo=${encodeURIComponent(`/track/${slug}?share=1&saved=1`)}`}
           onClose={() => setSheet(null)}
         />
       ) : null}
-      {toast ? <Toast>{toast}</Toast> : null}
+      {toastVisible ? <Toast>Signed in · saved to your library</Toast> : null}
     </main>
   );
 }

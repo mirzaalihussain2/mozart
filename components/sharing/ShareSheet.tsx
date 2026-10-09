@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { ChatIcon, EyeIcon, LinkIcon } from "@/components/icons";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 
 type Props = {
+  /** The real /track/{slug} URL the rows will share in milestone 4. */
+  shareUrl: string;
   onClose: () => void;
   /** "Open as recipient" row — only on the creator's sheet (03-06, 06-07). */
   recipientHref?: string;
@@ -17,15 +18,16 @@ const ROW = "flex h-16 items-center gap-3.5 px-1 text-left text-text";
 const RING = "flex size-11 shrink-0 items-center justify-center rounded-full border-[1.5px] border-text";
 
 /** Share this track (03-06 / 05-07 / 06-07, CfShareOverSplit). */
-export function ShareSheet({ onClose, recipientHref, initialCopied = false }: Props) {
-  const [copied, setCopied] = useState(initialCopied);
+export function ShareSheet({ shareUrl, onClose, recipientHref, initialCopied = false }: Props) {
+  // "Copied ✓" shows after copying; M2 renders it only in the gallery state.
+  const copied = initialCopied;
   return (
     <BottomSheet title="Share this track" onClose={onClose} backdropLabel="Close share sheet" paddingBottom={recipientHref ? 14 : 34}>
       <div className="flex flex-col">
         <button
           type="button"
-          // TODO(M4): copy the /track/{slug} URL to the clipboard.
-          onClick={() => setCopied(true)}
+          // TODO(M4): copy shareUrl to the clipboard, then show "Copied ✓".
+          data-share-url={shareUrl}
           className={`${ROW} border-raised cursor-pointer border-b`}
         >
           <span className="bg-accent text-on-accent flex size-11 shrink-0 items-center justify-center rounded-full">
@@ -39,7 +41,8 @@ export function ShareSheet({ onClose, recipientHref, initialCopied = false }: Pr
         </button>
         <button
           type="button"
-          // TODO(M4): open WhatsApp with the track link.
+          // TODO(M4): open WhatsApp with shareUrl.
+          data-share-url={shareUrl}
           className={`${ROW} cursor-pointer ${recipientHref ? "border-raised border-b" : ""}`}
         >
           <span className={RING}>

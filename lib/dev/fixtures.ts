@@ -73,8 +73,19 @@ export const NEW_TYPED = "A sad garage song about the night bus home";
 export const VIBE_TYPED = "Make it a stripped-back acoustic version for a rainy Sunday";
 
 // Players as designed. Ali's original, and Sam's remix of it (06-05…06-08).
-const ALI_TRACK = { slug: "cruel-bolly", title: "Cruel Summer × Bollywood", artist: "Ali", ownerName: "Ali" };
-const SAM_REMIX = { slug: "cruel-electro", title: "Cruel Summer × Electronic", ownerName: "Ali" };
+const ALI_TRACK = {
+  slug: "cruel-bolly",
+  title: "Cruel Summer × Bollywood",
+  artist: "Ali",
+  ownerName: "Ali",
+  shareUrl: "http://127.0.0.1:3000/track/cruel-bolly",
+};
+const SAM_REMIX = {
+  slug: "cruel-electro",
+  title: "Cruel Summer × Electronic",
+  ownerName: "Ali",
+  shareUrl: "http://127.0.0.1:3000/track/cruel-electro",
+};
 
 export const PLAYERS: Record<string, PlayerProps> = {
   "03-05": { ...ALI_TRACK, variant: "creator", playback: { playing: true, current: 12, duration: 30 } },
@@ -99,16 +110,17 @@ export const PLAYERS: Record<string, PlayerProps> = {
     ...SAM_REMIX,
     artist: "Sam",
     variant: "creator",
-    closeLabel: "Close player",
+    justSaved: true,
+    staticToast: true,
     playback: { playing: true, current: 7, duration: 30 },
     initialSheet: "share",
     initialCopied: true,
-    toast: "Signed in · saved to your library",
   },
   "06-08": {
     ...SAM_REMIX,
     artist: "Sam",
     variant: "creator",
+    // 06-08 is the same player after closing the sheet: still "Close player", toast gone.
     closeLabel: "Close player",
     playback: { playing: true, current: 7, duration: 30 },
   },
