@@ -126,3 +126,66 @@ test("'Log in' is still dummy Ali with the mock songs; a Spotify song id from Al
   expect(res.status()).toBe(400);
   await ctx.close();
 });
+
+// Step 1's picker (02-01 / 02-03 / 02-05) with the fixture's 20 top tracks.
+async function pickerAsSpotifyUser(browser: Browser) {
+  const ctx = await withScenario(browser, "ok");
+  const page = await ctx.newPage();
+  await page.goto("/");
+  await page.getByRole("link", { name: "Connect Spotify to get started" }).click();
+  await expect(page).toHaveURL("/create");
+
+  const order = async (mode: string) => {
+    const tiles = page.locator(`a[href^="/create/${mode}/"]`);
+    await expect(tiles).toHaveCount(20);
+    return (await tiles.evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")))).join("\n");
+  };
+  const visit = async (mode: "Remix" | "Cover") => {
+    await page.goto("/create");
+    await page.getByRole("link", { name: new RegExp(`^${mode}`) }).click();
+    await expect(page).toHaveURL(`/create/${mode.toLowerCase()}`);
+    return order(mode.toLowerCase());
+  };
+  return { ctx, page, order, visit };
+}
+
+test("step 1 reshuffles the songs on every visit from Create, with its own order per mode", async ({ browser }) => {
+  const { ctx, visit } = await pickerAsSpotifyUser(browser);
+  // A uniform shuffle: two orders of 20 match by chance about once in
+  // 2.4 × 10^18, so three visits are never all the same.
+  const remix = [await visit("Remix"), await visit("Remix"), await visit("Remix")];
+  expect(new Set(remix).size).toBeGreaterThan(1);
+  expect(new Set(remix.map((o) => o.split("\n").sort().join("\n"))).size).toBe(1);
+  expect(await visit("Cover")).not.toBe(remix[2]);
+  await ctx.close();
+});
+
+test("step 1 keeps its order coming back from step 2 (browser Back, Back pill, change song) and on reload; search keeps it", async ({ browser }) => {
+  const { ctx, page, order, visit } = await pickerAsSpotifyUser(browser);
+  const seen = await visit("Remix");
+  const song = page.getByRole("link", { name: "Blackbird by The Beatles" });
+  await song.click();
+  await expect(page).toHaveURL(/\/create\/remix\/.+/);
+  await page.goBack();
+  expect(await order("remix")).toBe(seen);
+  await song.click();
+  await page.getByRole("link", { name: "Back", exact: true }).click();
+  await expect(page).toHaveURL("/create/remix");
+  expect(await order("remix")).toBe(seen);
+  await song.click();
+  await page.getByRole("link", { name: "Blackbird by The Beatles, change song" }).click();
+  await expect(page).toHaveURL("/create/remix");
+  expect(await order("remix")).toBe(seen);
+  await page.reload();
+  expect(await order("remix")).toBe(seen);
+
+  // Search filters the shuffled list, in that order.
+  const matches = seen.split("\n").filter((label) => label.toLowerCase().includes("the"));
+  expect(matches.length).toBeGreaterThan(1);
+  expect(matches.length).toBeLessThan(20);
+  await page.getByRole("textbox", { name: "Search any song" }).fill("the");
+  const tiles = page.locator('a[href^="/create/remix/"]');
+  await expect(tiles).toHaveCount(matches.length);
+  expect(await tiles.evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")))).toEqual(matches);
+  await ctx.close();
+});
