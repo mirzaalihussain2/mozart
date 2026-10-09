@@ -1,6 +1,6 @@
 import type { ModeId } from "./modes";
 
-// Mock generation catalogue (tech-spec §6): the prepared files in public/audio/,
+// Mock generation catalogue: the prepared files in public/audio/,
 // tagged with the option ids from genres.ts, singers.ts, themes.ts and
 // ideas.ts. lib/server/generate/pick-audio.ts chooses from these.
 

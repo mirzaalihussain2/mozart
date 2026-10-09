@@ -1,4 +1,4 @@
-// The POST /api/generate request body (tech-spec §4 generation_input), its
+// The POST /api/generate request body (stored as tracks.generation_input), its
 // validator and the track naming rule. Shared by client and server: no
 // server imports here.
 

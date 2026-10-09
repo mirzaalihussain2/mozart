@@ -12,7 +12,7 @@ import {
 import { MODE_IDS } from "../../config/modes";
 import type { SpotifyTaste } from "../../types/taste";
 
-// Exactly two tables (AGENTS.md §3, docs/tech-spec.md §4).
+// Exactly two tables (AGENTS.md §3).
 
 export const AUTH_PROVIDERS = ["spotify", "dummy"] as const;
 export type AuthProvider = (typeof AUTH_PROVIDERS)[number];

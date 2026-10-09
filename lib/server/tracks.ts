@@ -6,7 +6,7 @@ import { tracks, users, type Track, type User } from "./db/schema";
 
 export type TrackWithOwner = Track & { owner: Pick<User, "id" | "firstName"> | null };
 
-/** A user's tracks, newest first (tech-spec §15). */
+/** A user's tracks, newest first. */
 export async function listLibrary(userId: string): Promise<Track[]> {
   return db.select().from(tracks).where(eq(tracks.ownerUserId, userId)).orderBy(desc(tracks.createdAt));
 }
