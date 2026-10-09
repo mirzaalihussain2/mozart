@@ -1,6 +1,90 @@
 # Progress
 
-## Milestone 3 — Generate · done (PR #3, branch `m3-generate`)
+## Milestone 4 — Share · done (PR #4, branch `m4-share`)
+
+A creator can share a track and a friend gets something worth tapping:
+- **Copy link** copies the real URL and confirms it.
+- **WhatsApp** opens with a ready-written message.
+- **The link unfurls** with the title, who made it and a Mozart image.
+- **Opening it** shows the recipient player, with no sign-in and no autoplay.
+- **The app builds for Vercel** with only the Vercel environment variables.
+
+### Built
+- **One source for the app URL:**
+  - `lib/app-url-core.ts` (pure, unit-tested) and `lib/server/app-url.ts`: `getAppUrl()` resolves APP_URL → `https://$VERCEL_URL` → the request origin → `http://127.0.0.1:3000`.
+  - `trackUrl(slug)` builds share links; the track page's `shareUrl` uses it.
+  - The root layout's `metadataBase` uses the env-only version, so the layout doesn't wait on a request.
+  - `.env.example` and a new README document the Vercel variables.
+- **Copy link** (03-06 / 05-07 / 06-07):
+  - copies the clean `/track/{slug}` with the Clipboard API, falling back to a hidden textarea + `execCommand`;
+  - shows the design's "Copied ✓" for 2 s (each tap restarts it) and announces "Link copied" in an `aria-live="polite"` region;
+  - if both methods fail, shows the URL selected in a read-only field.
+- **WhatsApp:** a real `https://wa.me/?text=…` link (new tab, `noopener noreferrer`). The message is in `lib/share-message.ts`: `“{title}” — I made this on Mozart. Listen and make your own version: {url}`. No other rows: the design has none.
+- **Link previews** on `/track/[slug]`:
+  - `generateMetadata` shares the page's per-request cached `getTrackBySlug` and never reads the session.
+  - It sets: title `{title} · {owner} on Mozart`; description "Listen, then make your own version on Mozart."; canonical / `og:url` = `trackUrl`; `og:type` `music.song`; `site_name` Mozart; Twitter `summary_large_image`; `robots: noindex, nofollow`.
+  - A missing slug gives a 404 with generic Mozart metadata.
+- **OG image:** `app/track/[slug]/opengraph-image.tsx`, re-exported as `twitter-image`, built with `next/og`.
+  - 1200 × 630, flat: `#121212`, a mode-colour block with the grey artwork square and the maker's initial, the title in DM Sans 700 (two lines, the second filled then "…"), "by {owner}", the Mozart wordmark, and "● Tap to listen & make your own".
+  - About 40–44 KB.
+  - DM Sans Medium/Bold TTFs (latin subset) and the OFL licence are committed in `assets/fonts/`; output tracing includes them for Vercel.
+- **Default preview:** `app/opengraph-image.tsx` (the wordmark plus four mode dots on `#121212`) and root-layout metadata, so `/` unfurls too.
+- **Recipients:** a shared link opens signed out on the recipient player (200, "Sent by {owner}"), never autoplays, and plays on tap. `/audio/*` is public. The recipient's sheet shares the same clean URL.
+- **Vercel:**
+  - `pnpm build` succeeds with only `DATABASE_URL`, `SESSION_SECRET` and Vercel's own variables (no `.env.local`, no migrations).
+  - Session cookies are `Secure` in production.
+  - `proxy.ts` returns a hard 404 for `/dev/*` when `VERCEL_ENV=production`, checked per request, so a promoted preview build is covered. The `/dev` pages also check (`lib/server/dev-gate.ts`) and are no longer prerendered.
+
+### Verified
+- `pnpm typecheck`, `pnpm lint`, `pnpm build`: no errors.
+- `pnpm test:unit`: 24/24:
+  - `getAppUrl` in each environment;
+  - share-message encoding (quotes, ×, &, #, emoji);
+  - clean URLs;
+  - OG title wrapping and truncation.
+- `pnpm test:e2e`: **48/48**, twice in a row. New `share.spec.ts`:
+  - clipboard contents, "Copied ✓" and its revert, the manual fallback;
+  - the WhatsApp message;
+  - recipient-preview and signed-out sheets;
+  - crawler HTML, image size and dimensions;
+  - 404 metadata, no autoplay, public audio.
+- `curl -A "WhatsApp/2.23.20.0 A"` and `-A "facebookexternalhit/1.1"`: all OG and Twitter tags are inside `<head>` in the first response, with no `Set-Cookie`.
+- Simulated Vercel:
+  - **Preview** (no APP_URL): `og:url` and `og:image` on `https://$VERCEL_URL`; `/dev` works.
+  - **Production** (APP_URL set): both on APP_URL; `/dev/*` returns 404.
+- Screens 03-05, 03-06, 05-01, 05-07, 06-07: same diff as M3 (0.17–1.05%), no drift.
+- OG images checked by eye: *Cinematic pop* (`new`, yellow), *In Too Deep × Bollywood* (cover, purple), *Cruel Summer × Bollywood* (remix, orange), and a long Vibe title (*Cruel Summer × Make it a stripp…*).
+
+### Decisions
+- **URL order:** APP_URL (local and Production) → `https://$VERCEL_URL` (Previews) → request origin → 127.0.0.1.
+- **Share message:** `“{title}” — I made this on Mozart. Listen and make your own version: {url}`, in one helper.
+- **`noindex, nofollow`** on track pages: reachable by link, not by search.
+- **OG image design:** flat, design-system colours, the maker's initial on the artwork (as in the app), under 50 KB.
+- **`htmlLimitedBots` is not set.** Track pages block on the request (`instant = false`), so WhatsApp and Facebook already get the tags in `<head>`. Setting it would replace Next's default bot list. The e2e tests guard this.
+- **Gating `/dev` at the proxy:** Next 16 streams `notFound()` to browsers as a 404 page with status 200. The proxy gives a real 404 status.
+- **`og:image` host in development:** Next uses `http://localhost:3000` for file-based images (its dev rule); `og:url` is `127.0.0.1`. On previews and in production both are correct.
+
+### Assumptions
+- WhatsApp is the only external share row, as designed. There's no Web Share "More" row, because the design has none.
+- The OG artwork shows the maker's first initial, as the in-app artwork does.
+
+### Known gaps
+- In production builds, a missing track shows the 404 page with **status 200 to browsers**: Next 16 streams `notFound()`. Crawlers get a real 404.
+- Text renders up to 1 pt lower than the PNGs (the DM Sans difference).
+- Three tracks you made while testing M3 (Delilah × A summer roadtrip, Delilah × First dates, Euphoric electronic pop) are still in Ali's library. Delete them if you want a clean demo, or re-seed won't touch them.
+
+### TODOs left for later milestones
+- **M5:**
+  - `app/api/generate/route.ts` and `lib/client/use-generate.ts`: anonymous recipients make one track (`mozart_anon`) instead of getting a 401;
+  - wire `recipientResult` and claiming.
+- **M6:**
+  - `components/audio/AudioProvider.tsx`: remove the pause-on-leave effect;
+  - `components/audio/MiniPlayer.tsx`: drive it from `useAudio()`.
+- **M7:** `app/auth/spotify/login/route.ts`: real Spotify OAuth.
+
+## Next: Milestone 5 — Recipient loop
+
+## Milestone 3 — Generate · done (PR #3, merged)
 
 Tapping Generate makes a real track. It's named by the naming rule, saved to the user's library, and plays catalogue audio. Playing, pausing and seeking run through one global `<audio>` element.
 
@@ -92,7 +176,6 @@ Tapping Generate makes a real track. It's named by the naming rule, saved to the
 - Turbopack can serve stale CSS after editing `app/globals.css`: restart `pnpm dev`.
 
 ### TODOs left for later milestones
-- **M4:** `components/sharing/ShareSheet.tsx`: Copy link (then "Copied ✓") and WhatsApp, using `shareUrl`.
 - **M5:**
   - `app/api/generate/route.ts`: let anonymous recipients make one track (`mozart_anon`) instead of returning 401;
   - `lib/client/use-generate.ts`: the matching client path;
@@ -102,7 +185,6 @@ Tapping Generate makes a real track. It's named by the naming rule, saved to the
   - `components/audio/MiniPlayer.tsx`: drive it from `useAudio()`, and decide when it appears (01-03, 07-02).
 - **M7:** `app/auth/spotify/login/route.ts`: real Spotify OAuth.
 
-## Next: Milestone 4 — Share
 
 ## Milestone 2 — Static UI · done (PR #2, merged)
 
@@ -214,7 +296,6 @@ All 39 main-flow screens exist, built from shared components, and are connected 
   - `lib/client/use-generate.ts`: replace the mock with `POST /api/generate`;
   - `app/create/[mode]/[songId]/page.tsx`, `app/create/new/page.tsx`, `app/track/[slug]/[mode]/page.tsx`: open the newly made track;
   - `components/audio/Player.tsx`: drive the global `<audio>`.
-- **M4:** `components/sharing/ShareSheet.tsx`: Copy link (then "Copied ✓") and WhatsApp, using `shareUrl`.
 - **M5:** make `recipientResult` reachable; the anonymous cookie, the one-make limit and claiming.
 - **M6:** `components/audio/MiniPlayer.tsx`: real play/pause and when the mini player appears (01-03, 07-02). Tabs carrying the mini player.
 - **M7:** `app/auth/spotify/login/route.ts`: real Spotify OAuth; it currently signs in as Ali.
