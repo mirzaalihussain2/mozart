@@ -49,6 +49,8 @@ test("ok: Connect Spotify signs in the Spotify user, whose top tracks and artist
   expect(user?.id).not.toBe(DUMMY_USER.id);
   expect(await spotifyUser(FIXTURE_USER)).toMatchObject({ id: user!.id, first_name: "Ali", auth_provider: "spotify" });
   expect(await hasOAuthCookie(ctx)).toBe(false);
+  // The profile circle shows their Spotify photo.
+  await expect(page.getByRole("button", { name: "Profile" }).locator("img")).toHaveAttribute("src", SCDN);
 
   // Remix song picker: the fixture's top tracks, cleaned and de-duplicated.
   await page.getByRole("link", { name: /^Remix/ }).click();
@@ -131,6 +133,8 @@ test("'Log in' is still dummy Ali with the mock songs; a Spotify song id from Al
   await page.getByRole("button", { name: "Log in" }).click();
   await expect(page).toHaveURL("/create");
   expect((await me(page))?.id).toBe(DUMMY_USER.id);
+  await expect(page.getByRole("button", { name: "Profile" })).toHaveText("A");
+  await expect(page.getByRole("button", { name: "Profile" }).locator("img")).toHaveCount(0);
   await page.getByRole("link", { name: /^Remix/ }).click();
   await expect(page.getByRole("link", { name: "Cruel Summer by Taylor Swift" })).toBeVisible();
   // The mock songs keep the grey initials tiles.

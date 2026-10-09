@@ -11,13 +11,23 @@ const HREF = { remix: "/create/remix", cover: "/create/cover", rewrite: "/create
  * 01-02 Create home (CfHome); with a mini player it's 01-03 (CfHomePlaying).
  * `live` (the real route) shows whatever's loaded; the gallery passes `nowPlaying`.
  */
-export function CreateHome({ initial, live = false, nowPlaying }: { initial: string; live?: boolean; nowPlaying?: MiniPlayerProps }) {
+export function CreateHome({
+  initial,
+  avatarUrl,
+  live = false,
+  nowPlaying,
+}: {
+  initial: string;
+  avatarUrl?: string | null;
+  live?: boolean;
+  nowPlaying?: MiniPlayerProps;
+}) {
   return (
     <main className="flex h-dvh flex-col overflow-hidden">
       <div className="flex flex-col gap-5 px-5 pt-14">
         <div className="flex items-center justify-between">
           <div className="text-[22px] font-bold tracking-[-0.01em]">Mozart</div>
-          <ProfileMenu initial={initial} />
+          <ProfileMenu initial={initial} avatarUrl={avatarUrl} />
         </div>
         <div className="flex flex-col gap-1.5">
           <h1 className="m-0 text-2xl leading-[1.15] font-bold whitespace-nowrap">What do you want to make?</h1>
