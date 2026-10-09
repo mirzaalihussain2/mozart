@@ -2,12 +2,18 @@
 
 import { usePathname } from "next/navigation";
 import { createContext, use, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { shouldKeepPlaying } from "@/lib/audio-routes";
+import type { ModeId } from "@/lib/config/modes";
 
 export type AudioTrack = {
   slug: string;
   title: string;
   artist: string;
+  /** The track's audio_url. */
   src: string;
+  mode?: ModeId;
+  /** The viewer's own track (shows saved ✓ on the mini player). */
+  isOwn?: boolean;
   /** From the catalogue; used until the file's metadata loads. */
   durationSec?: number;
 };
@@ -19,8 +25,10 @@ export type AudioState = {
   duration: number;
   buffering: boolean;
   error: boolean;
-  /** Loads a track into the one <audio> element (no-op if it's already loaded). */
+  /** Loads a track into the one <audio> element (no-op if that slug is already loaded). */
   load: (track: AudioTrack) => void;
+  /** Pauses and unloads: no track, no source, time 0 (Close player, Log out). */
+  stop: () => void;
   play: () => void;
   pause: () => void;
   toggle: () => void;
@@ -42,7 +50,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const loaded = useRef<AudioTrack | null>(null);
   const load = useCallback((next: AudioTrack) => {
     const el = audio.current;
-    if (!el || (loaded.current?.slug === next.slug && loaded.current.src === next.src)) return;
+    // Already loaded (e.g. back from the mini player): attach, never restart.
+    if (!el || loaded.current?.slug === next.slug) return;
     loaded.current = next;
     el.src = next.src;
     el.load();
@@ -66,6 +75,22 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const pause = useCallback(() => audio.current?.pause(), []);
+  const stop = useCallback(() => {
+    const el = audio.current;
+    if (el) {
+      el.pause();
+      el.removeAttribute("src");
+      el.load();
+    }
+    loaded.current = null;
+    setTrack(null);
+    setPlaying(false);
+    setCurrent(0);
+    setDuration(0);
+    setBuffering(false);
+    setError(false);
+    if ("mediaSession" in navigator) navigator.mediaSession.metadata = null;
+  }, []);
   const toggle = useCallback(() => (audio.current?.paused ? play() : pause()), [play, pause]);
   const seek = useCallback((sec: number) => {
     const el = audio.current;
@@ -113,16 +138,16 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     return () => cancelAnimationFrame(frame);
   }, [playing]);
 
-  // TODO(M6): remove once the mini player keeps audio going across pages.
-  // Until then, leaving a player (/track/{slug}) pauses playback.
+  // Music keeps going on the player, the Create home and the Library (with
+  // the mini player). Anywhere else it pauses but stays loaded.
   const pathname = usePathname();
   useEffect(() => {
-    if (!/^\/track\/[^/]+$/.test(pathname)) audio.current?.pause();
+    if (!shouldKeepPlaying(pathname)) audio.current?.pause();
   }, [pathname]);
 
   const value = useMemo<AudioState>(
-    () => ({ track, playing, current, duration, buffering, error, load, play, pause, toggle, seek }),
-    [track, playing, current, duration, buffering, error, load, play, pause, toggle, seek],
+    () => ({ track, playing, current, duration, buffering, error, load, stop, play, pause, toggle, seek }),
+    [track, playing, current, duration, buffering, error, load, stop, play, pause, toggle, seek],
   );
 
   return (
