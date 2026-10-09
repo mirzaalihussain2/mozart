@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
   // The dev-only design PNG route reads docs/ at runtime on Vercel previews.
   outputFileTracingIncludes: {
     "/dev/designs/[id]": ["./docs/designs/png/**"],
+    // Open Graph images read DM Sans from assets/fonts at runtime.
+    "/opengraph-image": ["./assets/fonts/**"],
+    "/track/[slug]/opengraph-image": ["./assets/fonts/**"],
+    "/track/[slug]/twitter-image": ["./assets/fonts/**"],
   },
   turbopack: {
     rules: {

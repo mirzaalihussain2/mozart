@@ -21,6 +21,8 @@ export type Mode = {
   token: ModeId;
   /** CSS value for inline styles, e.g. SVG strokes. */
   color: string;
+  /** Raw hex, for places CSS variables can't reach (Open Graph images). Same as the token. */
+  hex: string;
   /** Static Tailwind classes so they survive class detection. */
   bgClass: string;
   textClass: string;
@@ -57,6 +59,7 @@ export const MODES: Record<ModeId, Mode> = {
     tagline: "Same song, new genre.",
     token: "remix",
     color: "var(--color-remix)",
+    hex: "#ff754c",
     bgClass: "bg-remix",
     textClass: "text-remix",
     icon: [{ d: VINYL }],
@@ -67,6 +70,7 @@ export const MODES: Record<ModeId, Mode> = {
     tagline: "Same song, new artist.",
     token: "cover",
     color: "var(--color-cover)",
+    hex: "#a259ff",
     bgClass: "bg-cover",
     textClass: "text-cover",
     icon: [{ d: MIC }],
@@ -77,6 +81,7 @@ export const MODES: Record<ModeId, Mode> = {
     tagline: "Same song, new lyrics.",
     token: "rewrite",
     color: "var(--color-rewrite)",
+    hex: "#2ec4b6",
     bgClass: "bg-rewrite",
     textClass: "text-rewrite",
     icon: [{ d: LYRICS_BUBBLE }],
@@ -88,6 +93,7 @@ export const MODES: Record<ModeId, Mode> = {
     tagline: "Same song, your way.",
     token: "vibe",
     color: "var(--color-vibe)",
+    hex: "#ffc93c",
     bgClass: "bg-vibe",
     textClass: "text-vibe",
     icon: WAND_FILLED,
@@ -98,6 +104,7 @@ export const MODES: Record<ModeId, Mode> = {
     tagline: "Prompt a brand-new song.",
     token: "new",
     color: "var(--color-new)",
+    hex: "#ffc93c",
     bgClass: "bg-new",
     textClass: "text-new",
     icon: WAND_STROKE,

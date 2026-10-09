@@ -1,5 +1,6 @@
 import "server-only";
 import { desc, eq } from "drizzle-orm";
+import { cache } from "react";
 import { db } from "./db";
 import { tracks, users, type Track, type User } from "./db/schema";
 
@@ -16,8 +17,11 @@ export async function getTrackById(id: string): Promise<Track | null> {
   return row ?? null;
 }
 
-/** A track by its public slug, with the owner's first name; null if missing. */
-export async function getTrackBySlug(slug: string): Promise<TrackWithOwner | null> {
+/**
+ * A track by its public slug, with the owner's first name; null if missing.
+ * Cached per request so the page and its generateMetadata share one query.
+ */
+export const getTrackBySlug = cache(async (slug: string): Promise<TrackWithOwner | null> => {
   const [row] = await db
     .select({ track: tracks, ownerId: users.id, ownerFirstName: users.firstName })
     .from(tracks)
@@ -29,4 +33,4 @@ export async function getTrackBySlug(slug: string): Promise<TrackWithOwner | nul
     ...row.track,
     owner: row.ownerId && row.ownerFirstName ? { id: row.ownerId, firstName: row.ownerFirstName } : null,
   };
-}
+});
