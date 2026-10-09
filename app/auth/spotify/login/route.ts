@@ -1,11 +1,22 @@
 import type { NextRequest } from "next/server";
-import { signInWithDummy } from "@/lib/server/auth";
+import { safeReturnTo } from "@/lib/return-to";
+import { getAppUrl } from "@/lib/server/app-url";
+import { seeOther, signInWithDummy } from "@/lib/server/auth";
+import { buildAuthorizeUrl, spotifyEnabled } from "@/lib/server/spotify/client";
+import { setOAuthCookie } from "@/lib/server/spotify/oauth-cookie";
+import { challengeFor, createState, createVerifier } from "@/lib/server/spotify/pkce";
 
-// TODO(milestone 7): real Spotify Authorization Code + PKCE (scopes
-// user-read-private user-top-read), redirecting to {APP_URL}/auth/spotify/callback;
-// the callback then calls completeSignIn (lib/server/auth/complete-sign-in.ts).
-// Until then this is the silent fallback: a dummy persona, landing exactly
-// where a real sign-in would.
+// "Connect Spotify" (landing) and "Continue with Spotify" (Send-to sheet).
+// Authorization Code + PKCE. Without credentials, or on Vercel previews (no
+// redirect URI is registered there), it's the silent dummy fallback.
 export async function GET(request: NextRequest) {
-  return signInWithDummy(request.nextUrl.searchParams.get("returnTo"));
+  const returnTo = safeReturnTo(request.nextUrl.searchParams.get("returnTo"));
+  if (!spotifyEnabled()) return signInWithDummy(returnTo);
+
+  const verifier = createVerifier();
+  const state = createState();
+  await setOAuthCookie({ state, verifier, returnTo });
+  return seeOther(
+    buildAuthorizeUrl({ state, challenge: challengeFor(verifier), redirectUri: `${await getAppUrl()}/auth/spotify/callback` }),
+  );
 }
