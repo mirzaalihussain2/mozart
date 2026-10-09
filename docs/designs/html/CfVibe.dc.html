@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Vibe V1, standard placeholder (#ffc93c)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+
+<style>
+body{margin:0}
+a{color:#d9d9d9}a:hover{color:#ffffff}
+textarea:focus{outline:none}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #121212; font-family: 'DM Sans', system-ui, sans-serif; color: #d9d9d9; box-sizing: border-box; display: flex; flex-direction: column">
+
+  <div style="padding: 48px 20px 0">
+    <div style="display: flex; align-items: center; justify-content: space-between; height: 44px; flex-shrink: 0">
+      <a href="CfHome.dc.html" aria-label="Back" style="display: flex; align-items: center; gap: 4px; height: 36px; padding: 0 14px 0 8px; box-sizing: border-box; border-radius: 18px; background: rgba(255,201,60,0.16); border: 1px solid rgba(255,201,60,0.4); color: #ffc93c; font-size: 14px; font-weight: 700; text-decoration: none; white-space: nowrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>Something new</a>
+      
+    </div>
+
+    <h1 style="margin: 16px 0 0; font-size: 30px; line-height: 1.12; font-weight: 700">Describe your song</h1>
+
+    <div style="{{boxStyle}}">
+      <label for="v1" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Describe your song</label>
+      <textarea id="v1" value="{{text}}" onChange="{{onText}}" onFocus="{{onFocus}}" onBlur="{{onBlur}}" style="position: absolute; inset: 0; width: 100%; height: 100%; box-sizing: border-box; padding: 20px; border: none; background: transparent; resize: none; font-family: inherit; font-size: 22px; line-height: 1.32; font-weight: 500; color: #d9d9d9; caret-color: #ffc93c"></textarea>
+      <sc-if value="{{showGhost}}" hint-placeholder-val="{{ true }}">
+        <div aria-hidden="true" style="{{ghostStyle}}">{{idea}}</div>
+      </sc-if>
+      <sc-if value="{{showCaret}}" hint-placeholder-val="{{ false }}">
+        <span aria-hidden="true" style="position: absolute; left: 19px; top: 22px; width: 2px; height: 28px; background: #ffc93c; pointer-events: none"></span>
+      </sc-if>
+      <sc-if value="{{showDots}}" hint-placeholder-val="{{ true }}">
+        <div aria-hidden="true" style="position: absolute; left: 20px; bottom: 18px; display: flex; gap: 6px; pointer-events: none">
+          <sc-for list="{{dots}}" as="d" hint-placeholder-count="4"><span style="{{d.style}}"></span></sc-for>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="margin-top: 12px; font-size: 13px; color: #bababa">{{hint}}</div>
+  </div>
+
+  <div style="flex-grow: 1"></div>
+
+  <div style="{{ctaWrap}}">
+    <a href="CfGenVibe.dc.html" onMouseDown="{{keep}}" style="height: 56px; border-radius: 28px; background: #ffc93c; color: #121212; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 600; text-decoration: none">
+      {{cta}}
+    </a>
+  </div>
+
+  <sc-if value="{{focus}}" hint-placeholder-val="{{ false }}">
+    <div aria-hidden="true" style="flex-shrink: 0; background: #202020; padding: 8px 3px 26px; display: flex; flex-direction: column; gap: 10px; pointer-events: none">
+      <div style="display: flex; gap: 6px; justify-content: center"><sc-for list="{{kb1}}" as="k" hint-placeholder-count="10"><span style="width: 32px; height: 42px; border-radius: 5px; background: #474747; display: flex; align-items: center; justify-content: center; font-size: 18px">{{k.l}}</span></sc-for></div>
+      <div style="display: flex; gap: 6px; justify-content: center"><sc-for list="{{kb2}}" as="k" hint-placeholder-count="9"><span style="width: 32px; height: 42px; border-radius: 5px; background: #474747; display: flex; align-items: center; justify-content: center; font-size: 18px">{{k.l}}</span></sc-for></div>
+      <div style="display: flex; gap: 6px; justify-content: center">
+        <span style="width: 44px; height: 42px; border-radius: 5px; background: #2e2e2e"></span>
+        <sc-for list="{{kb3}}" as="k" hint-placeholder-count="7"><span style="width: 32px; height: 42px; border-radius: 5px; background: #474747; display: flex; align-items: center; justify-content: center; font-size: 18px">{{k.l}}</span></sc-for>
+        <span style="width: 44px; height: 42px; border-radius: 5px; background: #2e2e2e"></span>
+      </div>
+      <div style="display: flex; gap: 6px; padding: 0 3px">
+        <span style="width: 88px; height: 42px; border-radius: 5px; background: #2e2e2e; display: flex; align-items: center; justify-content: center; font-size: 15px">123</span>
+        <span style="flex-grow: 1; height: 42px; border-radius: 5px; background: #474747; display: flex; align-items: center; justify-content: center; font-size: 15px">space</span>
+        <span style="width: 88px; height: 42px; border-radius: 5px; background: #2e2e2e; display: flex; align-items: center; justify-content: center; font-size: 15px">return</span>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"start":{"editor":"enum","options":["resting","typed"],"default":"resting"},"$preview":{"width":390,"height":844}}'>
+var IDEAS = [
+  'A euphoric Fred again..-style anthem about a summer that ended too soon',
+  'A pop-punk breakup song with a Bollywood string section',
+  'Late-night UK garage with Taylor Swift-style storytelling',
+  'A rainy-day lo-fi song about missing home'
+];
+var keys = (s) => s.split('').map((l) => ({ l: l }));
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var typed = (props.start || 'resting') === 'typed';
+    this.state = { i: 0, text: typed ? 'A sad garage song about the night bus home' : '', focus: typed, fake: typed };
+  }
+  componentDidMount() {
+    this.timer = setInterval(() => { if (!this.state.focus && !this.state.text) this.setState({ i: (this.state.i + 1) % IDEAS.length }); }, 3500);
+  }
+  componentWillUnmount() { clearInterval(this.timer); }
+  renderVals() {
+    var st = this.state;
+    return {
+      text: st.text, idea: IDEAS[st.i], focus: st.focus,
+      showGhost: !st.text,
+      showCaret: st.focus && st.fake && !st.text,
+      showDots: !st.focus && !st.text,
+      ghostStyle: 'position: absolute; inset: 20px; pointer-events: none; font-size: 22px; line-height: 1.32; font-weight: 500; color: ' + (st.focus ? '#737373' : '#bababa'),
+      boxStyle: 'margin-top: 20px; position: relative; height: 200px; border-radius: 22px; background: #202020; border: 1px solid ' + (st.focus ? '#ffc93c' : '#2e2e2e'),
+      hint: st.focus ? (st.text ? '' : 'Start typing, or tap Generate song to use the idea.') : 'Tap the box to write your own.',
+      cta: 'Generate song',
+      ctaWrap: 'padding: 0 20px ' + (st.focus ? '14px' : '36px'),
+      dots: IDEAS.map((_, k) => ({ style: 'height: 6px; border-radius: 3px; width: ' + (k === st.i ? '20px; background: #ffc93c' : '6px; background: #5e5e5e') })),
+      kb1: keys('qwertyuiop'), kb2: keys('asdfghjkl'), kb3: keys('zxcvbnm'),
+      onText: (e) => this.setState({ text: e.target.value, fake: false }),
+      onFocus: () => this.setState({ focus: true, fake: false }),
+      onBlur: () => this.setState({ focus: false, fake: false }),
+      keep: (e) => e.preventDefault()
+    };
+  }
+}
+</script>
+</body>
+</html>

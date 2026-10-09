@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Rewrite, pick a song (#2ec4b6)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+
+<style>
+body{margin:0}
+a{color:#d9d9d9}a:hover{color:#ffffff}
+input:focus{outline:none}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #121212; font-family: 'DM Sans', system-ui, sans-serif; color: #d9d9d9; box-sizing: border-box; padding: 48px 16px 0; display: flex; flex-direction: column">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; height: 44px; flex-shrink: 0">
+    <a href="CfHome.dc.html" aria-label="Back" style="display: flex; align-items: center; gap: 4px; height: 36px; padding: 0 14px 0 8px; box-sizing: border-box; border-radius: 18px; background: rgba(46,196,182,0.16); border: 1px solid rgba(46,196,182,0.4); color: #2ec4b6; font-size: 14px; font-weight: 700; text-decoration: none; white-space: nowrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>Rewrite</a>
+    <span style="font-size: 13px; color: #bababa">Step 1 of 2</span>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 12px; padding: 0 4px">
+    <h1 style="margin: 0; font-size: 28px; line-height: 1.12; font-weight: 700">Pick a song to rewrite</h1>
+    <p style="margin: 0; font-size: 15px; color: #bababa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Same song, new lyrics.</p>
+  </div>
+
+  <div style="margin-top: 16px; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; border-radius: 22px; background: #202020; color: #bababa">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+    <label for="q" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Search any song</label>
+    <input id="q" type="text" placeholder="Search any song" style="flex-grow: 1; min-width: 0; border: none; background: transparent; font-family: inherit; font-size: 15px; color: #d9d9d9">
+  </div>
+
+  <div style="margin-top: 22px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 10px; row-gap: 18px">
+    <sc-for list="{{songs}}" as="s" hint-placeholder-count="16">
+      <a href="CfRewrite2.dc.html" aria-label="{{s.label}}" style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-decoration: none; color: #d9d9d9; min-width: 0; text-align: center">
+        <span style="{{s.art}}">{{s.initials}}</span>
+        <span style="width: 100%; font-size: 13px; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">{{s.t}}</span>
+      </a>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+var SONGS = [
+  ['Cruel Summer', 'Taylor Swift'], ['Delilah (pull me out of this)', 'Fred again..'], ['In Too Deep', 'Sum 41'], ['Kesariya', 'Arijit Singh'],
+  ['Espresso', 'Sabrina Carpenter'], ['Blinding Lights', 'The Weeknd'], ['Payphone', 'Maroon 5'], ['Not Like Us', 'Kendrick Lamar'],
+  ['Birds of a Feather', 'Billie Eilish'], ['Jai Ho', 'A.R. Rahman'], ['Levitating', 'Dua Lipa'], ['Mr. Brightside', 'The Killers'],
+  ['APT.', 'ROSÉ & Bruno Mars'], ['Good Luck, Babe!', 'Chappell Roan'], ['Teenage Dirtbag', 'Wheatus'], ['Dancing Queen', 'ABBA']
+];
+var TONES = ['#2e2e2e', '#474747', '#5e5e5e'];
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      songs: SONGS.map((s, k) => ({
+        t: s[0], label: s[0] + ' by ' + s[1],
+        initials: s[1].replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean).map((w) => w[0]).join('').slice(0, 2),
+        art: 'width: 100%; aspect-ratio: 1 / 1; border-radius: 10px; background: ' + TONES[k % 3] + '; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; color: rgba(217,217,217,0.55)'
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

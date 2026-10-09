@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Share sheet over the player, no shrink (recipient)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+
+<style>
+body{margin:0}
+a{color:#d9d9d9}a:hover{color:#ffffff}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #121212; font-family: 'DM Sans', system-ui, sans-serif; color: #d9d9d9; box-sizing: border-box">
+
+  <div aria-hidden="true" style="position: absolute; inset: 0"><dc-import name="CfPlayerTilesR" hint-size="390px,844px"></dc-import></div>
+  <a href="CfPlayerTilesR.dc.html" aria-label="Close share sheet" style="position: absolute; inset: 0; background: rgba(18,18,18,0.5)"></a>
+
+  <div role="dialog" aria-label="Share this track" style="position: absolute; left: 0; right: 0; bottom: 0; background: #202020; border-radius: 24px 24px 0 0; padding: 10px 20px 34px; display: flex; flex-direction: column; gap: 16px">
+    <div style="align-self: center; width: 40px; height: 5px; border-radius: 3px; background: #5e5e5e"></div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 700">Share this track</h2>
+      <a href="CfPlayerTilesR.dc.html" aria-label="Close" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 22px; color: #d9d9d9">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>
+      </a>
+    </div>
+
+
+    <div style="display: flex; flex-direction: column">
+      <button style="display: flex; align-items: center; gap: 14px; height: 64px; padding: 0 4px; border: none; border-bottom: 1px solid #2e2e2e; background: transparent; font-family: inherit; color: #d9d9d9; text-align: left">
+        <span style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 22px; background: #f2f2f2; color: #121212; display: flex; align-items: center; justify-content: center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+        </span>
+        <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1">
+          <span style="font-size: 16px; font-weight: 600">Copy link</span>
+          <span style="font-size: 13px; color: #bababa">Anyone with the link can listen</span>
+        </span>
+        <span style="font-size: 13px; color: #bababa">Copied ✓</span>
+      </button>
+      <button style="display: flex; align-items: center; gap: 14px; height: 64px; padding: 0 4px; border: none; background: transparent; font-family: inherit; color: #d9d9d9; text-align: left">
+        <span style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 22px; border: 1.5px solid #d9d9d9; box-sizing: border-box; display: flex; align-items: center; justify-content: center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z"></path></svg>
+        </span>
+        <span style="flex-grow: 1; font-size: 16px; font-weight: 600">WhatsApp</span>
+        <span style="font-size: 12px; color: #bababa; border: 1px dashed #5e5e5e; border-radius: 10px; padding: 2px 8px">If time</span>
+      </button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
