@@ -115,11 +115,12 @@ test("the core loop, with two browsers", async ({ browser }) => {
   await expect(page.getByRole("link", { name: "Close player" })).toBeVisible();
   expect((await (await friend.request.get("/api/me")).json()).user.firstName).toBe("Sam");
 
-  // 6. Close → 06-08 → Close player → their Library has it first. Claimed in the DB; cookie gone.
+  // 6. Close → 06-08 → Close player → their Library has it ("Today"). Claimed in the DB; cookie gone.
+  //    (Not asserted as first: another test may make a track as Sam in parallel.)
   await page.getByRole("dialog", { name: "Share this track" }).getByRole("button", { name: "Close" }).click();
   await page.getByRole("link", { name: "Close player" }).click();
   await expect(page).toHaveURL("/library");
-  await expect(page.locator('a[href^="/track/"]').first()).toHaveAttribute("href", `/track/${theirSlug}`);
+  await expect(page.locator(`a[href="/track/${theirSlug}"]`)).toHaveAttribute("aria-label", /^Cruel Summer × Electronic .*Today$/);
   expect(await trackRow(theirSlug)).toMatchObject({ owner: SAM_USER.id, anon: null });
   expect((await friend.cookies()).some((c) => c.name === "mozart_anon")).toBe(false);
 
