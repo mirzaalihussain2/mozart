@@ -28,7 +28,3 @@ export const SINGERS: Singer[] = singersFrom(MOCK_TASTE);
 export function findSinger(singers: Singer[], id: string): Singer | undefined {
   return singers.find((s) => s.id === id);
 }
-
-export function getSinger(id: string): Singer | undefined {
-  return findSinger(SINGERS, id);
-}

@@ -17,7 +17,3 @@ export const SONGS: Song[] = songsFrom(MOCK_TASTE);
 export function findSong(songs: Song[], id: string): Song | undefined {
   return songs.find((s) => s.id === id);
 }
-
-export function getSong(id: string): Song | undefined {
-  return findSong(SONGS, id);
-}

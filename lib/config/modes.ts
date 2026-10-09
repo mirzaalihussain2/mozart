@@ -115,7 +115,3 @@ export const MODES: Record<ModeId, Mode> = {
 export const HOME_MODES: ModeId[] = ["remix", "cover", "rewrite", "new"];
 /** Order of the tiles on a player (03-05). */
 export const PLAYER_MODES: ModeId[] = ["remix", "cover", "rewrite", "vibe"];
-
-export function isModeId(value: unknown): value is ModeId {
-  return typeof value === "string" && (MODE_IDS as readonly string[]).includes(value);
-}
