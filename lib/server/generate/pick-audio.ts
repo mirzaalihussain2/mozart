@@ -4,7 +4,7 @@ import { AUDIO_CATALOGUE, type AudioEntry } from "@/lib/config/audio-catalogue";
 import type { GenerateInput } from "@/lib/generation-input";
 
 /**
- * Chooses the mock audio for a request (tech-spec §6):
+ * Chooses the mock audio for a request:
  *   1. exact tag match on the mode + its choice (genre / singer / theme);
  *   2. for free text (Vibe, Something new), the best keyword match;
  *   3. otherwise a deterministic pick from the mode's files, then all files.

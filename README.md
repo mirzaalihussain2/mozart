@@ -1,6 +1,6 @@
 # Mozart prototype
 
-A mobile-first web app for making songs from music you already love, sharing them by link, and letting friends make their own version. See `AGENTS.md` for how the project works and `docs/progress.md` for where it is.
+A mobile-first web app for making songs from music you already love, sharing them by link, and letting friends make their own version. See `AGENTS.md` for how the project works and `docs/handover.md` for where it is.
 
 ## Run it locally
 

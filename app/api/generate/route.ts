@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/server/session";
 import { catalogueFor } from "@/lib/server/taste";
 import { sendToName } from "@/lib/server/tracks";
 
-// POST /api/generate — mock generation (tech-spec §6): validate, pick a
+// POST /api/generate — mock generation: validate, pick a
 // catalogue file, name the track and save it to the user's library. No
 // artificial delay; the Generating screen owns the wait.
 //

@@ -1,4 +1,4 @@
-// Shape of users.spotify_taste (docs/tech-spec.md §4). Mapped once at sign-in
+// Shape of users.spotify_taste. Mapped once at sign-in
 // from Spotify's /me/top/artists and /me/top/tracks; the dummy user stores the
 // same shape (lib/config/mock-taste.ts) so UI never knows the difference.
 

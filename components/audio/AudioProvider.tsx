@@ -37,7 +37,7 @@ export type AudioState = {
 
 const AudioContext = createContext<AudioState | null>(null);
 
-/** The one global <audio> element (AGENTS.md §3, tech-spec §14). */
+/** The one global <audio> element (AGENTS.md §3). */
 export function AudioProvider({ children }: { children: React.ReactNode }) {
   const audio = useRef<HTMLAudioElement>(null);
   const [track, setTrack] = useState<AudioTrack | null>(null);

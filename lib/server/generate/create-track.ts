@@ -16,7 +16,7 @@ export const ANON_RATE_LIMIT = { max: 30, windowMinutes: 10 };
 /** Who's making: a signed-in user, or an anonymous browser (mozart_anon). */
 export type Maker = { userId: string } | { anonId: string };
 
-// URL-safe, no look-alike symbols; 10 characters as tech-spec §4 asks.
+// URL-safe, 10 characters.
 const slug = customAlphabet("0123456789abcdefghijklmnopqrstuvwxyz", 10);
 
 export type CreateResult =
