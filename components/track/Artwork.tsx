@@ -1,5 +1,7 @@
-// Placeholder artwork. Album art stays a grey square (AGENTS.md §4); the design
-// sizes are listed per variant. Players and the mini player use a crossed box.
+// Artwork: a grey square with initials (AGENTS.md §4); the design sizes are
+// listed per variant. Players and the mini player use a crossed box. A song
+// from a Spotify taste passes `src` (its album cover), shown in the same box;
+// generated tracks never do.
 
 type Variant = "grid" | "hero" | "row" | "list" | "cover" | "mini";
 
@@ -29,7 +31,17 @@ const DEFAULT_TONE: Record<Variant, string> = {
   mini: "#2e2e2e",
 };
 
-export function Artwork({ variant, initials, tone }: { variant: Variant; initials?: string; tone?: string }) {
+type ArtworkProps = {
+  variant: Variant;
+  initials?: string;
+  tone?: string;
+  /** A real image (Spotify album cover); null/absent shows the initials. */
+  src?: string | null;
+  /** Lazy-load `src` (long grids). */
+  lazy?: boolean;
+};
+
+export function Artwork({ variant, initials, tone, src, lazy }: ArtworkProps) {
   const crossed = variant === "cover" || variant === "mini";
   return (
     <span
@@ -42,6 +54,10 @@ export function Artwork({ variant, initials, tone }: { variant: Variant; initial
           <line x1="0" y1="0" x2="100" y2="100" stroke="#5e5e5e" strokeWidth="1" vectorEffect="non-scaling-stroke" />
           <line x1="100" y1="0" x2="0" y2="100" stroke="#5e5e5e" strokeWidth="1" vectorEffect="non-scaling-stroke" />
         </svg>
+      ) : src ? (
+        // A plain <img>: tiny Spotify CDN thumbnails, no optimiser needed.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt="" loading={lazy ? "lazy" : undefined} className="absolute inset-0 size-full object-cover" />
       ) : (
         initials
       )}

@@ -80,6 +80,7 @@ export const GALLERY_SIGN_IN = {
   href: "/auth/spotify/login?returnTo=%2Ftrack%2Fcruel-bolly",
   makeUsed: false,
   noun: "remix",
+  slug: "cruel-bolly",
 };
 
 // Players as designed. Ali's original, and Sam's remix of it (06-05…06-08).

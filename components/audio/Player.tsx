@@ -8,10 +8,10 @@ import { ShareSheet } from "@/components/sharing/ShareSheet";
 import { SignupSheet } from "@/components/sharing/SignupSheet";
 import { Artwork } from "@/components/track/Artwork";
 import { ModeTile } from "@/components/track/ModeTile";
-import { Toast } from "@/components/ui/Toast";
+import { TOAST_MS, Toast } from "@/components/ui/Toast";
 import { MODES, PLAYER_MODES, type ModeId } from "@/lib/config/modes";
 import { formatTime } from "@/lib/format";
-import type { SignInPrompt, SignInReason } from "@/lib/sign-in-prompt";
+import type { SignInAsk, SignInPrompt } from "@/lib/sign-in-prompt";
 import { useAudio, type AudioTrack } from "./AudioProvider";
 
 export type PlayerVariant = "creator" | "recipient" | "recipientResult";
@@ -57,8 +57,6 @@ export type PlayerProps = {
   initialCopied?: boolean;
 };
 
-const TOAST_MS = 4000;
-
 const STOPPED = { playing: false, current: 0, duration: 30 };
 
 /**
@@ -69,8 +67,8 @@ export function Player(props: PlayerProps) {
   const { variant, slug, title, artist, ownerName, signIn, shareUrl, cleanHref, staticToast, initialCopied } = props;
   const playback = props.playback ?? STOPPED;
   const router = useRouter();
-  const [sheet, setSheet] = useState<"share" | SignInReason | null>(
-    props.initialSheet === "signup" ? "send" : (props.initialSheet ?? null),
+  const [sheet, setSheet] = useState<"share" | SignInAsk | null>(
+    props.initialSheet === "signup" ? { reason: "send" } : (props.initialSheet ?? null),
   );
   // Captured on first render so they survive the URL clean-up below.
   const [justSaved] = useState(!!props.justSaved);
@@ -124,7 +122,7 @@ export function Player(props: PlayerProps) {
   }, [toastVisible, staticToast]);
   const creator = variant === "creator";
   // Their own result, or anywhere after their one make: "save your remix and send it back".
-  const openSignup = () => setSheet(variant === "recipientResult" || signIn?.makeUsed ? "send" : "save");
+  const openSignup = () => setSheet({ reason: variant === "recipientResult" || signIn?.makeUsed ? "send" : "save" });
 
   return (
     <main className="flex h-dvh min-h-[760px] flex-col bg-[linear-gradient(180deg,#3a2a24_0%,#1c1716_48%,#121212_100%)] px-6 pt-[52px] pb-[max(32px,env(safe-area-inset-bottom))]">
@@ -244,8 +242,8 @@ export function Player(props: PlayerProps) {
             key={id}
             mode={MODES[id]}
             href={`/track/${slug}/${id}`}
-            // One anonymous make per visitor: after it, every tile asks them to sign in.
-            onClick={signIn?.makeUsed ? () => setSheet("more") : undefined}
+            // One anonymous make per visitor: after it, every tile asks them to sign in to make another.
+            onClick={signIn?.makeUsed ? () => setSheet({ reason: "more", mode: id }) : undefined}
           />
         ))}
       </div>
@@ -259,7 +257,7 @@ export function Player(props: PlayerProps) {
           initialCopied={initialCopied}
         />
       ) : null}
-      {sheet && sheet !== "share" && signIn ? <SignupSheet prompt={signIn} reason={sheet} onClose={() => setSheet(null)} /> : null}
+      {sheet && sheet !== "share" && signIn ? <SignupSheet prompt={signIn} ask={sheet} onClose={() => setSheet(null)} /> : null}
       {toastVisible ? <Toast>Signed in · saved to your library</Toast> : null}
     </main>
   );

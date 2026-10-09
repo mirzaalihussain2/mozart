@@ -7,6 +7,7 @@ import { StepHeader } from "@/components/navigation/StepHeader";
 import { Artwork, toneAt } from "@/components/track/Artwork";
 import { ModeButton } from "@/components/ui/Buttons";
 import { Pill } from "@/components/ui/Pill";
+import { SavedToast } from "@/components/ui/Toast";
 import { GENRES } from "@/lib/config/genres";
 import { VIBE_PLACEHOLDER } from "@/lib/config/ideas";
 import { MODES, type ModeId } from "@/lib/config/modes";
@@ -14,10 +15,11 @@ import { SINGERS, type Singer } from "@/lib/config/singers";
 import { THEMES } from "@/lib/config/themes";
 import { useGenerate } from "@/lib/client/use-generate";
 import { useKeyboardViewport } from "@/lib/client/use-keyboard-viewport";
+import { markPickerReturn } from "@/lib/client/use-shuffle-seed";
 import { gridInitials } from "@/lib/format";
 import { generationQuote } from "@/lib/generation";
 import { SignupSheet } from "@/components/sharing/SignupSheet";
-import type { SignInPrompt, SignInReason } from "@/lib/sign-in-prompt";
+import type { SignInAsk, SignInPrompt } from "@/lib/sign-in-prompt";
 import { GeneratingScreen } from "./GeneratingScreen";
 
 export type StepTwoMode = Exclude<ModeId, "new">;
@@ -27,6 +29,8 @@ export type Subject = {
   title: string;
   subtitle: string;
   initials: string;
+  /** The picked song's album cover (Create flow only; a generated track has none). */
+  imageUrl?: string | null;
   /** "change song" link back to step 1, or back to the player. */
   href: string;
   label: string;
@@ -51,6 +55,9 @@ export type StepTwoProps = {
   signIn?: SignInPrompt;
   /** Cover singers: the viewer's top artists (server-provided); MOCK by default. */
   singers?: Singer[];
+  /** `?saved=1`: back from "Sign in to make another …". Toast once, then `cleanHref` (this URL without it). */
+  justSaved?: boolean;
+  cleanHref?: string;
   /** Design states for the dev gallery (an option id). */
   initialChoice?: string;
   initialText?: string;
@@ -69,14 +76,19 @@ const LEAD: Record<StepTwoMode, string> = {
  * (02-02, 02-04, 02-06) and from a player (04-xx, 05-xx).
  */
 export function StepTwo(props: StepTwoProps) {
-  return props.mode === "vibe" ? <VibeStep {...props} /> : <OptionsStep {...props} />;
+  return (
+    <>
+      {props.mode === "vibe" ? <VibeStep {...props} /> : <OptionsStep {...props} />}
+      <SavedToast show={!!props.justSaved} cleanHref={props.cleanHref} />
+    </>
+  );
 }
 
 function OptionsStep(props: StepTwoProps) {
   const { mode: modeId, subject, backHref, showStep, song, owner, initialChoice, singers = SINGERS } = props;
   const mode = MODES[modeId];
   const [choice, setChoice] = useState<string | undefined>(initialChoice);
-  const blocked = useBlockedSheet(props.signIn);
+  const blocked = useBlockedSheet(props.signIn, modeId);
   const gen = useGenerate({ onBlocked: blocked.open });
   // `choice` is an option id; the heading shows its label.
   const word =
@@ -88,6 +100,8 @@ function OptionsStep(props: StepTwoProps) {
 
   if (gen.state.phase !== "idle") return <Generating gen={gen} />;
 
+  // Both links back to the step-1 picker keep the order it showed.
+  const toPicker = showStep ? () => markPickerReturn(backHref) : undefined;
   const generate = () => {
     if (!word || !choice) return;
     if (props.signIn?.makeUsed) return blocked.open("more");
@@ -102,8 +116,8 @@ function OptionsStep(props: StepTwoProps) {
 
   return (
     <main className="flex min-h-dvh flex-col px-4 pt-12 pb-9">
-      <StepHeader mode={mode} backHref={backHref} step={showStep ? 2 : undefined} />
-      <SubjectCard subject={subject} />
+      <StepHeader mode={mode} backHref={backHref} step={showStep ? 2 : undefined} onBack={toPicker} />
+      <SubjectCard subject={subject} onClick={toPicker} />
       <div className="border-raised mt-6 shrink-0 border-t pt-4 text-center text-[30px] leading-[1.15] font-bold">
         <span className="text-text-secondary">{LEAD[modeId]} </span>
         {word ? <span className={mode.textClass}>{word}.</span> : null}
@@ -122,14 +136,19 @@ function OptionsStep(props: StepTwoProps) {
             ))
           : null}
         {modeId === "cover"
-          ? singers.map(({ id, name }, k) => (
+          ? singers.map(({ id, name, imageUrl }, k) => (
               <Pill key={id} mode={mode} size="avatar" selected={choice === id} onSelect={() => setChoice(id)}>
                 <span
                   aria-hidden="true"
-                  className="flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-[rgba(217,217,217,0.7)]"
+                  className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold text-[rgba(217,217,217,0.7)]"
                   style={{ background: toneAt(k, 1) }}
                 >
-                  {gridInitials(name)}
+                  {imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={imageUrl} alt="" className="size-full object-cover" />
+                  ) : (
+                    gridInitials(name)
+                  )}
                 </span>
                 {name}
               </Pill>
@@ -156,12 +175,12 @@ function OptionsStep(props: StepTwoProps) {
   );
 }
 
-function VibeStep({ subject, backHref, song, owner, source, signIn, initialText = "", initialFocused = false }: StepTwoProps) {
+function VibeStep({ mode: modeId, subject, backHref, song, owner, source, signIn, initialText = "", initialFocused = false }: StepTwoProps) {
   const mode = MODES.vibe;
   const [text, setText] = useState(initialText);
   const [focused, setFocused] = useState(initialFocused);
   const box = useRef<HTMLTextAreaElement>(null);
-  const blocked = useBlockedSheet(signIn);
+  const blocked = useBlockedSheet(signIn, modeId);
   const gen = useGenerate({ onBlocked: blocked.open });
   const keyboard = useKeyboardViewport(focused);
 
@@ -229,16 +248,18 @@ function VibeStep({ subject, backHref, song, owner, source, signIn, initialText 
 }
 
 /**
- * The Send-to sheet over a step screen, opened when a signed-out visitor
- * can't make (another) track. `sendTo` from a 403 overrides the page's guess.
+ * The sign-in sheet over a step screen, opened when a signed-out visitor
+ * can't make (another) track: "more" asks to make another of this `mode`.
+ * `sendTo` from a 403 overrides the page's guess.
  */
-function useBlockedSheet(prompt?: SignInPrompt) {
-  const [open, setOpen] = useState<{ reason: SignInReason; sendTo?: string } | null>(null);
+function useBlockedSheet(prompt: SignInPrompt | undefined, mode: StepTwoMode) {
+  const [open, setOpen] = useState<{ ask: SignInAsk; sendTo?: string } | null>(null);
   const sheet =
     open && prompt ? (
-      <SignupSheet prompt={{ ...prompt, sendTo: open.sendTo ?? prompt.sendTo }} reason={open.reason} onClose={() => setOpen(null)} />
+      <SignupSheet prompt={{ ...prompt, sendTo: open.sendTo ?? prompt.sendTo }} ask={open.ask} onClose={() => setOpen(null)} />
     ) : null;
-  return { open: (reason: SignInReason, sendTo?: string) => setOpen({ reason, sendTo }), sheet };
+  const ask = (reason: "more" | "save"): SignInAsk => (reason === "more" ? { reason, mode } : { reason });
+  return { open: (reason: "more" | "save", sendTo?: string) => setOpen({ ask: ask(reason), sendTo }), sheet };
 }
 
 /** The Generating screen (or its error state) while a request is running. */
@@ -255,15 +276,16 @@ export function Generating({ gen }: { gen: ReturnType<typeof useGenerate> }) {
 }
 
 /** Large picked-song / current-track card (CfRemix2, CfCRemix). */
-function SubjectCard({ subject }: { subject: Subject }) {
+function SubjectCard({ subject, onClick }: { subject: Subject; onClick?: () => void }) {
   return (
     <Link
       href={subject.href}
+      onClick={onClick}
       aria-label={subject.label}
       className="text-text mt-5 flex shrink-0 flex-col items-center gap-1.5 self-center text-center"
     >
       <span className="mb-2.5">
-        <Artwork variant="hero" initials={subject.initials} />
+        <Artwork variant="hero" initials={subject.initials} src={subject.imageUrl} />
       </span>
       <span className="text-[26px] leading-[1.15] font-bold">{subject.title}</span>
       <span className="text-text-secondary text-[15px]">{subject.subtitle}</span>

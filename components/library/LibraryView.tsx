@@ -15,8 +15,9 @@ export type LibraryRow = {
 };
 
 type Props = {
-  /** The signed-in user's initial, for the profile menu. */
+  /** The signed-in user's initial and Spotify photo, for the profile menu. */
   initial: string;
+  avatarUrl?: string | null;
   rows: LibraryRow[];
   /** Real route: the live mini player and row outline from useAudio(). */
   live?: boolean;
@@ -29,10 +30,10 @@ type Props = {
  * Departs from the designs on purpose: the header is the Create home's
  * (TabHeader), and an empty library points to Create.
  */
-export function LibraryView({ initial, rows, live = false, nowPlaying }: Props) {
+export function LibraryView({ initial, avatarUrl, rows, live = false, nowPlaying }: Props) {
   return (
     <main className="flex h-dvh flex-col overflow-hidden">
-      <TabHeader initial={initial} title="Library" subtitle={`${rows.length} ${rows.length === 1 ? "track" : "tracks"}`} />
+      <TabHeader initial={initial} avatarUrl={avatarUrl} title="Library" subtitle={`${rows.length} ${rows.length === 1 ? "track" : "tracks"}`} />
       {rows.length === 0 ? (
         <div className="flex flex-grow flex-col items-center justify-center gap-5 px-5 pb-10">
           <p className="text-text-secondary m-0 text-[17px] leading-[1.4]">Nothing here yet</p>

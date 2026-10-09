@@ -1,4 +1,11 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { CheckIcon } from "@/components/icons";
+
+/** How long a toast stays up. */
+export const TOAST_MS = 4000;
 
 /** Off-white status pill at the top of the screen (CfShareSignedIn). */
 export function Toast({ children }: { children: React.ReactNode }) {
@@ -13,4 +20,26 @@ export function Toast({ children }: { children: React.ReactNode }) {
       {children}
     </div>
   );
+}
+
+/**
+ * `?saved=1` on a screen other than the player (a step 2 after "Sign in to
+ * make another …"): the toast once, then the URL without the parameter. Keep
+ * it mounted — `show` is captured on first render, so the clean-up doesn't hide it.
+ */
+export function SavedToast({ show, cleanHref }: { show: boolean; cleanHref?: string }) {
+  const router = useRouter();
+  const [visible, setVisible] = useState(show);
+
+  useEffect(() => {
+    if (cleanHref) router.replace(cleanHref, { scroll: false });
+  }, [cleanHref, router]);
+
+  useEffect(() => {
+    if (!visible) return;
+    const t = setTimeout(() => setVisible(false), TOAST_MS);
+    return () => clearTimeout(t);
+  }, [visible]);
+
+  return visible ? <Toast>Signed in · saved to your library</Toast> : null;
 }

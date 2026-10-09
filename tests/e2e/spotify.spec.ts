@@ -33,6 +33,7 @@ async function withScenario(browser: Browser, scenario: Scenario): Promise<Brows
   return ctx;
 }
 
+const SCDN = /^https:\/\/i\.scdn\.co\/image\//;
 const me = async (page: Page) => (await (await page.request.get("/api/me")).json()).user as { id: string; firstName: string } | null;
 const hasOAuthCookie = async (ctx: BrowserContext) => (await ctx.cookies(`${BASE_URL}/auth/spotify/callback`)).some((c) => c.name === "mozart_oauth");
 
@@ -48,6 +49,13 @@ test("ok: Connect Spotify signs in the Spotify user, whose top tracks and artist
   expect(user?.id).not.toBe(DUMMY_USER.id);
   expect(await spotifyUser(FIXTURE_USER)).toMatchObject({ id: user!.id, first_name: "Ali", auth_provider: "spotify" });
   expect(await hasOAuthCookie(ctx)).toBe(false);
+  // The profile circle shows their Spotify photo, on Create and on Library.
+  await expect(page.getByRole("button", { name: "Profile" }).locator("img")).toHaveAttribute("src", SCDN);
+  await page.getByRole("link", { name: "Library" }).click();
+  await expect(page).toHaveURL("/library");
+  await expect(page.getByRole("button", { name: "Profile" }).locator("img")).toHaveAttribute("src", SCDN);
+  await page.getByRole("link", { name: "Create", exact: true }).click();
+  await expect(page).toHaveURL("/create");
 
   // Remix song picker: the fixture's top tracks, cleaned and de-duplicated.
   await page.getByRole("link", { name: /^Remix/ }).click();
@@ -58,17 +66,29 @@ test("ok: Connect Spotify signs in the Spotify user, whose top tracks and artist
   expect(new Set(labels).size).toBe(labels.length);
   await expect(page.getByRole("link", { name: "Cruel Summer by Taylor Swift" })).toHaveCount(0);
 
-  // Generate a remix: named after the real top track.
+  // Every tile shows its real album cover.
+  const covers = await page.locator('a[href^="/create/remix/"] img').evaluateAll((els) => els.map((e) => e.getAttribute("src")));
+  expect(covers).toHaveLength(20);
+  for (const src of covers) expect(src).toMatch(SCDN);
+
+  // Generate a remix: named after the real top track; step 2's card shows its cover.
   await page.getByRole("link", { name: "Way Too Self Aware by Ian Asher" }).click();
+  await expect(page.getByRole("link", { name: "Way Too Self Aware by Ian Asher, change song" }).locator("img")).toHaveAttribute("src", SCDN);
   await page.getByRole("radio", { name: "Bollywood" }).click();
   await page.getByRole("button", { name: "Generate remix" }).click();
   await page.waitForURL(/\/track\/[0-9a-z]{10}$/, { timeout: 15_000 });
   await expect(page.getByRole("heading", { name: "Way Too Self Aware × Bollywood" })).toBeVisible();
 
-  // Cover singers are their top artists.
+  // From the player, the card is the generated track: still a placeholder.
+  await page.goto(`${new URL(page.url()).pathname}/remix`);
+  await expect(page.getByRole("link", { name: "Way Too Self Aware × Bollywood Ali, back to the player" })).toHaveText(/^A/);
+  await expect(page.locator("main img")).toHaveCount(0);
+
+  // Cover singers are their top artists, with their photos.
   await page.goto("/create/cover");
   await page.getByRole("link", { name: "Blackbird by The Beatles" }).click();
   await expect(page.getByRole("radio", { name: /Fred again\.\./ })).toBeVisible();
+  await expect(page.getByRole("radio", { name: /Fred again\.\./ }).locator("img")).toHaveAttribute("src", SCDN);
   await expect(page.getByRole("radio", { name: /Arijit Singh/ })).toHaveCount(0);
   await ctx.close();
 });
@@ -118,11 +138,79 @@ test("'Log in' is still dummy Ali with the mock songs; a Spotify song id from Al
   await page.getByRole("button", { name: "Log in" }).click();
   await expect(page).toHaveURL("/create");
   expect((await me(page))?.id).toBe(DUMMY_USER.id);
+  await expect(page.getByRole("button", { name: "Profile" })).toHaveText("A");
+  await expect(page.getByRole("button", { name: "Profile" }).locator("img")).toHaveCount(0);
   await page.getByRole("link", { name: /^Remix/ }).click();
   await expect(page.getByRole("link", { name: "Cruel Summer by Taylor Swift" })).toBeVisible();
+  // The mock songs keep the grey initials tiles.
+  await expect(page.getByRole("link", { name: "Cruel Summer by Taylor Swift" })).toHaveText(/^TS/);
+  await expect(page.locator('a[href^="/create/remix/"] img')).toHaveCount(0);
 
   // "Way Too Self Aware" (a Spotify id) isn't in Ali's catalogue.
   const res = await page.request.post("/api/generate", { data: { mode: "remix", sourceSongId: "2rkUhGw5iWbBY1PE5AnCl8", genreId: "bollywood" } });
   expect(res.status()).toBe(400);
+  await ctx.close();
+});
+
+// Step 1's picker (02-01 / 02-03 / 02-05) with the fixture's 20 top tracks.
+async function pickerAsSpotifyUser(browser: Browser) {
+  const ctx = await withScenario(browser, "ok");
+  const page = await ctx.newPage();
+  await page.goto("/");
+  await page.getByRole("link", { name: "Connect Spotify to get started" }).click();
+  await expect(page).toHaveURL("/create");
+
+  const order = async (mode: string) => {
+    const tiles = page.locator(`a[href^="/create/${mode}/"]`);
+    await expect(tiles).toHaveCount(20);
+    return (await tiles.evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")))).join("\n");
+  };
+  const visit = async (mode: "Remix" | "Cover") => {
+    await page.goto("/create");
+    await page.getByRole("link", { name: new RegExp(`^${mode}`) }).click();
+    await expect(page).toHaveURL(`/create/${mode.toLowerCase()}`);
+    return order(mode.toLowerCase());
+  };
+  return { ctx, page, order, visit };
+}
+
+test("step 1 reshuffles the songs on every visit from Create, with its own order per mode", async ({ browser }) => {
+  const { ctx, visit } = await pickerAsSpotifyUser(browser);
+  // A uniform shuffle: two orders of 20 match by chance about once in
+  // 2.4 × 10^18, so three visits are never all the same.
+  const remix = [await visit("Remix"), await visit("Remix"), await visit("Remix")];
+  expect(new Set(remix).size).toBeGreaterThan(1);
+  expect(new Set(remix.map((o) => o.split("\n").sort().join("\n"))).size).toBe(1);
+  expect(await visit("Cover")).not.toBe(remix[2]);
+  await ctx.close();
+});
+
+test("step 1 keeps its order coming back from step 2 (browser Back, Back pill, change song) and on reload; search keeps it", async ({ browser }) => {
+  const { ctx, page, order, visit } = await pickerAsSpotifyUser(browser);
+  const seen = await visit("Remix");
+  const song = page.getByRole("link", { name: "Blackbird by The Beatles" });
+  await song.click();
+  await expect(page).toHaveURL(/\/create\/remix\/.+/);
+  await page.goBack();
+  expect(await order("remix")).toBe(seen);
+  await song.click();
+  await page.getByRole("link", { name: "Back", exact: true }).click();
+  await expect(page).toHaveURL("/create/remix");
+  expect(await order("remix")).toBe(seen);
+  await song.click();
+  await page.getByRole("link", { name: "Blackbird by The Beatles, change song" }).click();
+  await expect(page).toHaveURL("/create/remix");
+  expect(await order("remix")).toBe(seen);
+  await page.reload();
+  expect(await order("remix")).toBe(seen);
+
+  // Search filters the shuffled list, in that order.
+  const matches = seen.split("\n").filter((label) => label.toLowerCase().includes("the"));
+  expect(matches.length).toBeGreaterThan(1);
+  expect(matches.length).toBeLessThan(20);
+  await page.getByRole("textbox", { name: "Search any song" }).fill("the");
+  const tiles = page.locator('a[href^="/create/remix/"]');
+  await expect(tiles).toHaveCount(matches.length);
+  expect(await tiles.evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")))).toEqual(matches);
   await ctx.close();
 });

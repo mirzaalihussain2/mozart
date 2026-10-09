@@ -15,6 +15,7 @@ export default async function LibraryPage() {
     <LibraryView
       live
       initial={user.firstName.slice(0, 1).toUpperCase()}
+      avatarUrl={user.avatarUrl}
       rows={tracks.map((t) => ({
         slug: t.publicSlug,
         title: t.title,
