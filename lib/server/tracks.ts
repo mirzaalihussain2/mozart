@@ -1,5 +1,5 @@
 import "server-only";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { cache } from "react";
 import { db } from "./db";
 import { tracks, users, type Track, type User } from "./db/schema";
@@ -9,6 +9,20 @@ export type TrackWithOwner = Track & { owner: Pick<User, "id" | "firstName"> | n
 /** A user's tracks, newest first. */
 export async function listLibrary(userId: string): Promise<Track[]> {
   return db.select().from(tracks).where(eq(tracks.ownerUserId, userId)).orderBy(desc(tracks.createdAt));
+}
+
+/**
+ * Hard-deletes a track if `userId` owns it; true if one was deleted. Its link
+ * then 404s; tracks made from it keep working (their root song is stored on
+ * them) and just lose the source link. Demo users' starter tracks come back
+ * at their next sign-in (lib/server/auth/personas.ts).
+ */
+export async function deleteOwnedTrack(slug: string, userId: string): Promise<boolean> {
+  const rows = await db
+    .delete(tracks)
+    .where(and(eq(tracks.publicSlug, slug), eq(tracks.ownerUserId, userId)))
+    .returning({ id: tracks.id });
+  return rows.length > 0;
 }
 
 /** A track by id; null if missing. */

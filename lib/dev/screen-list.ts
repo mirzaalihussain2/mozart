@@ -45,4 +45,5 @@ export const SCREEN_LIST: ScreenInfo[] = [
   { id: "07-01", title: "Library" },
   { id: "07-02", title: "Library · song playing (mini player)" },
   { id: "07-01-empty", title: "Library · empty (no design)", noDesign: true },
+  { id: "07-01-menu", title: "Library · row ⋯ menu (no design)", noDesign: true },
 ];

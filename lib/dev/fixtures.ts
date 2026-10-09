@@ -16,13 +16,14 @@ export const NOW_PLAYING: MiniPlayerProps = {
 };
 
 // 07-01 as designed, with the dates frozen to the PNG.
+const GALLERY_URL = "http://127.0.0.1:3000";
 export const LIBRARY_ROWS: LibraryRow[] = [
-  { slug: "cruel-bolly", title: "Cruel Summer × Bollywood", dateLabel: "Today" },
-  { slug: "cruel-electro", title: "Cruel Summer × Electronic", badge: "REMIX", dateLabel: "Today" },
-  { slug: "deep-bolly", title: "In Too Deep × Bollywood", dateLabel: "Yesterday" },
-  { slug: "euphoric-pop", title: "Euphoric electronic pop", dateLabel: "3 Oct" },
-  { slug: "cinematic-pop", title: "Cinematic pop", dateLabel: "1 Oct" },
-  { slug: "deep-lofi", title: "In Too Deep × Lo-fi", badge: "REMIX", dateLabel: "28 Sep" },
+  { slug: "cruel-bolly", title: "Cruel Summer × Bollywood", dateLabel: "Today", shareUrl: `${GALLERY_URL}/track/cruel-bolly` },
+  { slug: "cruel-electro", title: "Cruel Summer × Electronic", badge: "REMIX", dateLabel: "Today", shareUrl: `${GALLERY_URL}/track/cruel-electro` },
+  { slug: "deep-bolly", title: "In Too Deep × Bollywood", dateLabel: "Yesterday", shareUrl: `${GALLERY_URL}/track/deep-bolly` },
+  { slug: "euphoric-pop", title: "Euphoric electronic pop", dateLabel: "3 Oct", shareUrl: `${GALLERY_URL}/track/euphoric-pop` },
+  { slug: "cinematic-pop", title: "Cinematic pop", dateLabel: "1 Oct", shareUrl: `${GALLERY_URL}/track/cinematic-pop` },
+  { slug: "deep-lofi", title: "In Too Deep × Lo-fi", badge: "REMIX", dateLabel: "28 Sep", shareUrl: `${GALLERY_URL}/track/deep-lofi` },
 ];
 
 const songByTitle = (title: string) => SONGS.find((s) => s.title === title)!;
