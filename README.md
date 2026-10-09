@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mozart prototype
 
-## Getting Started
+A mobile-first web app for making songs from music you already love, sharing them by link, and letting friends make their own version. See `AGENTS.md` for how the project works and `docs/progress.md` for where it is.
 
-First, run the development server:
+## Run it locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local   # then fill in DATABASE_URL and SESSION_SECRET
+pnpm i
+pnpm db:migrate
+pnpm db:seed
+pnpm dev                     # http://127.0.0.1:3000 (never localhost)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Command | What it does |
+| --- | --- |
+| `pnpm typecheck` / `pnpm lint` / `pnpm build` | Checks |
+| `pnpm test:unit` | Unit tests (Node test runner) |
+| `pnpm test:e2e` | Playwright end-to-end tests (starts `pnpm dev` if needed) |
+| `pnpm shots [id]` / `pnpm shots:diff [id]` | Capture screens at 390 × 844 and compare with `docs/designs/png/` |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The dev gallery at `/dev/screens` shows all 39 designed screens (not available in production).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deploying to Vercel
 
-## Learn More
+Set these in **Project → Settings → Environment Variables**:
 
-To learn more about Next.js, take a look at the following resources:
+| Variable | Production | Preview | Notes |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | ✓ | ✓ | Supabase transaction pooler URL (port 6543) |
+| `SESSION_SECRET` | ✓ | ✓ | 32+ random characters |
+| `APP_URL` | ✓ | — | Your production domain, e.g. `https://mozart.example.com`. Leave **unset** for Preview: previews use `https://$VERCEL_URL` |
+| `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` | ✓ | ✓ | Needed from milestone 7 |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Migrations don't run during the build: run `pnpm db:migrate` against the database yourself when the schema changes.

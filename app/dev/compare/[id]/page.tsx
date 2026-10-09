@@ -1,3 +1,4 @@
+import { devToolsOnly } from "@/lib/server/dev-gate";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SCREEN_LIST } from "@/lib/dev/screen-list";
@@ -5,11 +6,8 @@ import { SCREEN_LIST } from "@/lib/dev/screen-list";
 // Dev tooling: allowed to block on params.
 export const instant = false;
 
-export function generateStaticParams() {
-  return SCREEN_LIST.map((s) => ({ id: s.id }));
-}
-
 export default async function ComparePage({ params }: PageProps<"/dev/compare/[id]">) {
+  await devToolsOnly();
   const { id } = await params;
   const index = SCREEN_LIST.findIndex((s) => s.id === id);
   if (index < 0) notFound();

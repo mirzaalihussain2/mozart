@@ -1,7 +1,9 @@
-import { notFound } from "next/navigation";
+import { devToolsOnly } from "@/lib/server/dev-gate";
 
-// /dev/* is for local development and Vercel previews only.
-export default function DevLayout({ children }: LayoutProps<"/dev">) {
-  if (process.env.VERCEL_ENV === "production") notFound();
+// Dev tooling: blocks on the request so the production check runs per request.
+export const instant = false;
+
+export default async function DevLayout({ children }: LayoutProps<"/dev">) {
+  await devToolsOnly();
   return children;
 }
