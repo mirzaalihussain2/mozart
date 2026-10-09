@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { MOCK_TASTE } from "../../lib/config/mock-taste";
+import { singersFrom } from "../../lib/config/singers";
+import { songsFrom } from "../../lib/config/songs";
 import { parseGenerateInput, titleFor } from "../../lib/generation-input";
 import { mapTaste } from "../../lib/spotify/map-taste";
 import type { SpotifyArtist, SpotifyPage, SpotifyTrack } from "../../lib/spotify/types";
@@ -28,6 +30,18 @@ test("the catalogue: real songs and singers for Spotify users", () => {
   assert.equal(c.songs[0].title, "Way Too Self Aware");
   assert.equal(c.songs[0].id.length, 22);
   assert.ok(c.singers.some((s) => s.id === "fred-again" && s.name === "Fred again.."));
+});
+
+test("songs and singers carry the taste's artwork; the mock taste has none", () => {
+  const songs = songsFrom(spotifyTaste);
+  assert.deepEqual(songs.map((s) => s.imageUrl), spotifyTaste.topTracks.map((t) => t.imageUrl));
+  assert.match(songs[0].imageUrl ?? "", /^https:\/\/i\.scdn\.co\/image\//);
+  const fred = singersFrom(spotifyTaste).find((s) => s.id === "fred-again");
+  assert.equal(fred?.imageUrl, spotifyTaste.topArtists.find((a) => a.name === "Fred again..")?.imageUrl);
+  assert.match(fred?.imageUrl ?? "", /^https:\/\/i\.scdn\.co\/image\//);
+
+  assert.ok(songsFrom(MOCK_TASTE).every((s) => s.imageUrl === null));
+  assert.ok(singersFrom(MOCK_TASTE).every((s) => s.imageUrl === null));
 });
 
 test("validation follows the viewer's catalogue; names use the taste track as root", () => {
