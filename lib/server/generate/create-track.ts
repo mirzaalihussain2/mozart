@@ -1,5 +1,5 @@
 import "server-only";
-import { and, count, eq, gt } from "drizzle-orm";
+import { and, count, eq, gt, isNull } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
 import { getSong } from "@/lib/config/songs";
 import { rootTitle } from "@/lib/format";
@@ -10,6 +10,11 @@ import { getTrackById } from "../tracks";
 import { pickAudio } from "./pick-audio";
 
 export const RATE_LIMIT = { max: 20, windowMinutes: 10 };
+/** All anonymous makes across the app (clearing cookies resets the per-person limit). */
+export const ANON_RATE_LIMIT = { max: 30, windowMinutes: 10 };
+
+/** Who's making: a signed-in user, or an anonymous browser (mozart_anon). */
+export type Maker = { userId: string } | { anonId: string };
 
 // URL-safe, no look-alike symbols; 10 characters as tech-spec §4 asks.
 const slug = customAlphabet("0123456789abcdefghijklmnopqrstuvwxyz", 10);
@@ -35,14 +40,19 @@ async function resolveSource(input: GenerateInput) {
   return { found: true as const, root: null, track: null };
 }
 
-/** Validated input → a new track owned by `userId` (POST /api/generate). */
-export async function createGeneratedTrack(userId: string, input: GenerateInput): Promise<CreateResult> {
-  const since = new Date(Date.now() - RATE_LIMIT.windowMinutes * 60_000);
+/**
+ * Validated input → a new track (POST /api/generate): owned by the user, or
+ * unowned with the browser's anonymous id until it's claimed at sign-in.
+ */
+export async function createGeneratedTrack(maker: Maker, input: GenerateInput): Promise<CreateResult> {
+  const anon = "anonId" in maker;
+  const limit = anon ? ANON_RATE_LIMIT : RATE_LIMIT;
+  const since = new Date(Date.now() - limit.windowMinutes * 60_000);
   const [{ recent }] = await db
     .select({ recent: count() })
     .from(tracks)
-    .where(and(eq(tracks.ownerUserId, userId), gt(tracks.createdAt, since)));
-  if (recent >= RATE_LIMIT.max) {
+    .where(and(anon ? isNull(tracks.ownerUserId) : eq(tracks.ownerUserId, maker.userId), gt(tracks.createdAt, since)));
+  if (recent >= limit.max) {
     return { ok: false, status: 429, error: "That's a lot of songs. Try again in a few minutes." };
   }
 
@@ -69,7 +79,8 @@ export async function createGeneratedTrack(userId: string, input: GenerateInput)
           audioUrl: audio.file,
           sourceTrackId: source.track?.id ?? null,
           generationInput,
-          ownerUserId: userId,
+          ownerUserId: anon ? null : maker.userId,
+          anonymousSessionId: anon ? maker.anonId : null,
         })
         .returning();
       return { ok: true, track };
