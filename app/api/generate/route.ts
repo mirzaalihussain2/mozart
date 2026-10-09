@@ -36,6 +36,6 @@ export async function POST(request: NextRequest) {
     return json(201, { track: { id, slug: publicSlug, title, mode, audioUrl } });
   } catch (err) {
     console.error("POST /api/generate failed", err);
-    return json(500, { error: "server_error", message: "Couldn't make that one. Try again." });
+    return json(500, { error: "server_error", message: "Couldn’t make that one. Try again." });
   }
 }

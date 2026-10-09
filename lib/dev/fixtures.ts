@@ -42,7 +42,8 @@ export function createStepTwo(mode: StepTwoMode, title: string, choice: string):
       label: `${song.title} by ${song.artist}, change song`,
     },
     song: song.title,
-    destination: "/track/cruel-bolly",
+    source: { sourceSongId: song.id },
+    signInFallback: `/create/${mode}/${song.id}`,
     initialChoice: choice,
   };
 }
@@ -64,7 +65,9 @@ export function playerStepTwo(mode: StepTwoMode, recipient: boolean, extra: Part
     },
     song: "Cruel Summer",
     owner: recipient ? "Ali" : undefined,
-    destination: "/track/cruel-bolly",
+    // Gallery only: a placeholder id (the real one comes from the track route).
+    source: { sourceTrackId: "00000000-0000-4000-8000-000000000000" },
+    signInFallback: "/track/cruel-bolly",
     ...extra,
   };
 }

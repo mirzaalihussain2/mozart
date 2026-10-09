@@ -30,8 +30,8 @@ export const SCREENS: Record<string, () => ReactNode> = {
   "02-04": () => <StepTwo {...createStepTwo("cover", "In Too Deep", "arijit-singh")} />,
   "02-05": () => <StepOne mode={MODES.rewrite} />,
   "02-06": () => <StepTwo {...createStepTwo("rewrite", "Payphone", "moving-to-london")} />,
-  "02-07": () => <SomethingNew destination="/track/cruel-bolly" rotate={false} />,
-  "02-08": () => <SomethingNew destination="/track/cruel-bolly" rotate={false} initialText={NEW_TYPED} initialFocused />,
+  "02-07": () => <SomethingNew rotate={false} />,
+  "02-08": () => <SomethingNew rotate={false} initialText={NEW_TYPED} initialFocused />,
   "03-01": () => <Gen mode="remix" quote="“Cruel Summer, but make it Bollywood.”" />,
   "03-02": () => <Gen mode="cover" quote="“In Too Deep, sung by Arijit Singh.”" />,
   "03-03": () => <Gen mode="rewrite" quote="“Payphone, but it’s about moving to London.”" />,
@@ -63,7 +63,7 @@ export const SCREENS: Record<string, () => ReactNode> = {
 };
 
 function Gen({ mode, quote }: { mode: ModeId; quote: string }) {
-  return <GeneratingScreen mode={mode} quote={quote} destination="/track/cruel-bolly" animate={false} />;
+  return <GeneratingScreen mode={mode} quote={quote} readyHref="/track/cruel-bolly" animate={false} />;
 }
 
 export const BUILT = new Set(Object.keys(SCREENS));
