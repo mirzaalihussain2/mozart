@@ -111,7 +111,7 @@ export function titleFor(input: GenerateInput, root: string | null): string {
 }
 
 // Words a cut title shouldn't end on ("A sad garage song about the").
-const DANGLING = new Set(["a", "an", "the", "of", "for", "about", "to", "and", "or", "with", "in", "on", "at", "by", "from", "but", "my", "your"]);
+const DANGLING = new Set(["a", "an", "the", "of", "for", "about", "to", "into", "onto", "and", "or", "with", "in", "on", "at", "by", "from", "but", "my", "your"]);
 
 /**
  * Trims to at most `max` characters at a word boundary, without trailing

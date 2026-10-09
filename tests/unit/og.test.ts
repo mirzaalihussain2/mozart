@@ -19,6 +19,10 @@ test("long titles stop at two lines with an ellipsis", () => {
   for (const l of lines) assert.ok(l.length <= 17, l);
 });
 
+test("the truncated line is filled before the ellipsis", () => {
+  assert.deepEqual(ogTitleLines("Cruel Summer × Make it a stripped-back"), ["Cruel Summer ×", "Make it a stripp…"]);
+});
+
 test("a single very long word is split, then truncated", () => {
   const lines = ogTitleLines("Supercalifragilisticexpialidociousness forever");
   assert.equal(lines.length, 2);

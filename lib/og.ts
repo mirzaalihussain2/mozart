@@ -15,9 +15,9 @@ export function ogTitleLines(title: string, maxChars = 17, maxLines = 2): string
     lines.push(line);
   }
   if (i < words.length) {
-    const last = lines[lines.length - 1];
-    const room = maxChars - 1;
-    lines[lines.length - 1] = `${(last.length > room ? last.slice(0, room) : last).replace(/[\s×.,;:—–-]+$/u, "")}…`;
+    // Fill the last line with what's left (cutting mid-word), then "…".
+    const rest = [lines[lines.length - 1], ...words.slice(i)].join(" ");
+    lines[lines.length - 1] = `${rest.slice(0, maxChars - 1).replace(/[\s×.,;:—–-]+$/u, "")}…`;
   }
   return lines;
 }
