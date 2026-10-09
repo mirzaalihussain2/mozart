@@ -1,6 +1,77 @@
 # Progress
 
-## Milestone 6 — Mini player · done (PR #6, branch `m6-mini-player`)
+## Milestone 7 — Real Spotify sign-in · done (PR #7, branch `m7-spotify`)
+
+"Connect Spotify" (landing) and "Continue with Spotify" (Send-to sheet) do a **real** Spotify sign-in for allowlisted accounts. Their **top tracks** fill the song picker and their **top artists** fill the Cover singers. **Any** failure silently becomes the dummy persona, landing where a real sign-in would. Session, claiming, toast and redirect still finish in `completeSignIn`.
+
+### Built
+- **Login:** `GET /auth/spotify/login`.
+  - It validates `returnTo`; without credentials or on Vercel previews, it signs in the dummy persona.
+  - Otherwise it seals `{ state, verifier, returnTo }` into `mozart_oauth` and redirects to Spotify. That's Authorization Code + PKCE S256, scopes `user-read-private user-top-read`, redirect `{APP_URL}/auth/spotify/callback`.
+- **Callback:** `GET /auth/spotify/callback` always clears the cookie, then:
+  - **on success:** code exchange (Basic auth) → `/v1/me` + top tracks + top artists in parallel → upsert by `spotify_user_id` (taste refreshed) → `completeSignIn`;
+  - **on any failure** (cancel, bad state, token, 401/403/429, a 5 s timeout, anything thrown): one reason-only log line, then the dummy persona with the stored `returnTo`.
+- **`lib/server/spotify/`:**
+  - `client.ts` — the only module that calls Spotify;
+  - `pkce.ts`;
+  - `oauth-state.ts` / `oauth-cookie.ts` — sealed with `SESSION_SECRET`: httpOnly, Lax, path `/auth/spotify`, 10 min.
+- **`lib/spotify/map-taste.ts`** (pure):
+  - tracks: cleans names, takes the first artist, an album image near 300 px, de-duplicates, keeps Spotify order, caps at 20;
+  - artists: capped at 12;
+  - `genres: []`;
+  - `firstNameFrom` (`ali` → `Ali`, empty → `Friend`).
+- **`lib/server/taste.ts`:** `getTasteFor(user)` is a Spotify user's own taste (≥ 6 tracks; the mock artists if they have none), else `MOCK_TASTE`. `catalogueFor(user)` returns `{ songs, singers }`.
+- **Pickers and validation:** the song picker and Cover singers come from the server page. The validator, `POST /api/generate` and `create-track` use the same catalogue, so a song outside it → 400. Spotify ids work in `/create/[mode]/[songId]`. Titles keep the rule (*Way Too Self Aware × Bollywood*).
+- **Fixtures:** `docs/fixtures/spotify/`, with the user id, profile links and avatar URLs in `me.json` replaced by placeholders.
+
+### Verified
+- `pnpm typecheck`, `pnpm lint`, `pnpm build`: no errors.
+- `pnpm test:unit`: **48/48**:
+  - mapping against the fixtures (Blackbird / lovely / Beggin, the duplicate FIRE ON FIRE DRILL, order, caps, artists, genres, first names);
+  - PKCE against RFC 7636 Appendix B;
+  - the authorize URL;
+  - skip rules;
+  - the sealed state (round trip, tampering, bad `returnTo`);
+  - `getTasteFor` and catalogue validation.
+- `pnpm test:e2e`: **72/72**, twice in a row. The app runs on 3001 against a fake Spotify (4545). New `spotify.spec.ts`:
+  - **ok:** a Spotify user "Ali" (a different id from dummy Ali) with the fixture songs and singers, and a remix named *Way Too Self Aware × Bollywood*;
+  - **deny, forbidden, slow, bad_state:** each lands as dummy Ali on `/create`, with no error UI and no `mozart_oauth` left;
+  - **the recipient loop:** completed through Spotify, with the track claimed by the Spotify user;
+  - **"Log in":** still dummy Ali with the mock songs;
+  - **validation:** a Spotify song id from dummy Ali → 400.
+- **Visual:** the Remix song picker with the fixture taste has 02-01's layout; only the names and initials differ.
+- **Not done by me:** the manual check with your real allowlisted account (it needs your login). Steps are in the PR.
+
+### Decisions (as specified)
+1. Authorization Code + PKCE (S256), scopes `user-read-private user-top-read`; server-side token exchange with Basic auth.
+2. Redirect URI `{getAppUrl()}/auth/spotify/callback`. Skipped (dummy fallback) on Vercel previews or without credentials.
+3. `mozart_oauth` = sealed `{ state, verifier, returnTo }` (iron-session, `SESSION_SECRET`): httpOnly, Secure in production, Lax, path `/auth/spotify`, 10 minutes, always deleted in the callback. No new tables.
+4. Silent fallback on any failure; one log line with the reason only.
+5. Tokens are used once and never stored. `/v1/me` plus top tracks and artists (`limit=50`, `medium_term`) in parallel; failed top lists still sign in, with empty taste.
+6. Upsert by `spotify_user_id`: display name, first name, the largest avatar, `auth_provider: spotify`, and taste refreshed on every sign-in.
+7. Taste mapping as above; genres are always empty.
+8. `getTasteFor` returns the Spotify taste with ≥ 6 tracks, otherwise `MOCK_TASTE`.
+9. Pickers and validation use the same per-viewer catalogue. Genres, themes and ideas stay static.
+10. The UI is unchanged: grey placeholders, no Spotify images, no copy changes.
+11. "Connect Spotify" / "Continue with Spotify" → the real login. "Log in" → `POST /auth/dummy` (always Ali).
+12. `SPOTIFY_ACCOUNTS_URL` / `SPOTIFY_API_URL` are test overrides, ignored in production. Every Spotify call is in `lib/server/spotify/client.ts`.
+
+### Other decisions
+- **Singer ids** are slugs of the artist's name for both Spotify and mock taste, so "Fred again.." still matches the audio catalogue's tags.
+- **The fake Spotify picks its scenario per browser** (a cookie, carried in the code and token), so parallel tests don't interfere. The default is `forbidden`, like a non-allowlisted account.
+- **The e2e app runs on 127.0.0.1:3001** with `APP_URL` set to match, so tests never reuse a dev server holding the real keys.
+
+### Accepted gaps
+- No token storage and no re-sync between sign-ins: taste is fetched once per sign-in.
+- Previews always use the dummy fallback (no preview redirect URIs).
+- Spotify returns no genres for this app, so `genres` is always empty.
+- Something new ideas, genres and themes aren't personalised.
+- Spotify Development Mode allows only 5 allowlisted users; everyone else silently becomes Ali or Sam.
+- `GET /auth/spotify/login` still signs in directly when it falls back (the dummy flow). The real flow is protected by `state` + PKCE.
+
+## Next: Milestone 8 — Polish + E2E
+
+## Milestone 6 — Mini player · done (PR #6, merged)
 
 Start a track on its player → **Minimise** → the music keeps playing, with a mini player above the tab bar on the Library and Create home (07-02, 01-03) and the playing row outlined. Tap the mini player to return to the player at the same point. **Close player** and **Log out** stop the music.
 
@@ -61,7 +132,6 @@ Start a track on its player → **Minimise** → the music keeps playing, with a
   - the callback calls `completeSignIn`, with the dummy persona as the silent fallback;
   - taste import into the pickers and ideas.
 
-## Next: Milestone 7 — Spotify
 
 ## Milestone 5 — Recipient loop · done (PR #5, merged)
 
