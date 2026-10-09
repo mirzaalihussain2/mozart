@@ -2,6 +2,7 @@ import "server-only";
 import { eq } from "drizzle-orm";
 import { getIronSession, type IronSession, type SessionOptions } from "iron-session";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { db } from "./db";
@@ -34,7 +35,11 @@ function sessionOptions(): SessionOptions {
 
 /** Read/write in route handlers and server functions; read-only in server components. */
 export async function getSession(): Promise<IronSession<SessionData>> {
-  return getIronSession<SessionData>(await cookies(), sessionOptions());
+  const cookieStore = await cookies();
+  // iron-session checks seal expiry with Date.now(); without this, dev
+  // prerender validation flags it even though cookies() was read first.
+  await connection();
+  return getIronSession<SessionData>(cookieStore, sessionOptions());
 }
 
 /** The signed-in user's row, or null. Deduplicated per request. */
