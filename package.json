@@ -14,7 +14,7 @@
     "shots": "tsx scripts/shots.ts",
     "shots:diff": "tsx scripts/shots-diff.ts",
     "test:e2e": "playwright test",
-    "test:unit": "tsx --test tests/unit/*.test.ts"
+    "test:unit": "tsx --conditions=react-server --test tests/unit/*.test.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.4",

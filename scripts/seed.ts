@@ -1,11 +1,13 @@
 // pnpm db:seed — idempotent: upserts the dummy user Ali and the six tracks in
-// 07-01 (by slug), refreshing their dates relative to now.
+// 07-01 (by slug), refreshing their dates relative to now. Every track points
+// at a real catalogue file in public/audio/.
 // Uses its own client because lib/server/db imports "server-only".
 import { config } from "dotenv";
 import { inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { DUMMY_USER, PLACEHOLDER_AUDIO, SEED_TRACKS } from "../lib/config/dummy-user";
+import { AUDIO_CATALOGUE } from "../lib/config/audio-catalogue";
+import { DUMMY_USER, SEED_TRACKS } from "../lib/config/dummy-user";
 import { tracks, users } from "../lib/server/db/schema";
 
 config({ path: ".env.local", quiet: true });
@@ -29,13 +31,19 @@ async function main() {
     const ids = new Map<string, string>();
     const now = Date.now();
     for (const t of ordered) {
+      const audio = AUDIO_CATALOGUE.find((a) => a.id === t.audio);
+      if (!audio) throw new Error(`Unknown catalogue id "${t.audio}" for ${t.publicSlug}`);
       const fields = {
         publicSlug: t.publicSlug,
         mode: t.mode,
         title: t.title,
-        audioUrl: PLACEHOLDER_AUDIO,
+        audioUrl: audio.file,
         artworkUrl: null,
-        generationInput: t.generationInput,
+        generationInput: {
+          ...t.generationInput,
+          ...(t.source ? { sourceTrackId: ids.get(t.source) ?? "" } : {}),
+          audioId: audio.id,
+        },
         sourceTrackId: t.source ? (ids.get(t.source) ?? null) : null,
         ownerUserId: DUMMY_USER.id,
         anonymousSessionId: null,
