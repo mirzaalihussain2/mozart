@@ -1,71 +1,121 @@
 # Progress
 
-## Milestone 2 — Static UI · in progress (PR #2, branch `m2-static-ui`)
+## Milestone 2 — Static UI · done (PR #2, branch `m2-static-ui`)
 
-The instructions I received stopped partway through Step 6 (Player). Steps 0–6 are done; the rest is waiting on the remaining instructions.
+All 39 main-flow screens exist, built from shared components, and are connected as `docs/flow-index.md` says. Data comes from the DB (users, tracks) and `lib/config/`. Generation, audio, sharing and anonymous logic are not built yet (M3–M6); their UI is built and ready to wire.
 
-### Built (all 39 screens exist and are in the gallery)
-- **Gallery**: `/dev/screens` lists all 39; `/dev/screens/[id]` renders each with the real components in its design state; `/dev/compare/[id]` shows it beside the PNG (served by `/dev/designs/[id]`). All `/dev/*` return 404 when `VERCEL_ENV=production` (verified with a production build). `pnpm shots` / `pnpm shots:diff` cover all 39.
-- **Create home** `/create` (01-02; 01-03 with the static mini player). The avatar opens a menu with **Log out** (the design has an avatar, so logout lives there).
-- **Create flows**:
-  - Step 1 `/create/remix|cover|rewrite` (02-01, 02-03, 02-05), with a search box that filters the 16 songs.
-  - Step 2 `/create/[mode]/[songId]` (02-02, 02-04, 02-06). Generate is disabled until an option is picked.
-  - Something new `/create/new` (02-07, 02-08).
-- **Generating** (03-01…03-04, 06-01…06-04): `useGenerate` shows the screen for ~3.5 s, then opens the player. `TODO(M3)`: POST `/api/generate`. From the Create flows it opens `/track/cruel-bolly`; from a player, that track.
-- **Player** `/track/[slug]`:
-  - Signed-in owner → `creator` (03-05); anyone else → `recipient` (05-01); `?view=recipient` previews the recipient view.
-  - `recipientResult` (06-05), the share sheet states (03-06, 05-07, 06-07 + toast) and Send to Ali (06-06) are built and shown in the gallery.
-  - Share opens the sheet; the save `+` opens Send to Ali, whose "Continue with Spotify" goes to `/auth/spotify/login?returnTo=/track/{slug}`.
-- **From a player** `/track/[slug]/remix|cover|rewrite|vibe` (04-xx creator, 05-xx recipient): the same `StepTwo` component, with no step counter.
-- **Library** `/library` (07-01; 07-02 with the mini player): Ali's tracks from the DB, newest first, REMIX badge on derived tracks, Today / Yesterday / "3 Oct" dates.
-- **Seed**: Ali owns the six 07-01 tracks (slugs `cruel-bolly`, `cruel-electro`, `deep-bolly`, `euphoric-pop`, `cinematic-pop`, `deep-lofi`), with dates relative to now. Re-running is safe.
-- **Shared components**:
-  - `components/ui`: BottomSheet (dimmed backdrop, Escape, backdrop and X close, focus trap), Toast, Pill, PrimaryButton / ModeButton.
-  - `components/navigation`: PillBackButton, StepHeader, TabBar, ProfileMenu.
-  - `components/creation`: ModeCard, SongPicker, StepOne, StepTwo, SomethingNew, GeneratingScreen.
-  - `components/track`: Artwork, ModeTile.
-  - `components/audio`: Player, MiniPlayer.
-  - `components/sharing`: ShareSheet, SignupSheet.
-  - `components/library`: LibraryView.
-- **Config**: `lib/config/songs|genres|singers|themes|ideas.ts`.
+### Routes
+- `/create`: 01-02 Create home. The avatar opens a menu with **Log out** (the design has an avatar, so Log out lives there).
+- `/create/remix|cover|rewrite`: step 1 (02-01, 02-03, 02-05). A search box filters the 16 songs.
+- `/create/[mode]/[songId]`: step 2 (02-02, 02-04, 02-06). Generate stays disabled until an option is picked. Unknown modes and songs return 404.
+- `/create/new`: Something new (02-07, 02-08).
+- Every Generate shows the Generating screen in the mode colour for ~3.5 s (03-0x / 06-0x), then opens the player:
+  - from the Create flows → `/track/cruel-bolly`;
+  - from a player → that track.
+- `/track/[slug]`: the player. Loads the track and owner from the DB (404 if missing); no sign-in needed.
+  - Signed-in owner → `creator` (03-05); anyone else → `recipient` (05-01).
+  - `?view=recipient` lets the owner preview the recipient view ("Open as recipient").
+  - `?share=1` opens the share sheet.
+  - `?share=1&saved=1` (the Send-to `returnTo`) opens the sheet and shows "Signed in · saved to your library" once (06-07). The chevron reads "Close player" (06-08), then `router.replace` drops both params.
+- `/track/[slug]/remix|cover|rewrite|vibe`: step 2 from a player (04-xx owner, 05-xx others), using the same StepTwo component with no step counter.
+- `/library`: 07-01. Ali's tracks, newest first, with a REMIX badge on derived tracks and Today / Yesterday / "3 Oct" dates.
+- `/dev/screens`, `/dev/screens/[id]`, `/dev/compare/[id]`: the gallery, rendering all 39 screens with the real components in their design states. Returns 404 when `VERCEL_ENV=production` (covered by e2e).
+- Not reachable by route yet, gallery only:
+  - `recipientResult` (06-05, 06-06) arrives in M5;
+  - the mini player (01-03, 07-02) arrives in M6;
+  - 05-07 has no entry point in the flow index.
+
+### Shared components
+- **Pattern components (one each, with variants):**
+  - `Player` (creator / recipient / recipientResult)
+  - `StepTwo` (remix / cover / rewrite / vibe; from Create or from a player)
+  - `GeneratingScreen`
+  - `BottomSheet` (dimmed backdrop, X / backdrop / Escape close, focus trap) and the sheets built on it: `ShareSheet`, `SignupSheet`
+  - `SongPicker`, `StepOne`, `SomethingNew`
+  - `MiniPlayer`
+- **Smaller pieces:** `ModeCard`, `ModeTile`, `PillBackButton`, `StepHeader`, `TabBar`, `ProfileMenu`, `Pill`, `PrimaryButton`/`ModeButton`, `Toast`, `Artwork`.
+- **Config:** `lib/config/songs|genres|singers|themes|ideas.ts`. Mode colours, labels and icons all come from `lib/config/modes.ts`.
 
 ### Verified
-- `pnpm typecheck` (now runs `next typegen` first), `pnpm lint` and `pnpm build`: no errors.
-- `pnpm db:seed` twice: still 6 tracks, 1 user.
-- `pnpm test:e2e`: 17/17 (smoke + `static-ui.spec.ts`, clicking by flow-index names). Covers:
-  - Create → Remix → song → genre → Generating → player;
-  - step 2 back links;
-  - Something new;
-  - share sheet closes by X, backdrop and Escape;
-  - Open as recipient;
-  - player tiles → step 2 → back;
+- `pnpm typecheck` (runs `next typegen` first), `pnpm lint` and `pnpm build`: no errors.
+- `pnpm db:seed` twice: still 1 user, 6 tracks.
+- `pnpm test:e2e`: **27/27**, run three times in a row. `navigation.spec.ts` clicks by flow-index names:
+  - all four create flows end to end;
+  - back and "change song" links;
+  - Library order and tabs;
+  - share sheet: closes by X, backdrop and Escape; Open as recipient;
+  - every player tile → step 2 → Back;
   - Generate from a player;
-  - Library → player → Minimise;
-  - signed-out recipient + Send to Ali sheet;
-  - 404s.
-- `pnpm shots` + `pnpm shots:diff` on all 39:
-  - 01-01, 03-xx, 05-01, 06-0x players: ≤0.3%.
-  - Steps, Create home, Library and sheets: 0.6–1.9%, all text anti-aliasing or the systemic ≤1 pt text offset below.
-  - 02-08 / 04-05 / 05-06: ~24%, because of the drawn keyboard.
+  - signed out: Save → Send to Ali → Continue with Spotify → back with sheet + toast, and the params are gone after a refresh;
+  - `/create` and `/library` redirect when signed out;
+  - 404s;
+  - all 39 gallery routes;
+  - `/dev` returns 404 under `VERCEL_ENV=production`.
+- At 1280 px, all four create flows, step 2, the player (with its sheet) and the Library are one centred 390 px column on `#121212`.
+- Visual check, `pnpm shots` + `pnpm shots:diff` and side-by-side crops. "Font offset" = text ≤1 pt lower than the PNG (see Known gaps):
 
-### Decisions / assumptions
-- Designs over the brief, where they disagree:
-  - Something new has **no idea chips**. Ideas rotate as ghost text with dots, and Generate with an empty box uses the idea on screen, so it's never disabled.
-  - Vibe-from-player Generate stays enabled (as designed); with an empty box it focuses the box.
-- The "If time" badge on WhatsApp in the share sheet is a designer's scope note and is omitted.
-- The drawn iOS keyboard in 02-08 / 04-05 / 05-06 is not rendered; the device keyboard provides it.
-- Player and mini-player art is the crossed placeholder from the designs. Library art is a plain grey square; pickers use initials.
-- Step 2 with nothing picked shows the lead ("…but make it") with no coloured word, and Generate is disabled. The designs only show the picked state.
-- Generating quotes are built by `lib/generation.ts`. From someone else's track it's "Ali’s Cruel Summer, …"; for Vibe it's "…, but {prompt}."
-- `In Too Deep × Bollywood` is seeded as a cover by Arijit Singh (the brief says cover; the title follows the design).
-- Recipients see "Sent by {owner}"; an ownerless track says "a friend". `recipientResult` becomes reachable in M5.
-- `html { line-height: normal }`: the designs leave line-height at the browser default, while Tailwind sets 1.5.
-- Design CSS is content-box, so sizes include borders: 81 px library rows, 22 px badge, 172/134/202 px text boxes.
+| Screen | Diff | Result |
+| --- | --- | --- |
+| 01-01 Landing | 0.08% | Match |
+| 01-02 Create home | 0.82% | Match; font offset |
+| 01-03 Create home + mini player | 1.00% | Match; font offset |
+| 02-01 / 02-03 / 02-05 Step 1 | 1.86–1.89% | Match; font offset on 16 titles and initials |
+| 02-02 / 02-04 / 02-06 Step 2 | 0.81–1.31% | Match; font offset |
+| 02-07 Something new | 0.60% | Match |
+| 02-08 Something new, typed | 23.84% | Match above the keyboard. The design draws an iOS keyboard; the device supplies it, so Generate sits at the bottom here |
+| 03-01…03-04 Generating | 0.10–0.22% | Match |
+| 03-05 Player · creator | 0.17% | Match |
+| 03-06 Share sheet | 0.82% | Match except the omitted "If time" badge |
+| 04-01…04-03 From player | 0.92–1.40% | Match; font offset |
+| 04-04 Vibe | 0.90% | Match |
+| 04-05 Vibe, typed | 24.34% | As 02-08 (keyboard) |
+| 05-01 Player · recipient | 0.21% | Match |
+| 05-02…05-05 Recipient step 2 | 0.90–1.40% | Same as 04-xx |
+| 05-06 Recipient Vibe, typed | 24.34% | As 02-08 (keyboard) |
+| 05-07 Share · recipient | 0.78% | Match except the "If time" badge |
+| 06-01…06-04 Generating | 0.11–0.23% | Match |
+| 06-05 Recipient's remix | 0.27% | Match |
+| 06-06 Send to Ali | 0.30% | Match |
+| 06-07 Back from Spotify | 1.05% | Match except the "If time" badge |
+| 06-08 Signed in, creator player | 0.19% | Match |
+| 07-01 Library | 1.29% | Match; font offset (live dates are relative) |
+| 07-02 Library + mini player | 1.47% | Match; font offset |
+
+### Decisions
+- **Gallery** at `/dev/screens` is the place to review every state, including ones not reachable by route yet. `/dev/compare/<id>` shows a screen beside its design. Captures come from gallery routes, so dates and states are frozen to the designs.
+- `?view=recipient`, `?share=1` and `?saved=1` on `/track/[slug]` (see Routes).
+- **Log out** is in the Create home avatar menu. It's a native `<details>`, so it works before hydration.
+- The designs win over the brief:
+  - Something new has **no idea chips**. The ideas rotate as ghost text with dots, and Generate with an empty box uses the idea on screen.
+  - Vibe-from-player Generate stays enabled as designed; with an empty box it focuses the box.
+- `html { line-height: normal }` to match the designs (Tailwind's default is 1.5). Design CSS is content-box, so sizes include borders: 81 px library rows, 22 px badges, 172 / 134 / 202 px text boxes, 142 / 172 px landing tiles.
+- An e2e-only second dev server (port 3100, `NEXT_DIST_DIR=.next-prodcheck`, `VERCEL_ENV=production`) checks the `/dev` gate.
+
+### Assumptions
+- The "If time" badge on WhatsApp is a designer's scope note, so it's omitted.
+- The drawn iOS keyboard (02-08, 04-05, 05-06) is not rendered; the device supplies it.
+- Step 2 with nothing picked shows only the lead ("…but make it"). The designs show only picked states.
+- Player and mini-player art is the crossed placeholder from the designs; Library art is a plain square; pickers use initials.
+- Generating quotes come from `lib/generation.ts`. For someone else's track: "Ali’s Cruel Summer, …". For Vibe: "…, but {prompt}."
+- `In Too Deep × Bollywood` is seeded as a cover by Arijit Singh. A track with no owner shows "a friend" / "You".
+- The Send-to sheet copy ("save your remix") is the same on 05-01 as on 06-06, since the designs have only one version.
 
 ### Known gaps
-- Text renders ≤1 pt lower than the PNGs throughout. This is a DM Sans font-metrics difference (`next/font` build vs the one used to render the designs), not layout. Boxes and positions match.
-- Copy link and WhatsApp are `TODO(M4)`. Play/pause and the mini player are static (M3/M6). 05-07 has no entry point in the flow index (gallery only).
-- Turbopack sometimes serves stale CSS after editing `app/globals.css`. If a style change doesn't show, restart `pnpm dev` (delete `.next/dev` if needed).
+- **Font offset:** text renders up to 1 pt lower than the PNGs throughout. It's a DM Sans build difference between `next/font` and whatever rendered the designs: positions and boxes match, glyphs sit slightly lower. The variable font with optical sizing was tried and is worse.
+- **Turbopack CSS hot reload** sometimes serves stale CSS after editing `app/globals.css`. Restart `pnpm dev` and delete `.next/dev` if a style change doesn't show.
+- **Dev-log noise:** the e2e prod-check server logs "Could not validate `instant`" errors when `/dev` 404s on purpose. Harmless.
+
+### TODOs left for later milestones
+- **M3:**
+  - `lib/client/use-generate.ts`: replace the mock with `POST /api/generate`;
+  - `app/create/[mode]/[songId]/page.tsx`, `app/create/new/page.tsx`, `app/track/[slug]/[mode]/page.tsx`: open the newly made track;
+  - `components/audio/Player.tsx`: drive the global `<audio>`.
+- **M4:** `components/sharing/ShareSheet.tsx`: Copy link (then "Copied ✓") and WhatsApp, using `shareUrl`.
+- **M5:** make `recipientResult` reachable; the anonymous cookie, the one-make limit and claiming.
+- **M6:** `components/audio/MiniPlayer.tsx`: real play/pause and when the mini player appears (01-03, 07-02). Tabs carrying the mini player.
+- **M7:** `app/auth/spotify/login/route.ts`: real Spotify OAuth; it currently signs in as Ali.
+
+## Next: Milestone 3 — Generate
 
 ## Milestone 1 — Foundations · done (PR #1, merged)
 
