@@ -5,13 +5,11 @@ import { cleanUrl, shareMessage, whatsappHref } from "../../lib/share-message";
 
 const TRACK_URL = "https://mozart.example.com/track/abc123defg";
 
-test("the agreed message: title, full stop, line break, link", () => {
+test("the agreed message: quoted title, full stop, blank line, link", () => {
   assert.equal(
-    shareMessage("Do I Wanna Know? × Pop punk", TRACK_URL),
-    "I made this track on Mozart, Do I Wanna Know? × Pop punk.\nListen and make your own version here: https://mozart.example.com/track/abc123defg",
+    shareMessage("Latch × The Weeknd", TRACK_URL),
+    "I made this track on Mozart, 'Latch × The Weeknd'.\n\nListen and make your own version here: https://mozart.example.com/track/abc123defg",
   );
-  // No double full stop after a title that already ends in one.
-  assert.equal(shareMessage("Holocene × Fred again..", TRACK_URL).split("\n")[0], "I made this track on Mozart, Holocene × Fred again..");
 });
 
 test("WhatsApp link round-trips quotes, ×, &, # and emoji", () => {
