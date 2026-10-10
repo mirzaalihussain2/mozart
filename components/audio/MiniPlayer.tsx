@@ -14,6 +14,8 @@ export type MiniPlayerProps = {
   progress: number;
   /** Saved ✓ — only for the viewer's own track. */
   saved?: boolean;
+  /** The track's album art; null shows the crossed placeholder. */
+  artworkUrl?: string | null;
   /** Live: drive the one <audio> (NowPlayingSlot). Without it (gallery) the icon toggles locally. */
   onToggle?: () => void;
 };
@@ -22,7 +24,7 @@ export type MiniPlayerProps = {
  * Mini player above the tab bar (CfHomePlaying / CfLibraryPlaying). On real
  * routes NowPlayingSlot feeds it from useAudio(); the gallery passes fixtures.
  */
-export function MiniPlayer({ slug, title, artist, playing: playingProp, progress, saved = true, onToggle }: MiniPlayerProps) {
+export function MiniPlayer({ slug, title, artist, playing: playingProp, progress, saved = true, artworkUrl, onToggle }: MiniPlayerProps) {
   const [localPlaying, setLocalPlaying] = useState(playingProp);
   const playing = onToggle ? playingProp : localPlaying;
   return (
@@ -33,7 +35,7 @@ export function MiniPlayer({ slug, title, artist, playing: playingProp, progress
         aria-label={`Now playing: ${title} by ${artist}. Open player`}
         className="absolute inset-0 rounded-[10px]"
       />
-      <Artwork variant="mini" />
+      <Artwork variant="mini" src={artworkUrl} />
       <span className="pointer-events-none flex min-w-0 flex-grow flex-col gap-px">
         <span className="truncate text-sm font-bold">{title}</span>
         <span className="text-text-secondary text-[13px]">{artist}</span>

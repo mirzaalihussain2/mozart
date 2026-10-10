@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Player, type PlayerVariant } from "@/components/audio/Player";
 import { getAudioByFile } from "@/lib/config/audio-catalogue";
 import { trackUrl } from "@/lib/server/app-url";
+import { artworkPending } from "@/lib/server/artwork";
 import { getTrackBySlug } from "@/lib/server/tracks";
 import { artistLabel, viewerFor } from "@/lib/server/viewer";
 
@@ -69,6 +70,8 @@ export default async function TrackPage({ params, searchParams }: PageProps<"/tr
       justSaved={saved}
       audio={{ src: track.audioUrl, durationSec: getAudioByFile(track.audioUrl)?.durationSec }}
       isOwn={viewer.isOwner}
+      artworkUrl={track.artworkUrl}
+      artworkPending={artworkPending(track)}
       mode={track.mode}
       autoplay={autoplay}
       // Drop ?share / ?saved / ?autoplay once handled so a refresh doesn't repeat them.

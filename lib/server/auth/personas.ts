@@ -1,11 +1,13 @@
 import "server-only";
 import { and, eq, notInArray } from "drizzle-orm";
 import { FALLBACK_ORDER, STARTER_TRACKS, type Persona } from "../../config/personas";
-import { singersFrom } from "../../config/singers";
+import { STARTER_ARTWORK } from "../../config/starter-artwork";
+import { findSinger, singersFrom } from "../../config/singers";
 import { songsFrom } from "../../config/songs";
 import { changeLabel, titleFor, type Catalogue, type GenerateInput } from "../../generation-input";
 import { pickPersona, trackSlugFromPath } from "../../sign-in";
 import { db } from "../db";
+import { removeTrackArtwork } from "../artwork/storage";
 import { tracks, users } from "../db/schema";
 import { pickAudio } from "../generate/pick-audio";
 import { getTrackBySlug } from "../tracks";
@@ -44,17 +46,18 @@ export type StarterRow = {
  */
 export function starterRows(persona: Persona, now: number): StarterRow[] {
   const catalogue: Catalogue = { songs: songsFrom(persona.spotifyTaste), singers: singersFrom(persona.spotifyTaste) };
-  const built = new Map<string, { root: { song: string; artist: string } | null; audioUrl: string }>();
+  type Root = { song: string; artist: string; imageUrl: string | null };
+  const built = new Map<string, { root: Root | null; audioUrl: string }>();
   return (STARTER_TRACKS[persona.id] ?? []).map((t) => {
     let input: GenerateInput;
-    let root: { song: string; artist: string } | null = null;
+    let root: Root | null = null;
     let sourceSlug: string | null = null;
     let sourceFile: string | undefined;
     if ("song" in t) {
       const song = catalogue.songs.find((s) => s.title === t.song);
       if (!song) throw new Error(`${persona.firstName}'s starter ${t.slug}: "${t.song}" isn't in their top tracks`);
       input = { ...t.change, sourceSongId: song.id } as GenerateInput;
-      root = { song: song.title, artist: song.artist };
+      root = { song: song.title, artist: song.artist, imageUrl: song.imageUrl };
     } else if ("source" in t) {
       const source = built.get(t.source);
       if (!source) throw new Error(`${persona.firstName}'s starter ${t.slug}: source ${t.source} must come first`);
@@ -70,6 +73,7 @@ export function starterRows(persona: Persona, now: number): StarterRow[] {
     built.set(t.slug, { root, audioUrl: audio.file });
     // Stored like a real make's input; the placeholder sourceTrackId is swapped for the real id at insert.
     const asked = Object.entries(input).filter(([k, v]) => v !== undefined && !(sourceSlug && k === "sourceTrackId"));
+    const singerImageUrl = input.mode === "cover" ? findSinger(catalogue.singers, input.singerId)?.imageUrl : null;
     return {
       slug: t.slug,
       mode: input.mode,
@@ -78,6 +82,8 @@ export function starterRows(persona: Persona, now: number): StarterRow[] {
       generationInput: {
         ...(Object.fromEntries(asked) as Record<string, string>),
         ...(root ? { rootSong: root.song, rootArtist: root.artist } : {}),
+        ...(root?.imageUrl ? { rootImageUrl: root.imageUrl } : {}),
+        ...(singerImageUrl ? { singerImageUrl } : {}),
         audioId: audio.id,
         label: changeLabel(input, catalogue),
       },
@@ -102,11 +108,16 @@ const keepOtherTracks = () => process.env.E2E_KEEP_PERSONA_TRACKS === "1" && pro
 export async function resetPersona(persona: Persona): Promise<string> {
   const rows = starterRows(persona, Date.now());
   const { id, ...fields } = persona;
+  let removedArt: (string | null)[] = [];
   await db.transaction(async (tx) => {
     await tx.insert(users).values({ id, ...fields }).onConflictDoUpdate({ target: users.id, set: fields });
     const keep = rows.map((r) => r.slug);
     if (!keepOtherTracks()) {
-      await tx.delete(tracks).where(keep.length ? and(eq(tracks.ownerUserId, id), notInArray(tracks.publicSlug, keep)) : eq(tracks.ownerUserId, id));
+      const removed = await tx
+        .delete(tracks)
+        .where(keep.length ? and(eq(tracks.ownerUserId, id), notInArray(tracks.publicSlug, keep)) : eq(tracks.ownerUserId, id))
+        .returning({ artworkUrl: tracks.artworkUrl });
+      removedArt = removed.map((r) => r.artworkUrl);
     }
     const ids = new Map<string, string>();
     for (const r of rows) {
@@ -116,7 +127,8 @@ export async function resetPersona(persona: Persona): Promise<string> {
         mode: r.mode,
         title: r.title,
         audioUrl: r.audioUrl,
-        artworkUrl: null,
+        // Made once by pnpm artwork:starters, so it survives every reset.
+        artworkUrl: STARTER_ARTWORK[r.slug] ?? null,
         sourceTrackId,
         generationInput: sourceTrackId ? { ...r.generationInput, sourceTrackId } : r.generationInput,
         ownerUserId: id,
@@ -127,5 +139,7 @@ export async function resetPersona(persona: Persona): Promise<string> {
       ids.set(r.slug, row.id);
     }
   });
+  // Their deleted tracks' art; starter art (starters/…) is never deleted.
+  await removeTrackArtwork(removedArt);
   return id;
 }

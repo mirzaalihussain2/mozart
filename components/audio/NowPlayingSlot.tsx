@@ -22,6 +22,7 @@ export function NowPlayingSlot() {
       playing={a.playing}
       progress={duration ? Math.min(a.current / duration, 1) : 0}
       saved={!!a.track.isOwn}
+      artworkUrl={a.track.artworkUrl}
       onToggle={a.toggle}
     />
   );

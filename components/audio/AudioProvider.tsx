@@ -16,6 +16,8 @@ export type AudioTrack = {
   isOwn?: boolean;
   /** From the catalogue; used until the file's metadata loads. */
   durationSec?: number;
+  /** The track's album art (mini player); null until it's made. */
+  artworkUrl?: string | null;
 };
 
 export type AudioState = {
@@ -37,6 +39,13 @@ export type AudioState = {
 
 const AudioContext = createContext<AudioState | null>(null);
 
+/** Lock screen / notification: title, artist and album art. */
+function setMediaMetadata(t: AudioTrack) {
+  if (!("mediaSession" in navigator) || typeof MediaMetadata === "undefined") return;
+  const artwork = t.artworkUrl ? [{ src: t.artworkUrl, sizes: "1024x1024", type: "image/jpeg" }] : undefined;
+  navigator.mediaSession.metadata = new MediaMetadata({ title: t.title, artist: t.artist, artwork });
+}
+
 /** The one global <audio> element (AGENTS.md §3). */
 export function AudioProvider({ children }: { children: React.ReactNode }) {
   const audio = useRef<HTMLAudioElement>(null);
@@ -50,8 +59,17 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const loaded = useRef<AudioTrack | null>(null);
   const load = useCallback((next: AudioTrack) => {
     const el = audio.current;
+    if (!el) return;
     // Already loaded (e.g. back from the mini player): attach, never restart.
-    if (!el || loaded.current?.slug === next.slug) return;
+    // Album art made after it was loaded still reaches the mini player.
+    if (loaded.current?.slug === next.slug) {
+      if (next.artworkUrl && next.artworkUrl !== loaded.current.artworkUrl) {
+        loaded.current = { ...loaded.current, artworkUrl: next.artworkUrl };
+        setTrack(loaded.current);
+        setMediaMetadata(loaded.current);
+      }
+      return;
+    }
     loaded.current = next;
     el.src = next.src;
     el.load();
@@ -59,9 +77,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     setCurrent(0);
     setDuration(next.durationSec ?? 0);
     setError(false);
-    if ("mediaSession" in navigator && typeof MediaMetadata !== "undefined") {
-      navigator.mediaSession.metadata = new MediaMetadata({ title: next.title, artist: next.artist });
-    }
+    setMediaMetadata(next);
   }, []);
 
   const play = useCallback(() => {

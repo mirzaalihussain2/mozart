@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { parseGenerateInput } from "@/lib/generation-input";
 import { countAnonTracks, getAnonId, getOrCreateAnonId } from "@/lib/server/anon";
+import { artworkForNewTrack } from "@/lib/server/artwork";
 import { isSameOrigin } from "@/lib/server/auth";
 import { createGeneratedTrack, type Maker } from "@/lib/server/generate/create-track";
 import { getCurrentUser } from "@/lib/server/session";
@@ -8,8 +9,9 @@ import { catalogueFor } from "@/lib/server/taste";
 import { sendToName } from "@/lib/server/tracks";
 
 // POST /api/generate — mock generation: validate, pick a
-// catalogue file, name the track and save it to the user's library. No
-// artificial delay; the Generating screen owns the wait.
+// catalogue file, name the track and save it to the user's library, then make
+// its album art (real, on Prodia), waiting up to 10 s for it; the Generating
+// screen's minimum 3.5 s covers most of that.
 //
 // Signed out (a recipient on a shared link): one make, only from a track.
 // The track is unowned, tagged with this browser's mozart_anon id (created
@@ -51,6 +53,7 @@ export async function POST(request: NextRequest) {
     if (!result.ok) {
       return json(result.status, { error: result.status === 429 ? "rate_limited" : "not_found", message: result.error });
     }
+    await artworkForNewTrack(result.track);
     const { id, publicSlug, title, mode, audioUrl } = result.track;
     return json(201, { track: { id, slug: publicSlug, title, mode, audioUrl, isAnonymous: !user } });
   } catch (err) {

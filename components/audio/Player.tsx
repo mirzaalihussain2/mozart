@@ -36,6 +36,10 @@ export type PlayerProps = {
   audio?: { src: string; durationSec?: number };
   /** The viewer owns this track (saved ✓ on the mini player). */
   isOwn?: boolean;
+  /** The track's album art; null shows the crossed placeholder. */
+  artworkUrl?: string | null;
+  /** The art is still being made (a fresh track): refresh until it lands. */
+  artworkPending?: boolean;
   mode?: ModeId;
   /** `?autoplay=1`, set only by Generate. Never for shared or library links. */
   autoplay?: boolean;
@@ -58,6 +62,9 @@ export type PlayerProps = {
 };
 
 const STOPPED = { playing: false, current: 0, duration: 30 };
+/** While the art is being made: re-render from the server this often, this many times. */
+const ARTWORK_POLL_MS = 3000;
+const ARTWORK_POLLS = 10;
 
 /**
  * The one player (CfPlayerSplit / CfPlayerTilesR / CfPlayerTilesResult /
@@ -78,10 +85,10 @@ export function Player(props: PlayerProps) {
   const [staticPlaying, setStaticPlaying] = useState(playback.playing);
   const src = props.playback ? undefined : props.audio?.src;
   const durationSec = props.audio?.durationSec;
-  const { isOwn, mode } = props;
+  const { isOwn, mode, artworkUrl, artworkPending } = props;
   const audioTrack = useMemo<AudioTrack | null>(
-    () => (src ? { slug, title, artist, src, durationSec, isOwn, mode } : null),
-    [slug, title, artist, src, durationSec, isOwn, mode],
+    () => (src ? { slug, title, artist, src, durationSec, isOwn, mode, artworkUrl } : null),
+    [slug, title, artist, src, durationSec, isOwn, mode, artworkUrl],
   );
   // The single <audio> may hold another track; then this player shows paused at 0:00.
   const mine = !!audioTrack && a.track?.slug === slug && a.track.src === audioTrack.src;
@@ -110,6 +117,21 @@ export function Player(props: PlayerProps) {
     a.play();
   }, [props.autoplay, audioTrack, a]);
   const closeLabel = props.closeLabel ?? (justSaved ? "Close player" : "Minimise player");
+
+  // Art that wasn't ready when Generate opened the player: refresh until it
+  // is (the server stops sending artworkPending), then hand it to the mini player.
+  useEffect(() => {
+    if (!artworkPending) return;
+    let polls = 0;
+    const t = setInterval(() => {
+      router.refresh();
+      if (++polls >= ARTWORK_POLLS) clearInterval(t);
+    }, ARTWORK_POLL_MS);
+    return () => clearInterval(t);
+  }, [artworkPending, router]);
+  useEffect(() => {
+    if (mine && audioTrack?.artworkUrl && a.track?.artworkUrl !== audioTrack.artworkUrl) a.load(audioTrack);
+  }, [mine, audioTrack, a]);
 
   useEffect(() => {
     if (cleanHref) router.replace(cleanHref, { scroll: false });
@@ -179,7 +201,7 @@ export function Player(props: PlayerProps) {
       </div>
 
       <div role="img" aria-label="Cover art" className="mt-4 self-center">
-        <Artwork variant="cover" />
+        <Artwork variant="cover" src={artworkUrl} />
       </div>
 
       <div className="mt-4 flex items-center gap-3">
