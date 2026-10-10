@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ChatIcon, EyeIcon, LinkIcon } from "@/components/icons";
+import { EyeIcon, LinkIcon, WhatsAppIcon } from "@/components/icons";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { cleanUrl, whatsappHref } from "@/lib/share-message";
 
@@ -87,8 +87,8 @@ export function ShareSheet({ shareUrl, title, onClose, recipientHref, initialCop
           rel="noopener noreferrer"
           className={`${ROW} ${recipientHref ? "border-raised border-b" : ""}`}
         >
-          <span className={RING}>
-            <ChatIcon size={20} strokeWidth={1.8} />
+          <span className="bg-whatsapp flex size-11 shrink-0 items-center justify-center rounded-full text-white">
+            <WhatsAppIcon size={24} />
           </span>
           <span className="flex-grow text-base font-semibold">WhatsApp</span>
         </a>
