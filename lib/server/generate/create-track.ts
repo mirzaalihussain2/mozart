@@ -1,6 +1,7 @@
 import "server-only";
 import { and, count, eq, gt, isNull } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
+import { findSinger } from "@/lib/config/singers";
 import { findSong } from "@/lib/config/songs";
 import { rootTitle } from "@/lib/format";
 import { changeLabel, titleFor, type Catalogue, type GenerateInput } from "@/lib/generation-input";
@@ -27,7 +28,7 @@ export type CreateResult =
 async function resolveSource(input: GenerateInput, catalogue: Catalogue) {
   if ("sourceSongId" in input && input.sourceSongId) {
     const song = findSong(catalogue.songs, input.sourceSongId)!;
-    return { found: true as const, root: { song: song.title, artist: song.artist }, track: null };
+    return { found: true as const, root: { song: song.title, artist: song.artist, imageUrl: song.imageUrl }, track: null };
   }
   if ("sourceTrackId" in input && input.sourceTrackId) {
     const track = await getTrackById(input.sourceTrackId);
@@ -35,7 +36,7 @@ async function resolveSource(input: GenerateInput, catalogue: Catalogue) {
     const gi = track.generationInput;
     const song = gi.rootSong ?? gi.sourceSong ?? rootTitle(track.title);
     const artist = gi.rootArtist ?? gi.sourceArtist ?? "";
-    return { found: true as const, root: { song, artist }, track };
+    return { found: true as const, root: { song, artist, imageUrl: gi.rootImageUrl ?? null }, track };
   }
   return { found: true as const, root: null, track: null };
 }
@@ -61,9 +62,14 @@ export async function createGeneratedTrack(maker: Maker, input: GenerateInput, c
 
   const audio = pickAudio(input, source.track?.audioUrl);
   const label = changeLabel(input, catalogue);
+  // The images the album art starts from (lib/server/artwork/): the root song's
+  // cover, kept down a chain, and for Cover the singer's photo.
+  const singerImageUrl = input.mode === "cover" ? findSinger(catalogue.singers, input.singerId)?.imageUrl : null;
   const generationInput: Record<string, string> = {
     ...Object.fromEntries(Object.entries(input).filter(([, v]) => v !== undefined)),
     ...(source.root ? { rootSong: source.root.song, rootArtist: source.root.artist } : {}),
+    ...(source.root?.imageUrl ? { rootImageUrl: source.root.imageUrl } : {}),
+    ...(singerImageUrl ? { singerImageUrl } : {}),
     audioId: audio.id,
     label,
   };

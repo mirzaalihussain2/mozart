@@ -44,6 +44,8 @@ export default defineConfig({
         NEXT_DIST_DIR: ".next-e2e",
         // Parallel tests all sign in as Derek: don't let one reset delete another's tracks.
         E2E_KEEP_PERSONA_TRACKS: "1",
+        // Never call Prodia or write to Supabase Storage from tests.
+        ARTWORK_DISABLED: "1",
         APP_URL: BASE_URL,
         SPOTIFY_CLIENT_ID: "fake-client-id",
         SPOTIFY_CLIENT_SECRET: "fake-client-secret",
