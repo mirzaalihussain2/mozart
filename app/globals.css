@@ -24,6 +24,8 @@
 
   /* Destructive actions only (Delete in the Library ⋯ sheet). Not in the designs. */
   --color-danger: #ff453a;
+  /* WhatsApp's brand green, for its logo in the share sheet only. */
+  --color-whatsapp: #25d366;
 
   /* Pills (buttons, chips, avatars) use rounded-full. */
   --radius-art: 10px;

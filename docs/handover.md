@@ -95,6 +95,7 @@ pnpm shots [id] && pnpm shots:diff [id]                  # capture /dev/screens/
   - An empty Library shows "Nothing here yet" and **Make your first track** (→ `/create`).
   - Spotify users see real artwork in the pickers (AGENTS.md §4).
   - Each Library row has a ⋯ menu (Share / Delete); `--color-danger` (#ff453a) is used for Delete only.
+  - The share sheet's WhatsApp row shows the WhatsApp logo (Simple Icons, CC0), white on `--color-whatsapp` (#25d366), instead of the design's chat-bubble ring.
 - **Where I followed the designs over the briefs:**
   - Something new has no idea chips; the ideas rotate inside the box, and Generate with an empty box uses the idea shown.
   - The WhatsApp row has no "If time" badge.
