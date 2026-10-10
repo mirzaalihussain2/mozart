@@ -1,8 +1,13 @@
 // The one share text every share path uses (WhatsApp now; any future row too).
 
-/** `"{title}" — I made this on Mozart. Listen and make your own version: {url}` */
+/**
+ * "I made this track on Mozart, {title}." then, on a new line,
+ * "Listen and make your own version here: {url}". No second full stop when
+ * the title already ends in one ("… × Fred again..").
+ */
 export function shareMessage(title: string, url: string): string {
-  return `“${title}” — I made this on Mozart. Listen and make your own version: ${url}`;
+  const stop = /[.!?…]$/.test(title) ? "" : ".";
+  return `I made this track on Mozart, ${title}${stop}\nListen and make your own version here: ${url}`;
 }
 
 /** https://wa.me/?text=… — opens the app on phones, WhatsApp Web on desktop. */
