@@ -1,6 +1,7 @@
 import "server-only";
 import { and, desc, eq } from "drizzle-orm";
 import { cache } from "react";
+import { removeTrackArtwork } from "./artwork/storage";
 import { db } from "./db";
 import { tracks, users, type Track, type User } from "./db/schema";
 
@@ -12,16 +13,17 @@ export async function listLibrary(userId: string): Promise<Track[]> {
 }
 
 /**
- * Hard-deletes a track if `userId` owns it; true if one was deleted. Its link
- * then 404s; tracks made from it keep working (their root song is stored on
- * them) and just lose the source link. Demo users' starter tracks come back
- * at their next sign-in (lib/server/auth/personas.ts).
+ * Hard-deletes a track if `userId` owns it, with its album art; true if one
+ * was deleted. Its link then 404s; tracks made from it keep working (their
+ * root song is stored on them) and just lose the source link. Demo users'
+ * starter tracks come back at their next sign-in (lib/server/auth/personas.ts).
  */
 export async function deleteOwnedTrack(slug: string, userId: string): Promise<boolean> {
   const rows = await db
     .delete(tracks)
     .where(and(eq(tracks.publicSlug, slug), eq(tracks.ownerUserId, userId)))
-    .returning({ id: tracks.id });
+    .returning({ id: tracks.id, artworkUrl: tracks.artworkUrl });
+  await removeTrackArtwork(rows.map((r) => r.artworkUrl));
   return rows.length > 0;
 }
 

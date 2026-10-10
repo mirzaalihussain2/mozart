@@ -11,6 +11,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "personas:tastes": "tsx scripts/persona-tastes.ts",
+    "artwork:starters": "tsx --conditions=react-server scripts/starter-artwork.ts",
     "shots": "tsx scripts/shots.ts",
     "shots:diff": "tsx scripts/shots-diff.ts",
     "test:e2e": "playwright test",
