@@ -110,14 +110,14 @@ test.describe("link previews", () => {
     expect(meta(head, "robots")).toBe("noindex, nofollow");
     expect(meta(head, "og:image")).toMatch(new RegExp(`^https?://[^/]+/track/${TRACK}/opengraph-image`));
 
-    // The image: absolute, public PNG, 1200 × 630, under 300 KB.
+    // The image: absolute, public PNG, 600 × 315 (the starter's album art beside its title), under 300 KB.
     const img = await request.get(meta(head, "og:image")!);
     expect(img.status()).toBe(200);
     expect(img.headers()["content-type"]).toBe("image/png");
     const png = await img.body();
     expect(png.length).toBeLessThan(300 * 1024);
     expect(png.subarray(1, 4).toString()).toBe("PNG");
-    expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([1200, 630]);
+    expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([600, 315]);
   });
 
   test("Facebook's crawler gets the same tags", async ({ request }) => {
