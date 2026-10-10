@@ -29,7 +29,7 @@ export type Subject = {
   title: string;
   subtitle: string;
   initials: string;
-  /** The picked song's album cover (Create flow only; a generated track has none). */
+  /** The picked song's album cover (Create flow), or the current track's album art (from a player). */
   imageUrl?: string | null;
   /** "change song" link back to step 1, or back to the player. */
   href: string;
@@ -297,7 +297,7 @@ function SubjectCard({ subject, onClick }: { subject: Subject; onClick?: () => v
 function SubjectRow({ subject }: { subject: Subject }) {
   return (
     <Link href={subject.href} aria-label={subject.label} className="text-text mt-3 flex items-center gap-3">
-      <Artwork variant="row" initials={subject.initials} />
+      <Artwork variant="row" initials={subject.initials} src={subject.imageUrl} />
       <span className="flex flex-col gap-0.5">
         <span className="text-[17px] font-bold">{subject.title}</span>
         <span className="text-text-secondary text-sm">{subject.subtitle}</span>

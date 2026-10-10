@@ -27,6 +27,11 @@ export function artworkEnabled(): boolean {
 
 type ArtworkTrack = Pick<Track, "id" | "mode" | "title" | "generationInput">;
 
+/** A track made in the last minute whose art hasn't landed yet: the player keeps checking. */
+export function artworkPending(track: Pick<Track, "artworkUrl" | "createdAt">, now = Date.now()): boolean {
+  return !track.artworkUrl && artworkEnabled() && now - track.createdAt.getTime() < 60_000;
+}
+
 /** The images this track's art starts from, if any. */
 function sourcesFor(track: ArtworkTrack) {
   const gi = track.generationInput;

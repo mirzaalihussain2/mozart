@@ -24,6 +24,7 @@ export default async function LibraryPage() {
         badge: t.sourceTrackId ? MODES[t.mode].label.toUpperCase() : undefined,
         dateLabel: relativeDay(t.createdAt, now),
         shareUrl: await trackUrl(t.publicSlug),
+        artworkUrl: t.artworkUrl,
       })))}
     />
   );

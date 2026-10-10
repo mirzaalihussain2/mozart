@@ -1,7 +1,7 @@
 // Artwork: a grey square with initials (AGENTS.md §4); the design sizes are
-// listed per variant. Players and the mini player use a crossed box. A song
-// from a Spotify taste passes `src` (its album cover), shown in the same box;
-// generated tracks never do.
+// listed per variant. Players and the mini player use a crossed box. `src`
+// shows a real image in the same box: a Spotify album cover in the pickers, or
+// a generated track's album art (tracks.artwork_url) once it's made.
 
 type Variant = "grid" | "hero" | "row" | "list" | "cover" | "mini";
 
@@ -35,7 +35,7 @@ type ArtworkProps = {
   variant: Variant;
   initials?: string;
   tone?: string;
-  /** A real image (Spotify album cover); null/absent shows the initials. */
+  /** A real image (Spotify album cover, or a track's album art); null/absent shows the placeholder. */
   src?: string | null;
   /** Lazy-load `src` (long grids). */
   lazy?: boolean;
@@ -49,15 +49,15 @@ export function Artwork({ variant, initials, tone, src, lazy }: ArtworkProps) {
       className={`relative flex shrink-0 items-center justify-center overflow-hidden font-bold text-[rgba(217,217,217,0.55)] ${STYLES[variant]}`}
       style={{ background: tone ?? DEFAULT_TONE[variant] }}
     >
-      {crossed ? (
+      {src ? (
+        // A plain <img>: Spotify CDN thumbnails and our own stored JPEGs, no optimiser needed.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt="" loading={lazy ? "lazy" : undefined} className="absolute inset-0 size-full object-cover" />
+      ) : crossed ? (
         <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0">
           <line x1="0" y1="0" x2="100" y2="100" stroke="#5e5e5e" strokeWidth="1" vectorEffect="non-scaling-stroke" />
           <line x1="100" y1="0" x2="0" y2="100" stroke="#5e5e5e" strokeWidth="1" vectorEffect="non-scaling-stroke" />
         </svg>
-      ) : src ? (
-        // A plain <img>: tiny Spotify CDN thumbnails, no optimiser needed.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt="" loading={lazy ? "lazy" : undefined} className="absolute inset-0 size-full object-cover" />
       ) : (
         initials
       )}

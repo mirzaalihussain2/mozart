@@ -21,6 +21,8 @@ export type LibraryRow = {
   dateLabel: string;
   /** The absolute /track/{slug} URL, for Share in the ⋯ menu. */
   shareUrl: string;
+  /** The track's album art; null shows the plain grey square. */
+  artworkUrl?: string | null;
 };
 
 type Props = {
@@ -92,7 +94,7 @@ export function LibraryView({ initial, avatarUrl, rows, live = false, nowPlaying
               playingSlug={live ? undefined : (nowPlaying?.slug ?? null)}
               onMore={() => openMenu(row)}
             >
-              <Artwork variant="list" />
+              <Artwork variant="list" src={row.artworkUrl} lazy />
               <div className="flex min-w-0 flex-grow flex-col gap-[3px]">
                 <div className="truncate text-base font-semibold">{row.title}</div>
                 <div className="text-text-secondary flex items-center gap-2 text-[13px]">

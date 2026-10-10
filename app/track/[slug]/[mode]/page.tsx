@@ -31,6 +31,7 @@ export default async function FromPlayerPage({ params, searchParams }: PageProps
         title: track.title,
         subtitle: maker,
         initials: maker.charAt(0).toUpperCase(),
+        imageUrl: track.artworkUrl,
         href: playerHref,
         // The flow index names the Vibe card with an extra comma.
         label: mode === "vibe" ? `${track.title}, ${maker}, back to the player` : `${track.title} ${maker}, back to the player`,
