@@ -39,7 +39,8 @@ If that loop works end to end and looks like the designs, the prototype has succ
 - **Local address:** run and test the app at `http://127.0.0.1:3000`, never `localhost` (Spotify rejects `localhost` redirect URIs, and cookies don't carry between the two). Spotify redirect URI = `{APP_URL}/auth/spotify/callback`. Real Spotify response shapes are in `docs/fixtures/spotify/`.
 - **Mock generation:** one server function maps a request to a file in `public/audio/` (`lib/server/generate/`), creates the track row, returns it. The UI shows that mode's Generating screen for ~3–4 s, then opens the player.
 - **Audio:** one global `<audio>` element in an `AudioProvider` at the app root, so playback survives navigation and drives the mini player. Never autoplay a shared link.
-- **Out of scope:** real AI generation, native apps, feeds, follows, likes, comments, notifications, payments, contact import, playlists, search beyond the song picker.
+- **Album art is real:** each new track gets a cover made on Prodia from the original song's cover and a prompt per mode (`lib/server/artwork/`, prompts in `lib/config/artwork-prompts.ts`), stored in Supabase Storage. Only the music stays mocked.
+- **Out of scope:** real AI music generation, native apps, feeds, follows, likes, comments, notifications, payments, contact import, playlists, search beyond the song picker.
 
 If you hit a genuine ambiguity not covered here, pick the option closest to the designs, write the assumption in `docs/handover.md`, and carry on. Only stop to ask for things you cannot invent: credentials, secrets, or a choice that would be expensive to undo.
 
@@ -64,7 +65,7 @@ Rules the designs follow — keep them:
 - Mode colour appears only on creative things: mode cards, mode tiles, the tinted pill back button, selected pills, the "…but make it **X**" word, Generate buttons, Generating screens.
 - Everything else uses the off-white accent or greys.
 - Tap targets ≥ 44 px. Icons are stroke icons; copy the SVG paths from `docs/designs/html/` rather than redrawing.
-- Album art is a grey placeholder square with initials, with one exception: in the pickers, a Spotify user's own songs and singers show their real album covers and artist photos, and the profile button shows their Spotify photo. Generated tracks (player, mini player, Library, step 2 from a player) always keep the placeholder.
+- Album art is a grey placeholder square with initials, with two exceptions: in the pickers, a Spotify user's own songs and singers show their real album covers and artist photos, and the profile button shows their Spotify photo; and generated tracks (player, mini player, Library, step 2 from a player) show their generated album art (`tracks.artwork_url`), keeping the placeholder until it's made or if it fails.
 
 ## 5. How to work (every task)
 
@@ -103,7 +104,7 @@ A task is **done** only when every check in step 4 passes, progress is recorded,
 ## 7. Code conventions
 
 - Server-only code (DB, Spotify, secrets) in `lib/server/` and imported only from route handlers and server components; mark files with `import 'server-only'`.
-- Secrets only in env vars (`DATABASE_URL`, `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SESSION_SECRET`, `APP_URL`). **Never** prefix a secret with `NEXT_PUBLIC_`. Keep `.env.example` up to date.
+- Secrets only in env vars (`DATABASE_URL`, `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SESSION_SECRET`, `APP_URL`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `PRODIA_TOKEN`). **Never** prefix a secret with `NEXT_PUBLIC_`. Keep `.env.example` up to date.
 - Sessions: signed, httpOnly, `Secure`, `SameSite=Lax` cookies. Validate any `returnTo` is a same-site path.
 - Static config in `lib/config/` (songs, genres, singers, themes, idea templates, mock audio catalogue).
 - Components in `components/`, grouped by area (`audio`, `creation`, `sharing`, `track`, `library`, `navigation`, `ui`).
