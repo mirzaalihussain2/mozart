@@ -41,16 +41,32 @@ test("images: the cover first, then the singer's photo; none without them", () =
   assert.deepEqual(artworkPrompt({ mode: "new", text: "A rainy-day lo-fi song" }).images, []);
 });
 
-test("every prompt asks for a square cover with no text", () => {
-  const all = [
+test("every prompt asks for a square image with no text; text-only ones never say \"album cover\" or quote", () => {
+  const withImage = [
+    artworkPrompt({ mode: "remix", ...SONG, genreId: "jazz", cover: true }),
+    artworkPrompt({ mode: "rewrite", ...SONG, themeId: "payday", cover: true }),
+    artworkPrompt({ mode: "vibe", ...SONG, text: "slower", cover: true }),
+  ];
+  for (const p of withImage) assert.match(p.prompt, /Square album cover art\. No text/);
+  const textOnly = [
     artworkPrompt({ mode: "remix", ...SONG, genreId: "jazz", cover: false }),
+    artworkPrompt({ mode: "cover", ...SONG, singer: "Adele", cover: false, singerPhoto: false }),
     artworkPrompt({ mode: "rewrite", ...SONG, themeId: "payday", cover: false }),
     artworkPrompt({ mode: "vibe", ...SONG, text: "slower", cover: false }),
     artworkPrompt({ mode: "new", text: "A rainy-day lo-fi song" }),
   ];
-  for (const p of all) assert.match(p.prompt, /Square album cover art\. No text/);
+  for (const p of textOnly) {
+    assert.match(p.prompt, /^A striking square .*no lettering anywhere\.$/);
+    assert.doesNotMatch(p.prompt, /album cover|"/i);
+  }
+});
+
+test("free text is never quoted (FLUX draws quoted words)", () => {
+  assert.doesNotMatch(artworkPrompt({ mode: "new", text: "A late-night garage track" }).prompt, /"A late-night/);
+  assert.doesNotMatch(artworkPrompt({ mode: "vibe", ...SONG, text: "slower and sadder", cover: true }).prompt, /"slower/);
 });
 
 test("no artist: just the song's title", () => {
-  assert.match(artworkPrompt({ mode: "rewrite", song: "Cruel Summer", artist: "", themeId: "payday", cover: false }).prompt, /version of "Cruel Summer" rewritten/);
+  assert.match(artworkPrompt({ mode: "rewrite", song: "Cruel Summer", artist: "", themeId: "payday", cover: true }).prompt, /cover of "Cruel Summer"\. /);
+  assert.match(artworkPrompt({ mode: "rewrite", song: "Cruel Summer", artist: "", themeId: "payday", cover: false }).prompt, /version of Cruel Summer rewritten/);
 });

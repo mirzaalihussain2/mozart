@@ -30,6 +30,10 @@ export const GENRE_LOOKS: Record<string, string> = {
 };
 
 const RULES = "Square album cover art. No text, letters, words, logos or watermarks.";
+// Text only, the model draws a title onto anything called an "album cover",
+// whatever RULES says, so these describe a picture instead, and never quote
+// a title or the free text (FLUX draws quoted words onto the image).
+const PICTURE = "A single evocative scene, like the artwork on a beautifully designed record sleeve. Purely visual: a photograph or painting with no lettering anywhere.";
 
 /** The images a prompt refers to, in the order they're sent. */
 export type ArtworkImage = "cover" | "singer";
@@ -45,6 +49,8 @@ export type ArtworkBrief =
   | { mode: "new"; text: string };
 
 const songBy = (song: string, artist: string) => (artist ? `"${song}" by ${artist}` : `"${song}"`);
+/** For text-only prompts: no quotes. */
+const plainSongBy = (song: string, artist: string) => (artist ? `${song} by ${artist}` : song);
 
 export function artworkPrompt(brief: ArtworkBrief): ArtworkPrompt {
   switch (brief.mode) {
@@ -57,7 +63,10 @@ export function artworkPrompt(brief: ArtworkBrief): ArtworkPrompt {
             prompt: `Reimagine this album cover for ${of}. Keep its main subject and composition recognisable, but restyle everything as ${genre}: ${look}. ${RULES}`,
             images: ["cover"],
           }
-        : { prompt: `Album cover for ${of}, in the style of ${genre}: ${look}. ${RULES}`, images: [] };
+        : {
+            prompt: `A striking square image for a ${genre} remix of ${plainSongBy(brief.song, brief.artist)}, in the style of ${genre}: ${look}. ${PICTURE}`,
+            images: [],
+          };
     }
     case "cover": {
       const of = `${brief.singer}'s cover version of ${songBy(brief.song, brief.artist)}`;
@@ -79,7 +88,10 @@ export function artworkPrompt(brief: ArtworkBrief): ArtworkPrompt {
           images: ["cover"],
         };
       }
-      return { prompt: `Album cover for ${of}: a striking portrait of ${brief.singer} as the artist singing it. ${RULES}`, images: [] };
+      return {
+        prompt: `A striking square portrait of ${brief.singer} singing their cover version of ${plainSongBy(brief.song, brief.artist)}. ${PICTURE}`,
+        images: [],
+      };
     }
     case "rewrite": {
       const about = getTheme(brief.themeId)?.phrase ?? brief.themeId;
@@ -89,18 +101,24 @@ export function artworkPrompt(brief: ArtworkBrief): ArtworkPrompt {
             prompt: `This is the album cover of ${song}. The song has been rewritten to be about ${about}. Keep the cover's art style, colour palette and composition so it reads as the same song, but replace its scene and subject with an image about ${about}. ${RULES}`,
             images: ["cover"],
           }
-        : { prompt: `Album cover for a version of ${song} rewritten to be about ${about}: an evocative scene about ${about}. ${RULES}`, images: [] };
+        : {
+            prompt: `A striking square image for a version of ${plainSongBy(brief.song, brief.artist)} rewritten to be about ${about}: a scene about ${about}. ${PICTURE}`,
+            images: [],
+          };
     }
     case "vibe": {
       const song = songBy(brief.song, brief.artist);
       return brief.cover
         ? {
-            prompt: `This is the album cover of ${song}. The song has been changed: "${brief.text}". Reinterpret the cover to match that change, altering its style, subject or mood as much as the change asks for, while keeping a hint of the original. ${RULES}`,
+            prompt: `This is the album cover of ${song}. The song has been changed like this: ${brief.text}. Reinterpret the cover to match that change, altering its style, subject or mood as much as the change asks for, while keeping a hint of the original. ${RULES}`,
             images: ["cover"],
           }
-        : { prompt: `Album cover for a version of ${song} changed like this: "${brief.text}". Capture that change in one striking image. ${RULES}`, images: [] };
+        : {
+            prompt: `A striking square image for a version of ${plainSongBy(brief.song, brief.artist)} changed like this: ${brief.text}. ${PICTURE}`,
+            images: [],
+          };
     }
     case "new":
-      return { prompt: `Album cover art for a new song: "${brief.text}". Capture its genre, mood and story in one striking image. ${RULES}`, images: [] };
+      return { prompt: `A striking square image that captures the mood and story of this song: ${brief.text}. ${PICTURE}`, images: [] };
   }
 }
