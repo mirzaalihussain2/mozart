@@ -2,6 +2,7 @@ import "server-only";
 import { mapProfile, mapTaste } from "../../spotify/map-taste";
 import type { SpotifyArtist, SpotifyPage, SpotifyProfile, SpotifyTokenResponse, SpotifyTrack } from "../../spotify/types";
 import type { SpotifyTaste } from "../../types/taste";
+import { isSpotifyAppEnabled, type SpotifyAppConfig, type SpotifyAppKey } from "./registry";
 
 // Every Spotify HTTP call lives here. Authorization Code + PKCE, scopes
 // user-read-private user-top-read. Tokens are used once and never stored.
@@ -24,14 +25,31 @@ const accountsUrl = () => (!isProduction() && process.env.SPOTIFY_ACCOUNTS_URL) 
 const apiUrl = () => (!isProduction() && process.env.SPOTIFY_API_URL) || "https://api.spotify.com";
 
 /** Real Spotify only with credentials, and never on previews (no redirect URI is registered there). */
-export function spotifyEnabled(): boolean {
-  return !!process.env.SPOTIFY_CLIENT_ID && !!process.env.SPOTIFY_CLIENT_SECRET && process.env.VERCEL_ENV !== "preview";
+export function spotifyEnabled(app?: SpotifyAppConfig | SpotifyAppKey): boolean {
+  if (app) return isSpotifyAppEnabled(app);
+  return isSpotifyAppEnabled("mozart");
 }
 
-export function buildAuthorizeUrl({ state, challenge, redirectUri }: { state: string; challenge: string; redirectUri: string }): string {
+export function buildAuthorizeUrl({
+  state,
+  challenge,
+  redirectUri,
+  clientId,
+}: {
+  state: string;
+  challenge: string;
+  redirectUri: string;
+  clientId?: string | null;
+}): string {
+  const effectiveClientId =
+    clientId ??
+    process.env.SPOTIFY_CLIENT_1_MOZART ??
+    process.env.SPOTIFY_CLIENT_ID_1_MOZART ??
+    process.env.SPOTIFY_CLIENT_ID ??
+    "";
   const url = new URL("/authorize", accountsUrl());
   url.search = new URLSearchParams({
-    client_id: process.env.SPOTIFY_CLIENT_ID ?? "",
+    client_id: effectiveClientId,
     response_type: "code",
     redirect_uri: redirectUri,
     code_challenge_method: "S256",
@@ -58,8 +76,31 @@ function failureFor(status: number): SpotifyFailure {
 }
 
 /** Code → access token (server-side, with the client secret as Basic auth). */
-export async function exchangeCode({ code, verifier, redirectUri }: { code: string; verifier: string; redirectUri: string }): Promise<string> {
-  const basic = Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`).toString("base64");
+export async function exchangeCode({
+  code,
+  verifier,
+  redirectUri,
+  clientId,
+  clientSecret,
+}: {
+  code: string;
+  verifier: string;
+  redirectUri: string;
+  clientId?: string | null;
+  clientSecret?: string | null;
+}): Promise<string> {
+  const effectiveClientId =
+    clientId ??
+    process.env.SPOTIFY_CLIENT_1_MOZART ??
+    process.env.SPOTIFY_CLIENT_ID_1_MOZART ??
+    process.env.SPOTIFY_CLIENT_ID ??
+    "";
+  const effectiveClientSecret =
+    clientSecret ??
+    process.env.SPOTIFY_CLIENT_SECRET_1_MOZART ??
+    process.env.SPOTIFY_CLIENT_SECRET ??
+    "";
+  const basic = Buffer.from(`${effectiveClientId}:${effectiveClientSecret}`).toString("base64");
   const res = await call(new URL("/api/token", accountsUrl()).toString(), {
     method: "POST",
     headers: { Authorization: `Basic ${basic}`, "Content-Type": "application/x-www-form-urlencoded" },
@@ -68,7 +109,7 @@ export async function exchangeCode({ code, verifier, redirectUri }: { code: stri
       code,
       redirect_uri: redirectUri,
       code_verifier: verifier,
-      client_id: process.env.SPOTIFY_CLIENT_ID ?? "",
+      client_id: effectiveClientId,
     }),
   });
   if (!res.ok) throw new SpotifyError(res.status === 429 ? "rate_limited" : "token");

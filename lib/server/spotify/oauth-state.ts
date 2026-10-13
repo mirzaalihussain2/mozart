@@ -4,7 +4,7 @@ import { safeReturnTo } from "../../return-to";
 
 // What survives the round trip to Spotify, sealed (no new tables).
 
-export type OAuthState = { state: string; verifier: string; returnTo: string };
+export type OAuthState = { state: string; verifier: string; returnTo: string; appKey?: string };
 
 export const OAUTH_TTL_SECONDS = 10 * 60;
 
@@ -18,7 +18,11 @@ export async function unsealOAuthState(sealed: string | undefined, password: str
   try {
     const data = await unsealData<Partial<OAuthState>>(sealed, { password, ttl: OAUTH_TTL_SECONDS });
     if (typeof data.state !== "string" || typeof data.verifier !== "string" || !data.state || !data.verifier) return null;
-    return { state: data.state, verifier: data.verifier, returnTo: safeReturnTo(data.returnTo) };
+    const result: OAuthState = { state: data.state, verifier: data.verifier, returnTo: safeReturnTo(data.returnTo) };
+    if (typeof data.appKey === "string" && data.appKey) {
+      result.appKey = data.appKey;
+    }
+    return result;
   } catch {
     return null;
   }
