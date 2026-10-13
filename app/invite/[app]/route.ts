@@ -1,13 +1,15 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { safeReturnTo } from "@/lib/return-to";
+import { getAppUrl } from "@/lib/server/app-url";
 import { isSpotifyAppKey } from "@/lib/server/spotify/registry";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ app: string }> }) {
   const { app } = await params;
   const returnTo = safeReturnTo(request.nextUrl.searchParams.get("returnTo")) || "/";
 
-  const targetUrl = new URL(returnTo, request.nextUrl.origin);
+  const base = await getAppUrl();
+  const targetUrl = new URL(returnTo, base);
   const response = NextResponse.redirect(targetUrl);
 
   const cleanApp = app.toLowerCase();

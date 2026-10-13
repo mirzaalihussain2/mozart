@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { cookies } from "next/headers";
 import { safeReturnTo } from "@/lib/return-to";
 import { seeOther, signInWithFallback } from "@/lib/server/auth";
 import { buildAuthorizeUrl, spotifyEnabled } from "@/lib/server/spotify/client";
@@ -12,7 +13,8 @@ import { getSpotifyRedirectUri, resolveSpotifyApp } from "@/lib/server/spotify/r
 export async function GET(request: NextRequest) {
   const returnTo = safeReturnTo(request.nextUrl.searchParams.get("returnTo"));
   const queryApp = request.nextUrl.searchParams.get("app");
-  const cookieApp = request.cookies.get("mozart_invite_app")?.value;
+  const cookieStore = await cookies();
+  const cookieApp = request.cookies.get("mozart_invite_app")?.value ?? cookieStore.get("mozart_invite_app")?.value;
   const host = request.headers.get("host");
 
   const app = resolveSpotifyApp({ queryApp, cookieApp, host });
