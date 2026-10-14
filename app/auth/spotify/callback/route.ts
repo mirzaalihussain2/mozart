@@ -1,10 +1,10 @@
 import type { NextRequest } from "next/server";
-import { getAppUrl } from "@/lib/server/app-url";
 import { signInWithFallback } from "@/lib/server/auth";
 import { completeSignIn } from "@/lib/server/auth/complete-sign-in";
 import { upsertSpotifyUser } from "@/lib/server/auth/spotify-user";
 import { exchangeCode, fetchProfileAndTaste, SpotifyError, type SpotifyFailure } from "@/lib/server/spotify/client";
 import { takeOAuthCookie } from "@/lib/server/spotify/oauth-cookie";
+import { getSpotifyApp, getSpotifyRedirectUri } from "@/lib/server/spotify/registry";
 
 // Spotify → here. Any failure (cancel, bad state, token, 401/403/429, a
 // 5 s timeout, anything thrown) silently becomes the fallback persona (Candice,
@@ -26,7 +26,15 @@ export async function GET(request: NextRequest) {
   if (!code) return fallback("denied");
 
   try {
-    const accessToken = await exchangeCode({ code, verifier: saved.verifier, redirectUri: `${await getAppUrl()}/auth/spotify/callback` });
+    const app = getSpotifyApp(saved.appKey);
+    const redirectUri = await getSpotifyRedirectUri(app);
+    const accessToken = await exchangeCode({
+      code,
+      verifier: saved.verifier,
+      redirectUri,
+      clientId: app.clientId,
+      clientSecret: app.clientSecret,
+    });
     const { profile, taste } = await fetchProfileAndTaste(accessToken);
     const userId = await upsertSpotifyUser(profile, taste);
     return completeSignIn({ userId, returnTo });
