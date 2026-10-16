@@ -1,11 +1,11 @@
 // The one share text every share path uses (WhatsApp now; any future row too).
 
 /**
- * "I made this track on Mozart, '{title}'.", a blank line, then
+ * "I made this track on Maestro, '{title}'.", a blank line, then
  * "Listen and make your own version here: {url}".
  */
 export function shareMessage(title: string, url: string): string {
-  return `I made this track on Mozart, '${title}'.\n\nListen and make your own version here: ${url}`;
+  return `I made this track on Maestro, '${title}'.\n\nListen and make your own version here: ${url}`;
 }
 
 /** https://wa.me/?text=… — opens the app on phones, WhatsApp Web on desktop. */

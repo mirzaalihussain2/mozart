@@ -8,7 +8,7 @@ import { CANDICE, CANDICE_KILL_BILL, DEREK, DEREK_LATCH } from "./helpers/person
 // browser via the fake_spotify_scenario cookie). The fixture user is "ali";
 // failures become Candice (or Derek from one of her tracks), "Log in" is Derek.
 
-const FIXTURE_USER = "mozart-fixture-user";
+const FIXTURE_USER = "maestro-fixture-user";
 const created: string[] = [];
 
 // One worker: every test signs in as the same fixture Spotify user.
@@ -36,7 +36,7 @@ async function withScenario(browser: Browser, scenario: Scenario): Promise<Brows
 
 const SCDN = /^https:\/\/i\.scdn\.co\/image\//;
 const me = async (page: Page) => (await (await page.request.get("/api/me")).json()).user as { id: string; firstName: string } | null;
-const hasOAuthCookie = async (ctx: BrowserContext) => (await ctx.cookies(`${BASE_URL}/auth/spotify/callback`)).some((c) => c.name === "mozart_oauth");
+const hasOAuthCookie = async (ctx: BrowserContext) => (await ctx.cookies(`${BASE_URL}/auth/spotify/callback`)).some((c) => c.name === "maestro_oauth");
 
 test("ok: Connect Spotify signs in the Spotify user, whose top tracks and artists fill the pickers", async ({ browser }) => {
   const ctx = await withScenario(browser, "ok");

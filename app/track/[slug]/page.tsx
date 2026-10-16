@@ -17,7 +17,7 @@ import { artistLabel, viewerFor } from "@/lib/server/viewer";
 //   ?autoplay=1       straight after Generate: start playing (never otherwise)
 export const instant = false;
 
-const DESCRIPTION = "Listen, then make your own version on Mozart.";
+const DESCRIPTION = "Listen, then make your own version on Maestro.";
 
 /**
  * Link previews (WhatsApp, iMessage …). Same for every viewer — crawlers have
@@ -27,16 +27,16 @@ const DESCRIPTION = "Listen, then make your own version on Mozart.";
 export async function generateMetadata({ params }: PageProps<"/track/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const track = await getTrackBySlug(slug);
-  if (!track) return { title: "Track not found · Mozart", robots: { index: false, follow: false } };
+  if (!track) return { title: "Track not found · Maestro", robots: { index: false, follow: false } };
 
   // Never viewer-specific (crawlers have no cookies): an unowned track is "A friend".
-  const title = `${track.title} · ${track.owner?.firstName ?? "A friend"} on Mozart`;
+  const title = `${track.title} · ${track.owner?.firstName ?? "A friend"} on Maestro`;
   const url = await trackUrl(track.publicSlug);
   return {
     title,
     description: DESCRIPTION,
     alternates: { canonical: url },
-    openGraph: { type: "music.song", siteName: "Mozart", title, description: DESCRIPTION, url },
+    openGraph: { type: "music.song", siteName: "Maestro", title, description: DESCRIPTION, url },
     twitter: { card: "summary_large_image", title, description: DESCRIPTION },
     robots: { index: false, follow: false },
   };

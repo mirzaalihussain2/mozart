@@ -1,6 +1,6 @@
-# AGENTS.md — Mozart prototype
+# AGENTS.md — Maestro prototype
 
-You are building a working prototype of **Mozart**, an AI music app. Read this file fully before every task. It tells you what to build, where the truth lives, how to check your own work, and when a task is done.
+You are building a working prototype of **Maestro**, an AI music app. Read this file fully before every task. It tells you what to build, where the truth lives, how to check your own work, and when a task is done.
 
 ## 1. What we're building
 
@@ -33,7 +33,7 @@ If that loop works end to end and looks like the designs, the prototype has succ
 - **Routes:** `/`, `/create`, `/create/remix|cover|rewrite` (step 1) and their step 2, `/create/new` (Something new), `/track/[slug]` (the one universal player), `/track/[slug]/remix|cover|rewrite|vibe` (step 2 from a player, track pre-picked), `/library`, `/auth/spotify/login`, `/auth/spotify/callback`, `/auth/dummy`.
 - **Modes:** `remix | cover | rewrite | vibe | new`. `new` = "Something new" on the Create home: made from scratch from free text, no source track. `vibe` = the fourth button on a player: starts from that track, free-text change. Remix / Cover / Rewrite are the structured modes.
 - **Track naming rule:** `{original song title} × {change}` — e.g. *Cruel Summer × Bollywood*, *In Too Deep × Arijit Singh*, *Payphone × Moving to London*. Always use the **root** original song, even down a chain (a remix of *Cruel Summer × Bollywood* is *Cruel Summer × Electronic*, never a double ×). Artist shown under the title = the maker's first name; "You" for an anonymous maker.
-- **Anonymous recipients:** a `mozart_anon` cookie (random UUID, httpOnly, 1 year). They can listen and make **one** track from a shared track. Saving or sharing opens the **Send to {sharer}** sheet; a second make opens the same sheet as "Sign in to make another {mode}".
+- **Anonymous recipients:** a `maestro_anon` cookie (random UUID, httpOnly, 1 year). They can listen and make **one** track from a shared track. Saving or sharing opens the **Send to {sharer}** sheet; a second make opens the same sheet as "Sign in to make another {mode}".
 - **Claiming:** on sign-in, tracks with the visitor's `anonymous_session_id` get `owner_user_id` set, then redirect back to that track with the share sheet open and a "Signed in · saved to your library" toast.
 - **Auth:** Spotify Authorization Code + PKCE, scopes `user-read-private user-top-read`. Spotify Development Mode only allows 5 allowlisted users, so **any Spotify failure (cancel, 403, 429, timeout) silently falls back to a demo user**, landing exactly where a real sign-in would: **Candice**, or **Derek** when signing in from one of Candice's tracks. The landing page's "Log in" button is always **Derek**. Each demo sign-in resets that user's library to their starter tracks; real Spotify users start empty and keep theirs. Don't store Spotify tokens; fetch taste once at sign-in.
 - **Local address:** run and test the app at `http://127.0.0.1:3000`, never `localhost` (Spotify rejects `localhost` redirect URIs, and cookies don't carry between the two). Spotify redirect URI = `{APP_URL}/auth/spotify/callback`. Real Spotify response shapes are in `docs/fixtures/spotify/`.

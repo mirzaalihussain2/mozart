@@ -68,11 +68,11 @@ test("returnTo is honoured for same-site paths and ignored otherwise", async ({ 
 test("a 404 links back to / when signed out and /create when signed in", async ({ page }) => {
   await page.goto("/track/no-such-track");
   await expect(page.getByRole("heading", { name: "Nothing here" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Back to Mozart" })).toHaveAttribute("href", "/");
+  await expect(page.getByRole("link", { name: "Back to Maestro" })).toHaveAttribute("href", "/");
 
   await page.request.post("/auth/dummy");
   await page.goto("/no-such-page");
-  await expect(page.getByRole("link", { name: "Back to Mozart" })).toHaveAttribute("href", "/create");
-  await page.getByRole("link", { name: "Back to Mozart" }).click();
+  await expect(page.getByRole("link", { name: "Back to Maestro" })).toHaveAttribute("href", "/create");
+  await page.getByRole("link", { name: "Back to Maestro" }).click();
   await expect(page).toHaveURL("/create");
 });

@@ -14,7 +14,7 @@ import { sendToName } from "@/lib/server/tracks";
 // screen's minimum 3.5 s covers most of that.
 //
 // Signed out (a recipient on a shared link): one make, only from a track.
-// The track is unowned, tagged with this browser's mozart_anon id (created
+// The track is unowned, tagged with this browser's maestro_anon id (created
 // here, never on page views) and claimed when they sign in.
 
 const json = (status: number, body: unknown) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });

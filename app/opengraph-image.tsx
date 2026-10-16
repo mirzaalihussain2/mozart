@@ -1,9 +1,9 @@
 import { ImageResponse } from "next/og";
 import { OG_SIZE, ogFonts } from "@/lib/server/og/fonts";
 
-// Default link preview (e.g. for /): the Mozart wordmark on #121212.
+// Default link preview (e.g. for /): the Maestro wordmark on #121212.
 
-export const alt = "Mozart — make music from what you already love";
+export const alt = "Maestro — make music from what you already love";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 
@@ -28,7 +28,7 @@ export default async function Image() {
             <div key={c} style={{ width: 28, height: 28, borderRadius: 14, background: c }} />
           ))}
         </div>
-        <div style={{ fontSize: 132, fontWeight: 700, color: "#d9d9d9", letterSpacing: "-0.02em" }}>Mozart</div>
+        <div style={{ fontSize: 132, fontWeight: 700, color: "#d9d9d9", letterSpacing: "-0.02em" }}>Maestro</div>
         <div style={{ fontSize: 40, fontWeight: 500, color: "#bababa" }}>Make music from what you already love.</div>
       </div>
     ),

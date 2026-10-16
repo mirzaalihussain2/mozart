@@ -27,7 +27,7 @@ const apiUrl = () => (!isProduction() && process.env.SPOTIFY_API_URL) || "https:
 /** Real Spotify only with credentials, and never on previews (no redirect URI is registered there). */
 export function spotifyEnabled(app?: SpotifyAppConfig | SpotifyAppKey): boolean {
   if (app) return isSpotifyAppEnabled(app);
-  return isSpotifyAppEnabled("mozart");
+  return isSpotifyAppEnabled("maestro");
 }
 
 export function buildAuthorizeUrl({

@@ -11,7 +11,7 @@ import { getTrackBySlug } from "@/lib/server/tracks";
 // drawn at 1200 × 630 and scaled by K. A preview that still comes out too
 // big falls back to the coloured square.
 
-export const alt = "A track made on Mozart";
+export const alt = "A track made on Maestro";
 export const size = { width: 600, height: 315 };
 export const contentType = "image/png";
 
@@ -59,7 +59,7 @@ function card({ title, owner, modeHex, initial, artworkUrl }: Card) {
         </div>
       )}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: `${px(6)}px 0` }}>
-        <div style={{ fontSize: px(36), fontWeight: 700, color: "#d9d9d9", letterSpacing: "-0.01em" }}>Mozart</div>
+        <div style={{ fontSize: px(36), fontWeight: 700, color: "#d9d9d9", letterSpacing: "-0.01em" }}>Maestro</div>
         <div style={{ display: "flex", flexDirection: "column", gap: px(18) }}>
           <div style={{ display: "flex", flexDirection: "column" }}>
             {ogTitleLines(title).map((line) => (
@@ -84,7 +84,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const track = await getTrackBySlug(slug);
   const fonts = await ogFonts();
   const base = {
-    title: track?.title ?? "Mozart",
+    title: track?.title ?? "Maestro",
     // Unowned (anonymous) tracks are "by a friend": nothing about the viewer or cookie.
     owner: track ? (track.owner?.firstName ?? "a friend") : undefined,
     modeHex: MODES[track?.mode ?? "remix"].hex,

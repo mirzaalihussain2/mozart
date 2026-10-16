@@ -3,12 +3,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { cleanUrl, shareMessage, whatsappHref } from "../../lib/share-message";
 
-const TRACK_URL = "https://mozart.example.com/track/abc123defg";
+const TRACK_URL = "https://maestro.example.com/track/abc123defg";
 
 test("the agreed message: quoted title, full stop, blank line, link", () => {
   assert.equal(
     shareMessage("Latch × The Weeknd", TRACK_URL),
-    "I made this track on Mozart, 'Latch × The Weeknd'.\n\nListen and make your own version here: https://mozart.example.com/track/abc123defg",
+    "I made this track on Maestro, 'Latch × The Weeknd'.\n\nListen and make your own version here: https://maestro.example.com/track/abc123defg",
   );
 });
 

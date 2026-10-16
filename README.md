@@ -1,8 +1,8 @@
-# Mozart
+# Maestro
 
 **Production:** https://mozart-iota.vercel.app
 
-Mozart v1 is a mobile-first web prototype for making songs from music you already love, sharing them by link, and getting friends to make their own version.
+Maestro v1 is a mobile-first web prototype for making songs from music you already love, sharing them by link, and getting friends to make their own version.
 
 1. **Make a track.** Sign in with Spotify (or "Log in" as a demo user), pick Remix / Cover / Rewrite / Something new, and generate a track.
 2. **Share it.** Copy the link or send it on WhatsApp.

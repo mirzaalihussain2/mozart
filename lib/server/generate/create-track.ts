@@ -14,7 +14,7 @@ export const RATE_LIMIT = { max: 20, windowMinutes: 10 };
 /** All anonymous makes across the app (clearing cookies resets the per-person limit). */
 export const ANON_RATE_LIMIT = { max: 30, windowMinutes: 10 };
 
-/** Who's making: a signed-in user, or an anonymous browser (mozart_anon). */
+/** Who's making: a signed-in user, or an anonymous browser (maestro_anon). */
 export type Maker = { userId: string } | { anonId: string };
 
 // URL-safe, 10 characters.

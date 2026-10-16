@@ -123,8 +123,8 @@ test("Candice playing Derek's track: mini player without saved ✓", async ({ pa
   await expect(page).toHaveURL(`/track/${DEREK_LATCH.slug}`);
   await page.getByRole("button", { name: "Play" }).click();
   await expect.poll(async () => (await audio(page)).paused).toBe(false);
-  // The recipient player has no chevron; Mozart → / → (signed in) /create.
-  await page.getByRole("link", { name: "Mozart" }).click();
+  // The recipient player has no chevron; Maestro → / → (signed in) /create.
+  await page.getByRole("link", { name: "Maestro" }).click();
   await expect(page).toHaveURL("/create");
   await expect(page.getByRole("link", { name: `Now playing: ${DEREK_LATCH.title} by Derek. Open player` })).toBeVisible();
   await expect(page.getByRole("img", { name: "Saved to your library" })).toHaveCount(0);

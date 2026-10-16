@@ -102,8 +102,8 @@ test.describe("link previews", () => {
     const res = await request.get(`/track/${TRACK}`, { headers: { "user-agent": WHATSAPP_UA } });
     expect(res.status()).toBe(200);
     const head = (await res.text()).split("</head>")[0];
-    expect(meta(head, "og:title")).toBe(`${TITLE} · Derek on Mozart`);
-    expect(meta(head, "og:description")).toBe("Listen, then make your own version on Mozart.");
+    expect(meta(head, "og:title")).toBe(`${TITLE} · Derek on Maestro`);
+    expect(meta(head, "og:description")).toBe("Listen, then make your own version on Maestro.");
     expect(meta(head, "og:url")).toBe(URL_);
     expect(meta(head, "og:type")).toBe("music.song");
     expect(meta(head, "twitter:card")).toBe("summary_large_image");
@@ -122,16 +122,16 @@ test.describe("link previews", () => {
 
   test("Facebook's crawler gets the same tags", async ({ request }) => {
     const head = (await (await request.get(`/track/${TRACK}`, { headers: { "user-agent": "facebookexternalhit/1.1" } })).text()).split("</head>")[0];
-    expect(meta(head, "og:title")).toBe(`${TITLE} · Derek on Mozart`);
+    expect(meta(head, "og:title")).toBe(`${TITLE} · Derek on Maestro`);
     expect(meta(head, "og:image")).toBeTruthy();
   });
 
-  test("a missing slug is a 404 with generic Mozart metadata", async ({ request }) => {
+  test("a missing slug is a 404 with generic Maestro metadata", async ({ request }) => {
     const res = await request.get("/track/no-such-track", { headers: { "user-agent": WHATSAPP_UA } });
     expect(res.status()).toBe(404);
     const head = (await res.text()).split("</head>")[0];
-    expect(meta(head, "og:title")).toBe("Mozart");
-    expect(head).not.toContain("Derek on Mozart");
+    expect(meta(head, "og:title")).toBe("Maestro");
+    expect(head).not.toContain("Derek on Maestro");
   });
 
   test("the home page has a default preview image", async ({ request }) => {

@@ -78,7 +78,7 @@ test("the core loop, with two browsers", async ({ browser }) => {
   expect(await audioPaused(page)).toBe(true);
   await page.getByRole("button", { name: "Play" }).click();
   await expect.poll(() => audioPaused(page)).toBe(false);
-  expect((await friend.cookies()).some((c) => c.name === "mozart_anon")).toBe(false);
+  expect((await friend.cookies()).some((c) => c.name === "maestro_anon")).toBe(false);
 
   // …and makes their own: recipient Generating (remix colour, ≥ 3.5 s) → their result.
   await page.getByRole("link", { name: "Remix", exact: true }).click();
@@ -95,8 +95,8 @@ test("the core loop, with two browsers", async ({ browser }) => {
   await expect(page.getByRole("button", { name: "Send to Derek" })).toBeVisible();
   await expect(page.getByText("You", { exact: true })).toBeVisible();
 
-  // 3. They now have an httpOnly mozart_anon, and the row is unowned with that id.
-  const anon = (await friend.cookies()).find((c) => c.name === "mozart_anon");
+  // 3. They now have an httpOnly maestro_anon, and the row is unowned with that id.
+  const anon = (await friend.cookies()).find((c) => c.name === "maestro_anon");
   expect(anon?.httpOnly).toBe(true);
   expect(await trackRow(theirSlug)).toMatchObject({ owner: null, anon: anon!.value });
 
@@ -129,7 +129,7 @@ test("the core loop, with two browsers", async ({ browser }) => {
   await expect(page).toHaveURL("/library");
   await expect(page.locator(`a[href="/track/${theirSlug}"]`)).toHaveAttribute("aria-label", /^Latch × Electronic .*Today$/);
   expect(await trackRow(theirSlug)).toMatchObject({ owner: CANDICE.id, anon: null });
-  expect((await friend.cookies()).some((c) => c.name === "mozart_anon")).toBe(false);
+  expect((await friend.cookies()).some((c) => c.name === "maestro_anon")).toBe(false);
 
   // 7. Derek's library doesn't have it; Derek sees Candice's track as a recipient.
   await derekPage.goto("/library");
@@ -223,7 +223,7 @@ test.describe("edge cases", () => {
     await expect(page.getByRole("button", { name: "Generate cover" })).toBeVisible();
     expect((await (await friend.request.get("/api/me")).json()).user.firstName).toBe("Candice");
     expect(await trackRow(theirSlug)).toMatchObject({ owner: CANDICE.id, anon: null });
-    expect((await friend.cookies()).some((c) => c.name === "mozart_anon")).toBe(false);
+    expect((await friend.cookies()).some((c) => c.name === "maestro_anon")).toBe(false);
 
     // Signed in now: no sheet, and a refresh shows no toast.
     await page.reload();
@@ -256,7 +256,7 @@ test.describe("edge cases", () => {
     const page = await friend.newPage();
     await page.goto(`/track/${DEREK_LATCH.slug}`);
     const theirSlug = await remixFromPlayer(page, "Afrobeats");
-    const anonId = (await friend.cookies()).find((c) => c.name === "mozart_anon")!.value;
+    const anonId = (await friend.cookies()).find((c) => c.name === "maestro_anon")!.value;
     // "Log in" (Derek) also finishes in completeSignIn (the Spotify route goes via Spotify).
     const login = `/auth/dummy?returnTo=${encodeURIComponent(`/track/${theirSlug}?share=1`)}`;
 
@@ -264,14 +264,14 @@ test.describe("edge cases", () => {
     expect(first.headers()["location"]).toBe(`/track/${theirSlug}?share=1&saved=1`);
     // Replay with the same (now cleared) cookie value: nothing more to claim.
     const replay = await browser.newContext();
-    await replay.addCookies([{ name: "mozart_anon", value: anonId, url: BASE_URL }]);
+    await replay.addCookies([{ name: "maestro_anon", value: anonId, url: BASE_URL }]);
     const again = await replay.request.post(login, { maxRedirects: 0 });
     expect(again.headers()["location"]).toBe(`/track/${theirSlug}?share=1`);
     expect(await trackRow(theirSlug)).toMatchObject({ owner: DEREK.id, anon: null });
 
     // A cookie that isn't a UUID is ignored entirely.
     const tampered = await browser.newContext();
-    await tampered.addCookies([{ name: "mozart_anon", value: "not-a-uuid--drop-table-tracks", url: BASE_URL }]);
+    await tampered.addCookies([{ name: "maestro_anon", value: "not-a-uuid--drop-table-tracks", url: BASE_URL }]);
     const t = await tampered.request.post(login, { maxRedirects: 0 });
     expect(t.headers()["location"]).toBe(`/track/${theirSlug}?share=1`);
     await friend.close();
@@ -290,12 +290,12 @@ test.describe("edge cases", () => {
     const page = await friend.newPage();
     await page.goto(`/track/${DEREK_LATCH.slug}`);
     const theirSlug = await remixFromPlayer(page, "K-pop");
-    const anonId = (await friend.cookies()).find((c) => c.name === "mozart_anon")!.value;
+    const anonId = (await friend.cookies()).find((c) => c.name === "maestro_anon")!.value;
 
     // As a crawler (no cookies) …
     const crawler = await browser.newContext();
     const html = await (await crawler.request.get(`/track/${theirSlug}`, { headers: { "user-agent": "WhatsApp/2.23.20.0 A" } })).text();
-    expect(html).toContain("Latch × K-pop · A friend on Mozart");
+    expect(html).toContain("Latch × K-pop · A friend on Maestro");
     expect(html).not.toContain(anonId);
     // … and even as the maker: the cookie value never reaches the page.
     const own = await (await friend.request.get(`/track/${theirSlug}`)).text();

@@ -7,17 +7,17 @@ import { closeDb, deleteSpotifyUser } from "./helpers/db";
 
 // The fake Spotify's "fresh-" user (tests/e2e/helpers/fake-spotify.ts): a
 // brand-new Spotify user with no tracks. Only this spec creates it.
-const FRESH_USER = "mozart-fresh-user";
+const FRESH_USER = "maestro-fresh-user";
 
 test.afterAll(async () => {
   await closeDb();
 });
 
-test("Library has Create's header: Mozart, profile menu, title and track count; Log out works there", async ({ page }) => {
+test("Library has Create's header: Maestro, profile menu, title and track count; Log out works there", async ({ page }) => {
   await page.request.post("/auth/dummy");
   await page.goto("/library");
 
-  await expect(page.getByText("Mozart", { exact: true })).toBeVisible();
+  await expect(page.getByText("Maestro", { exact: true })).toBeVisible();
   const title = page.getByRole("heading", { level: 1, name: "Library" });
   await expect(title).toHaveCSS("font-size", "24px");
   const count = page.getByText(/^\d+ tracks?$/);

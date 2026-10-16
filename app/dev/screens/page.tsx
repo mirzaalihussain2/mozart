@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SCREEN_LIST } from "@/lib/dev/screen-list";
 import { BUILT } from "./registry";
 
-export const metadata = { title: "Screens · Mozart dev" };
+export const metadata = { title: "Screens · Maestro dev" };
 
 export const instant = false;
 

@@ -176,7 +176,7 @@ export function Player(props: PlayerProps) {
         ) : (
           <>
             <Link href="/" className="text-text flex h-11 w-16 items-center text-[15px] font-bold tracking-[0.01em]">
-              Mozart
+              Maestro
             </Link>
             {variant === "recipient" ? (
               <span
