@@ -1,7 +1,7 @@
 import { ProfileMenu } from "./ProfileMenu";
 
 /**
- * Top of the Create and Library tabs (CfHome): the "Mozart" wordmark with the
+ * Top of the Create and Library tabs (CfHome): the "Maestro" wordmark with the
  * profile menu, then the tab's title and subtitle.
  */
 export function TabHeader({
@@ -19,7 +19,7 @@ export function TabHeader({
   return (
     <div className="flex flex-col gap-5 px-5 pt-14">
       <div className="flex items-center justify-between">
-        <div className="text-[22px] font-bold tracking-[-0.01em]">Mozart</div>
+        <div className="text-[22px] font-bold tracking-[-0.01em]">Maestro</div>
         <ProfileMenu initial={initial} avatarUrl={avatarUrl} />
       </div>
       <div className="flex flex-col gap-1.5">

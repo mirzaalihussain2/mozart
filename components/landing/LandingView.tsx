@@ -5,7 +5,7 @@ import { SpotifyIcon } from "@/components/icons/SpotifyIcon";
 export function LandingView() {
   return (
     <main className="relative h-dvh min-h-[680px] overflow-hidden">
-      <div className="absolute top-[60px] left-6 text-2xl leading-[30px] font-bold tracking-[-0.01em]">Mozart</div>
+      <div className="absolute top-[60px] left-6 text-2xl leading-[30px] font-bold tracking-[-0.01em]">Maestro</div>
 
       <StackedArtwork />
 

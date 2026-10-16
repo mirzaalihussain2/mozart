@@ -1,4 +1,4 @@
-# Mozart prototype · Main flow · screen index
+# Maestro prototype · Main flow · screen index
 
 Source of truth for UI and experience. 39 screens, 390 × 844 pt (iPhone-size), rendered at 3× (1170 × 2532 px).
 Each screen: ID (row-column), title, image file, source file, then every tappable element and where it goes.
@@ -197,7 +197,7 @@ Greys: background #121212, surface #202020, raised #2e2e2e, borders #474747. Tex
 
 ### 05-01 · Player · recipient, not signed in
 - Image: `1-main-flow/png/05-01_player-recipient-not-signed-in.png` · Source: `1-main-flow/html-source/CfPlayerTilesR.dc.html` · Rendered HTML: `1-main-flow/html-rendered/05-01_player-recipient-not-signed-in.html`
-- Tap “Mozart” → 01-01 · Landing / Sign in
+- Tap “Maestro” → 01-01 · Landing / Sign in
 - Tap “Save to your library (sign up)” → 06-06 · Send to Ali · sign in with Spotify
 - Tap “Remix” → 05-02 · Remix · …but make it
 - Tap “Cover” → 05-03 · Cover · …sung by
@@ -236,7 +236,7 @@ Greys: background #121212, surface #202020, raised #2e2e2e, borders #474747. Tex
 
 ### 05-07 · Share sheet · recipient
 - Image: `1-main-flow/png/05-07_share-sheet-recipient.png` · Source: `1-main-flow/html-source/CfShareROver.dc.html` · Rendered HTML: `1-main-flow/html-rendered/05-07_share-sheet-recipient.html`
-- Tap “Mozart” → 01-01 · Landing / Sign in
+- Tap “Maestro” → 01-01 · Landing / Sign in
 - Tap “Save to your library (sign up)” → 06-06 · Send to Ali · sign in with Spotify
 - Tap “Remix” → 05-02 · Remix · …but make it
 - Tap “Cover” → 05-03 · Cover · …sung by
@@ -265,7 +265,7 @@ Greys: background #121212, surface #202020, raised #2e2e2e, borders #474747. Tex
 
 ### 06-05 · Player · recipient’s remix, not signed in
 - Image: `1-main-flow/png/06-05_player-recipient-s-remix-not-signed-in.png` · Source: `1-main-flow/html-source/CfPlayerTilesResult.dc.html` · Rendered HTML: `1-main-flow/html-rendered/06-05_player-recipient-s-remix-not-signed-in.html`
-- Tap “Mozart” → 01-01 · Landing / Sign in
+- Tap “Maestro” → 01-01 · Landing / Sign in
 - Tap “Send to Ali” → 06-06 · Send to Ali · sign in with Spotify
 - Tap “Save to your library (sign up)” → 06-06 · Send to Ali · sign in with Spotify
 - Tap “Remix” → 05-02 · Remix · …but make it
@@ -275,7 +275,7 @@ Greys: background #121212, surface #202020, raised #2e2e2e, borders #474747. Tex
 
 ### 06-06 · Send to Ali · sign in with Spotify
 - Image: `1-main-flow/png/06-06_send-to-ali-sign-in-with-spotify.png` · Source: `1-main-flow/html-source/CfSignup.dc.html` · Rendered HTML: `1-main-flow/html-rendered/06-06_send-to-ali-sign-in-with-spotify.html`
-- Tap “Mozart” → 01-01 · Landing / Sign in
+- Tap “Maestro” → 01-01 · Landing / Sign in
 - Tap “Send to Ali” → 06-06 · Send to Ali · sign in with Spotify
 - Tap “Save to your library (sign up)” → 06-06 · Send to Ali · sign in with Spotify
 - Tap “Remix” → 05-02 · Remix · …but make it

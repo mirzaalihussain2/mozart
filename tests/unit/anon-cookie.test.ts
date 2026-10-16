@@ -17,7 +17,7 @@ test("rejects anything else", () => {
 });
 
 test("cookie attributes: httpOnly, Lax, path /, 1 year, Secure only in production", () => {
-  assert.equal(ANON_COOKIE, "mozart_anon");
+  assert.equal(ANON_COOKIE, "maestro_anon");
   assert.deepEqual(anonCookieOptions(true), { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 31_536_000 });
   assert.equal(anonCookieOptions(false).secure, false);
 });

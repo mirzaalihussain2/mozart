@@ -1,6 +1,6 @@
 // The anonymous-recipient cookie (AGENTS.md §3): pure parts, unit-tested.
 
-export const ANON_COOKIE = "mozart_anon";
+export const ANON_COOKIE = "maestro_anon";
 const ONE_YEAR = 60 * 60 * 24 * 365;
 
 /** RFC 4122 v1–v5 UUID, as crypto.randomUUID() makes. */

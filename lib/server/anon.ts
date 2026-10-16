@@ -5,7 +5,7 @@ import { ANON_COOKIE, anonCookieOptions, isUuid } from "../anon-cookie";
 import { db } from "./db";
 import { tracks } from "./db/schema";
 
-// Anonymous recipients (AGENTS.md §3): a random UUID in `mozart_anon`, set only
+// Anonymous recipients (AGENTS.md §3): a random UUID in `maestro_anon`, set only
 // when a signed-out visitor makes their first track (POST /api/generate).
 
 /** This browser's anonymous id, or null. Anything that isn't a UUID is ignored. */

@@ -1,4 +1,4 @@
-// Spotify Web API responses: only the fields Mozart reads (checked against
+// Spotify Web API responses: only the fields Maestro reads (checked against
 // docs/fixtures/spotify/). Development Mode returns no genres or popularity.
 
 export type SpotifyImage = { url: string; width: number | null; height: number | null };

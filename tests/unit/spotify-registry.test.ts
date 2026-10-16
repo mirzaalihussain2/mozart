@@ -12,11 +12,11 @@ import { sealOAuthState, unsealOAuthState } from "../../lib/server/spotify/oauth
 
 const SECRET = "x".repeat(40);
 
-test("getSpotifyApp returns config for registered apps and defaults to mozart", () => {
-  const mozart = getSpotifyApp("mozart");
-  assert.equal(mozart.key, "mozart");
-  assert.equal(mozart.name, "Mozart");
-  assert.equal(mozart.productionDomain, "maestro-mozart.vercel.app");
+test("getSpotifyApp returns config for registered apps and defaults to maestro", () => {
+  const maestro = getSpotifyApp("maestro");
+  assert.equal(maestro.key, "maestro");
+  assert.equal(maestro.name, "Maestro");
+  assert.equal(maestro.productionDomain, "maestro-mozart.vercel.app");
 
   const podbro = getSpotifyApp("podbro");
   assert.equal(podbro.key, "podbro");
@@ -24,7 +24,7 @@ test("getSpotifyApp returns config for registered apps and defaults to mozart", 
   assert.equal(podbro.productionDomain, "podbro-beethoven.vercel.app");
 
   const fallback = getSpotifyApp("unknown" as unknown as string);
-  assert.equal(fallback.key, "mozart");
+  assert.equal(fallback.key, "maestro");
 });
 
 test("getSpotifyAppByHost matches production domains", () => {
@@ -33,8 +33,8 @@ test("getSpotifyAppByHost matches production domains", () => {
   assert.equal(getSpotifyAppByHost("audiobro-vivaldi.vercel.app").key, "audiobro");
   assert.equal(getSpotifyAppByHost("mediamatch-bach.vercel.app").key, "mediamatch");
   assert.equal(getSpotifyAppByHost("podbash-wagner.vercel.app").key, "podbash");
-  assert.equal(getSpotifyAppByHost("unknown-domain.com").key, "mozart");
-  assert.equal(getSpotifyAppByHost(null).key, "mozart");
+  assert.equal(getSpotifyAppByHost("unknown-domain.com").key, "maestro");
+  assert.equal(getSpotifyAppByHost(null).key, "maestro");
 });
 
 test("resolveSpotifyApp respects priority (query > cookie > host > default)", () => {
@@ -52,7 +52,7 @@ test("resolveSpotifyApp respects priority (query > cookie > host > default)", ()
   );
   assert.equal(
     resolveSpotifyApp({ host: "localhost:3000" }).key,
-    "mozart",
+    "maestro",
   );
 });
 
@@ -123,7 +123,7 @@ test("listSpotifyApps lists all 6 apps without leaking secrets", () => {
   assert.equal(list.length, 6);
   assert.deepEqual(
     list.map((a) => a.key),
-    ["mozart", "mediamatch", "musicmundays", "podbro", "audiobro", "podbash"],
+    ["maestro", "mediamatch", "musicmundays", "podbro", "audiobro", "podbash"],
   );
   for (const item of list) {
     assert.ok(!("clientSecret" in item));

@@ -58,7 +58,7 @@ test("first names and the profile", () => {
   assert.equal(firstNameFrom("   "), "Friend");
   assert.equal(firstNameFrom(null), "Friend");
   assert.deepEqual(mapProfile(me), {
-    spotifyUserId: "mozart-fixture-user",
+    spotifyUserId: "maestro-fixture-user",
     displayName: "ali",
     firstName: "Ali",
     avatarUrl: "https://i.scdn.co/image/fixture-avatar-300",

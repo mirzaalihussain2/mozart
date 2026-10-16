@@ -10,7 +10,7 @@ import { users, type User } from "./db/schema";
 
 export type SessionData = { userId?: string };
 
-const SESSION_COOKIE = "mozart_session";
+const SESSION_COOKIE = "maestro_session";
 const THIRTY_DAYS = 60 * 60 * 24 * 30;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

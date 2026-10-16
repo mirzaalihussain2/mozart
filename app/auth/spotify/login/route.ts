@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   const returnTo = safeReturnTo(request.nextUrl.searchParams.get("returnTo"));
   const queryApp = request.nextUrl.searchParams.get("app");
   const cookieStore = await cookies();
-  const cookieApp = request.cookies.get("mozart_invite_app")?.value ?? cookieStore.get("mozart_invite_app")?.value;
+  const cookieApp = request.cookies.get("maestro_invite_app")?.value ?? cookieStore.get("maestro_invite_app")?.value;
   const host = request.headers.get("host");
 
   const app = resolveSpotifyApp({ queryApp, cookieApp, host });

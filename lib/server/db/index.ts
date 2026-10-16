@@ -8,19 +8,19 @@ import * as schema from "./schema";
 // statements.
 
 const globalForDb = globalThis as unknown as {
-  mozartSql?: postgres.Sql;
-  mozartDb?: PostgresJsDatabase<typeof schema>;
+  maestroSql?: postgres.Sql;
+  maestroDb?: PostgresJsDatabase<typeof schema>;
 };
 
 function connect(): PostgresJsDatabase<typeof schema> {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL is not set");
-  const sql = globalForDb.mozartSql ?? postgres(url, { prepare: false });
-  globalForDb.mozartSql = sql;
+  const sql = globalForDb.maestroSql ?? postgres(url, { prepare: false });
+  globalForDb.maestroSql = sql;
   return drizzle(sql, { schema });
 }
 
-export const db = globalForDb.mozartDb ?? connect();
-if (process.env.NODE_ENV !== "production") globalForDb.mozartDb = db;
+export const db = globalForDb.maestroDb ?? connect();
+if (process.env.NODE_ENV !== "production") globalForDb.maestroDb = db;
 
 export { schema };

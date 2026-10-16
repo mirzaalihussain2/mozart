@@ -13,15 +13,15 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   // Env-only (APP_URL → VERCEL_URL), so the layout never waits on a request.
   metadataBase: new URL(getEnvAppUrl()),
-  title: "Mozart",
+  title: "Maestro",
   description: "Make music from what you already love.",
   openGraph: {
     type: "website",
-    siteName: "Mozart",
-    title: "Mozart",
+    siteName: "Maestro",
+    title: "Maestro",
     description: "Make music from what you already love.",
   },
-  twitter: { card: "summary_large_image", title: "Mozart", description: "Make music from what you already love." },
+  twitter: { card: "summary_large_image", title: "Maestro", description: "Make music from what you already love." },
 };
 
 export const viewport: Viewport = {

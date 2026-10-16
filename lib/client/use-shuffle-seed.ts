@@ -10,9 +10,9 @@ import { newSeed } from "@/lib/shuffle";
 // a new entry: they set a one-shot flag (markPickerReturn) and the picker
 // reuses the last seed it showed in this tab.
 
-const LAST = "mozart:picker-seed:";
-const RETURN = "mozart:picker-return";
-const CHANGED = "mozart:shuffle-seed";
+const LAST = "maestro:picker-seed:";
+const RETURN = "maestro:picker-return";
+const CHANGED = "maestro:shuffle-seed";
 
 function storage(): Storage | null {
   try {

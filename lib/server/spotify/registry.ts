@@ -2,7 +2,7 @@ import "server-only";
 import { getAppUrl } from "../app-url";
 
 export type SpotifyAppKey =
-  | "mozart"
+  | "maestro"
   | "mediamatch"
   | "musicmundays"
   | "podbro"
@@ -18,8 +18,8 @@ export interface SpotifyAppConfig {
 }
 
 export const SPOTIFY_APPS: Record<SpotifyAppKey, { name: string; productionDomain: string }> = {
-  mozart: {
-    name: "Mozart",
+  maestro: {
+    name: "Maestro",
     productionDomain: "maestro-mozart.vercel.app",
   },
   mediamatch: {
@@ -44,7 +44,7 @@ export const SPOTIFY_APPS: Record<SpotifyAppKey, { name: string; productionDomai
   },
 };
 
-export const DEFAULT_SPOTIFY_APP_KEY: SpotifyAppKey = "mozart";
+export const DEFAULT_SPOTIFY_APP_KEY: SpotifyAppKey = "maestro";
 
 export function isSpotifyAppKey(value: unknown): value is SpotifyAppKey {
   return typeof value === "string" && value in SPOTIFY_APPS;
@@ -52,7 +52,7 @@ export function isSpotifyAppKey(value: unknown): value is SpotifyAppKey {
 
 export function getSpotifyAppCredentials(key: SpotifyAppKey): { clientId: string | null; clientSecret: string | null } {
   switch (key) {
-    case "mozart":
+    case "maestro":
       return {
         clientId:
           process.env.SPOTIFY_CLIENT_1_MOZART ||

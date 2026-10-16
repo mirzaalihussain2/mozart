@@ -24,7 +24,7 @@ function cookie(header: string | undefined, name: string): string | null {
 // A "fresh-" prefix on the scenario cookie (e.g. "fresh-ok") signs in a second
 // Spotify user with no tracks instead of the fixture user. It rides along in
 // the code and the access token like the scenario.
-const FRESH_USER = "mozart-fresh-user";
+const FRESH_USER = "maestro-fresh-user";
 const FRESH = "fresh-";
 const freshOf = (value: string | null | undefined) => (value?.includes(FRESH) ? FRESH : "");
 const freshMe = () => ({ ...JSON.parse(fixture("me")), id: FRESH_USER, display_name: "Fresh", images: [] });

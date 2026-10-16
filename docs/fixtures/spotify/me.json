@@ -7,14 +7,14 @@
     "filter_locked": false
   },
   "external_urls": {
-    "spotify": "https://open.spotify.com/user/mozart-fixture-user"
+    "spotify": "https://open.spotify.com/user/maestro-fixture-user"
   },
   "followers": {
     "href": null,
     "total": 0
   },
-  "href": "https://api.spotify.com/v1/users/mozart-fixture-user",
-  "id": "mozart-fixture-user",
+  "href": "https://api.spotify.com/v1/users/maestro-fixture-user",
+  "id": "maestro-fixture-user",
   "images": [
     {
       "height": 300,
@@ -29,5 +29,5 @@
   ],
   "product": "premium",
   "type": "user",
-  "uri": "spotify:user:mozart-fixture-user"
+  "uri": "spotify:user:maestro-fixture-user"
 }

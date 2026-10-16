@@ -2,10 +2,10 @@ import "server-only";
 import { cookies } from "next/headers";
 import { OAUTH_TTL_SECONDS, sealOAuthState, unsealOAuthState, type OAuthState } from "./oauth-state";
 
-// `mozart_oauth`: { state, verifier, returnTo }, sealed with SESSION_SECRET.
+// `maestro_oauth`: { state, verifier, returnTo }, sealed with SESSION_SECRET.
 // httpOnly, Secure in production, Lax, path /auth/spotify, 10 minutes.
 
-const NAME = "mozart_oauth";
+const NAME = "maestro_oauth";
 const PATH = "/auth/spotify";
 
 function password(): string {

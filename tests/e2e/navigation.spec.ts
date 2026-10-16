@@ -172,7 +172,7 @@ test.describe("signed out", () => {
     await page.getByRole("button", { name: "Save to your library (sign up)" }).click();
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    await page.getByRole("link", { name: "Mozart" }).click();
+    await page.getByRole("link", { name: "Maestro" }).click();
     await expect(page).toHaveURL("/");
   });
 

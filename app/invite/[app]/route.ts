@@ -14,7 +14,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const cleanApp = app.toLowerCase();
   if (isSpotifyAppKey(cleanApp)) {
-    response.cookies.set("mozart_invite_app", cleanApp, {
+    response.cookies.set("maestro_invite_app", cleanApp, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
