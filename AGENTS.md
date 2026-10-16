@@ -98,7 +98,7 @@ A task is **done** only when every check in step 4 passes, progress is recorded,
 - **Feedback:** fix on the same branch with new commits and push. Don't open a new PR.
 - **Never:** push to or commit on `main`; merge a PR before I've explicitly approved it; force-push or rewrite pushed history (`--force`, `rebase` of pushed commits, `reset --hard` on shared work); delete branches; commit `.env*.local`, secrets, `.shots/`, or anyone's personal data.
 - **Migrations:** commit the generated migration files with the schema change. Never edit a migration that has already run; add a new one.
-- **Worktrees:** only if I ask for two agents to work at the same time. Then each works in its own worktree (`git worktree add ../mozart-<branch> -b <branch> main`) on its own branch, with its own dev-server port.
+- **Worktrees:** only if I ask for two agents to work at the same time. Then each works in its own worktree (`git worktree add ../maestro-<branch> -b <branch> main`) on its own branch, with its own dev-server port.
 - If there's no `origin` remote or `gh` isn't signed in, stop and ask me; don't create repos or change remotes yourself.
 
 ## 7. Code conventions

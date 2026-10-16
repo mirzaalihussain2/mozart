@@ -1,6 +1,6 @@
 # Maestro
 
-**Production:** https://mozart-iota.vercel.app
+**Production:** https://maestro-mozart.vercel.app
 
 Maestro v1 is a mobile-first web prototype for making songs from music you already love, sharing them by link, and getting friends to make their own version.
 
@@ -46,7 +46,7 @@ All server-only; none is `NEXT_PUBLIC_`. `.env.example` has the details.
 | `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` | No | Real Spotify sign-in. Without them (and on previews), "Connect Spotify" silently signs in a demo user |
 | `DATABASE_URL_MIGRATE` | No | Direct URL (port 5432) for `pnpm db:migrate` if the pooler hangs |
 
-In the Spotify dashboard, register `http://127.0.0.1:3000/auth/spotify/callback` and `https://mozart-iota.vercel.app/auth/spotify/callback`. Development Mode allows 5 allowlisted users; anyone else (or any Spotify failure) silently becomes a demo user.
+In the Spotify dashboard, register `http://127.0.0.1:3000/auth/spotify/callback` and `https://maestro-mozart.vercel.app/auth/spotify/callback`. Development Mode allows 5 allowlisted users; anyone else (or any Spotify failure) silently becomes a demo user.
 
 ## Test it
 
@@ -68,8 +68,8 @@ Every local port can be changed, so several worktrees can run side by side (AGEN
 | `FAKE_SPOTIFY_PORT` | 4545 | the fake Spotify used by `pnpm test:e2e` |
 
 ```bash
-git worktree add ../mozart-m9-foo -b m9-foo main
-cp .env.local ../mozart-m9-foo/ && cd ../mozart-m9-foo && pnpm i
+git worktree add ../maestro-m9-foo -b m9-foo main
+cp .env.local ../maestro-m9-foo/ && cd ../maestro-m9-foo && pnpm i
 APP_URL=http://127.0.0.1:3010 pnpm exec next dev -H 127.0.0.1 -p 3010
 PORT=3010 pnpm shots 07-01 && pnpm shots:diff 07-01
 E2E_PORT=3011 FAKE_SPOTIFY_PORT=4555 pnpm test:e2e

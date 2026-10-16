@@ -4,7 +4,7 @@ Read `AGENTS.md` first (rules, stack, design system, git workflow). This page is
 
 ## Status
 
-**v1 is complete.** Milestones 1–7 are merged (PRs #1–#7); M8 closes off v1 (PR #9). It's live at **https://mozart-iota.vercel.app**. The production check passed: the full loop works, including real Spotify sign-in and the WhatsApp preview.
+**v1 is complete.** Milestones 1–7 are merged (PRs #1–#7); M8 closes off v1 (PR #9). It's live at **https://maestro-mozart.vercel.app**. The production check passed: the full loop works, including real Spotify sign-in and the WhatsApp preview.
 
 **M9 (personal touches) is in progress.** Merged so far:
 - real Spotify artwork in the pickers (#10);
@@ -117,7 +117,7 @@ pnpm shots [id] && pnpm shots:diff [id]                  # capture /dev/screens/
 ## Environment
 
 - **`.env.local`:** `DATABASE_URL` (Supabase pooler :6543), `SESSION_SECRET`, `APP_URL=http://127.0.0.1:3000`, `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET`. Local and production share **one** database.
-- **Vercel:** `DATABASE_URL`, `SESSION_SECRET` and the Spotify credentials (Production + Preview); `APP_URL=https://mozart-iota.vercel.app` (Production only). Both Spotify redirect URIs are registered. Previews sit behind Vercel's login, so WhatsApp can't unfurl them: test previews on production.
+- **Vercel:** `DATABASE_URL`, `SESSION_SECRET` and the Spotify credentials (Production + Preview); `APP_URL=https://maestro-mozart.vercel.app` (Production only). Both Spotify redirect URIs are registered. Previews sit behind Vercel's login, so WhatsApp can't unfurl them: test previews on production.
 - **Data (9 Oct 2026):** three users — Derek and Candice (6 starter tracks each, reset on every sign-in) and Ali's real Spotify account `hussa1995` (never delete it or its tracks, and never delete any Spotify user's tracks) — plus 2 old unowned anonymous tracks (`fw3is4qnrm`, `97j5arat4e`) whose source tracks were deleted. The old dummy Ali and Sam, their seed and test tracks were deleted with Ali's OK.
 
 ## Known gaps (v1)
